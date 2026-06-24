@@ -85,7 +85,9 @@ const ZZAuth = (() => {
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.location.replace(_projectRoot() + '../../index.html');
+    /* index.html está na raiz — redireciona para '/' */
+    const root = _projectRoot();
+    window.location.replace(root.endsWith('/') ? root : root + '/');
   }
 
   // ── Fetch helper (injeta Authorization header automaticamente) ──────────────
@@ -154,7 +156,7 @@ const ZZAuth = (() => {
 
   function requireAdmin() {
     if (!isLoggedIn()) { window.location.replace(_projectRoot() + 'src/pages/login.html'); return; }
-    if (!isAdmin())    { window.location.replace(_projectRoot() + 'index.html'); }
+    if (!isAdmin())    { const r = _projectRoot(); window.location.replace(r.endsWith('/') ? r : r + '/'); }
   }
 
   /* Permite entrada de admin E moderadores com qualquer permissão */
