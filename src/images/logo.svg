@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 36" fill="none">
+  <!-- Substitua este arquivo pela logo real da marca -->
+
+  <!-- Badge ZZ -->
+  <rect x="0" y="3" width="30" height="30" rx="2" fill="#DC143C"/>
+  <text x="15" y="23"
+    text-anchor="middle"
+    font-family="Arial Black, Helvetica Neue, sans-serif"
+    font-size="13" font-weight="900"
+    fill="#FFFFFF">ZZ</text>
+
+  <!-- Wordmark -->
+  <text x="40" y="27"
+    font-family="Arial Black, Helvetica Neue, sans-serif"
+    font-size="21" font-weight="900">
+    <tspan fill="#FFFFFF">ZENITH </tspan><tspan fill="#DC143C">ZONE</tspan>
+  </text>
+</svg>

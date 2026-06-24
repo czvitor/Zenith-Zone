@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identidade Visual — Cores · Zenith Zone</title>
+  <!-- Fonte única de verdade para todos os tokens da marca -->
+  <link rel="stylesheet" href="../css/tokens.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--color-bg-base);
+      color: var(--color-offwhite);
+      font-family: var(--font-body);
+      padding: 0 5% 6rem;
+    }
+
+    /* ── HEADER ── */
+    .page-header {
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--color-red-border);
+      margin-bottom: 4rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-logo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .page-logo-img {
+      height: 26px;
+      width: auto;
+      display: block;
+    }
+    .page-logo small {
+      display: block;
+      font-size: var(--text-2xs);
+      font-family: var(--font-body);
+      font-weight: var(--fw-regular);
+      letter-spacing: var(--tracking-jp);
+      color: var(--color-text-faint);
+    }
+    .page-title {
+      font-family: var(--font-head);
+      font-weight: var(--fw-black);
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-normal);
+      color: var(--color-white);
+    }
+    .page-title span { color: var(--color-red); }
+
+    /* ── SECTION ── */
+    .color-section { margin-bottom: 4rem; }
+    .section-label {
+      font-size: var(--text-2xs);
+      font-weight: var(--fw-bold);
+      letter-spacing: var(--tracking-jp);
+      text-transform: uppercase;
+      color: var(--color-red);
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── SWATCHES GRID ── */
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .swatches-wide {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .swatch {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .swatch-color {
+      height: 120px;
+      position: relative;
+    }
+    .swatch-color.large { height: 180px; }
+
+    .swatch-info {
+      background: var(--color-bg-card);
+      padding: 1rem 1.2rem 1.2rem;
+    }
+
+    .swatch-name {
+      font-family: var(--font-head);
+      font-weight: var(--fw-black);
+      font-size: var(--text-base);
+      letter-spacing: var(--tracking-normal);
+      text-transform: uppercase;
+      color: var(--color-white);
+      margin-bottom: 0.3rem;
+    }
+
+    .swatch-hex {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-xs);
+      color: var(--color-red);
+      margin-bottom: 0.5rem;
+    }
+
+    .swatch-var {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-2xs);
+      color: var(--color-text-faint);
+      margin-bottom: 0.6rem;
+    }
+
+    .swatch-role {
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    .swatch-pct {
+      display: inline-block;
+      background: var(--color-red);
+      color: var(--color-white);
+      font-size: var(--text-2xs);
+      font-weight: var(--fw-bold);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-xs);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── ALPHA GRID ── */
+    .alpha-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.8rem;
+    }
+    .alpha-swatch {
+      border-radius: var(--radius-xs);
+      overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+    }
+    .alpha-color {
+      height: 60px;
+      background: var(--color-bg-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .alpha-layer {
+      position: absolute;
+      inset: 0;
+    }
+    .alpha-info {
+      background: var(--color-bg-card);
+      padding: 0.6rem 0.8rem;
+    }
+    .alpha-var {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-2xs);
+      color: var(--color-red);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+    .alpha-val {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-2xs);
+      color: var(--color-text-faint);
+    }
+
+    /* ── RGB TABLE ── */
+    .token-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--text-xs);
+    }
+    .token-table th {
+      font-family: var(--font-head);
+      font-size: var(--text-2xs);
+      font-weight: var(--fw-black);
+      letter-spacing: var(--tracking-wider);
+      text-transform: uppercase;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      background: var(--color-bg-card);
+      color: var(--color-red);
+      border-bottom: 1px solid var(--color-red-border);
+    }
+    .token-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--color-border-faint);
+      vertical-align: middle;
+    }
+    .token-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: var(--color-red);
+    }
+    .token-table td:nth-child(2) {
+      font-family: 'Courier New', monospace;
+      color: var(--color-offwhite);
+    }
+    .token-table td:nth-child(3) { color: var(--color-text-muted); }
+    .token-table .dot {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .token-table tr:hover td { background: rgba(var(--rgb-red), 0.04); }
+
+    /* ── NAV BACK ── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--text-xs);
+      font-weight: var(--fw-bold);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+      color: var(--color-text-faint);
+      text-decoration: none;
+      margin-top: 4rem;
+      transition: color var(--ease-fast);
+    }
+    .back-link:hover { color: var(--color-red); }
+
+    /* ── DIVIDER ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--color-border-subtle);
+      margin: 3rem 0;
+    }
+
+    /* ── TABLE SCROLL ── */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll::-webkit-scrollbar { height: 3px; }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: rgba(220, 20, 60, 0.3);
+      border-radius: 2px;
+    }
+    .table-scroll .token-table { min-width: 540px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      body { padding-bottom: 4rem; }
+      .page-header { padding: 2.5rem 0 2rem; margin-bottom: 2.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0 4% 3rem; }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="page-logo">
+      <img src="../images/logo%20curta%20ZZ%20(transparente).png" alt="ZENITH ZONE" class="page-logo-img">
+      <small>ゼニス・ゾーン — IDENTIDADE VISUAL</small>
+    </div>
+    <h1 class="page-title">Paleta de <span>Cores</span></h1>
+  </header>
+
+
+  <!-- CORES PRIMÁRIAS -->
+  <section class="color-section">
+    <p class="section-label">01 — Cores Primárias</p>
+    <div class="swatches">
+
+      <div class="swatch">
+        <div class="swatch-color large" style="background: var(--color-navy);"></div>
+        <div class="swatch-info">
+          <span class="swatch-pct">40%</span>
+          <p class="swatch-name">Midnight Indigo</p>
+          <p class="swatch-hex">#07091A</p>
+          <p class="swatch-var">--color-navy</p>
+          <p class="swatch-role">Cor principal da marca. Luxo noturno, profundidade premium e Tokyo à meia-noite.</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color large" style="background: var(--color-red);"></div>
+        <div class="swatch-info">
+          <span class="swatch-pct">35%</span>
+          <p class="swatch-name">Crimson Red</p>
+          <p class="swatch-hex">#DC143C</p>
+          <p class="swatch-var">--color-red</p>
+          <p class="swatch-role">Energia competitiva. CTAs, badges, destaques e ações.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- CORES SECUNDÁRIAS -->
+  <section class="color-section">
+    <p class="section-label">02 — Cores Secundárias</p>
+    <div class="swatches">
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-offwhite);"></div>
+        <div class="swatch-info">
+          <span class="swatch-pct">15%</span>
+          <p class="swatch-name">Warm Ivory</p>
+          <p class="swatch-hex">#F5F0E6</p>
+          <p class="swatch-var">--color-offwhite</p>
+          <p class="swatch-role">Vintage e autenticidade. Textos principais, contraste suave e quente.</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-pink);"></div>
+        <div class="swatch-info">
+          <span class="swatch-pct">10%</span>
+          <p class="swatch-name">Electric Sakura</p>
+          <p class="swatch-hex">#FF1B6B</p>
+          <p class="swatch-var">--color-pink</p>
+          <p class="swatch-role">Neon de Shibuya. Labels japoneses, glows e acentos disruptivos.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- BACKGROUNDS -->
+  <section class="color-section">
+    <p class="section-label">03 — Backgrounds</p>
+    <div class="swatches-wide">
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-bg-footer);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">Footer</p>
+          <p class="swatch-hex">#040610</p>
+          <p class="swatch-var">--color-bg-footer</p>
+          <p class="swatch-role">Mais escuro. Footer e fundos profundos.</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-bg-base); border: 1px solid rgba(255,255,255,0.06);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">Base</p>
+          <p class="swatch-hex">#07091A</p>
+          <p class="swatch-var">--color-bg-base</p>
+          <p class="swatch-role">Fundo padrão do site (= midnight indigo).</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-bg-mid);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">Mid</p>
+          <p class="swatch-hex">#0A0D22</p>
+          <p class="swatch-var">--color-bg-mid</p>
+          <p class="swatch-role">Seções alternadas (DNA, Premium).</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-bg-card);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">Card</p>
+          <p class="swatch-hex">#0E1230</p>
+          <p class="swatch-var">--color-bg-card</p>
+          <p class="swatch-role">Cards, surfaces elevadas, tabelas.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- CORES DE ESTADO -->
+  <section class="color-section">
+    <p class="section-label">04 — Estado e Interação</p>
+    <div class="swatches">
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-red-dark);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">Red Dark</p>
+          <p class="swatch-hex">#A50E2D</p>
+          <p class="swatch-var">--color-red-dark</p>
+          <p class="swatch-role">Hover e pressed state do Crimson Red.</p>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background: var(--color-white);"></div>
+        <div class="swatch-info">
+          <p class="swatch-name">White</p>
+          <p class="swatch-hex">#FFFFFF</p>
+          <p class="swatch-var">--color-white</p>
+          <p class="swatch-role">Textos em fundos coloridos (red, navy-card).</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- TRANSPARÊNCIAS -->
+  <section class="color-section">
+    <p class="section-label">05 — Transparências (uso: rgba(var(--rgb-*), alfa))</p>
+    <div class="alpha-grid">
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-navy-nav);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-navy-nav</span>
+          <span class="alpha-val">navy / 92%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-red-subtle);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-red-subtle</span>
+          <span class="alpha-val">red / 12%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-red-border);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-red-border</span>
+          <span class="alpha-val">red / 15%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-text-muted);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-text-muted</span>
+          <span class="alpha-val">offwhite / 55%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-text-dim);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-text-dim</span>
+          <span class="alpha-val">offwhite / 45%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-text-faint);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-text-faint</span>
+          <span class="alpha-val">offwhite / 35%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-text-ghost);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-text-ghost</span>
+          <span class="alpha-val">offwhite / 25%</span>
+        </div>
+      </div>
+
+      <div class="alpha-swatch">
+        <div class="alpha-color">
+          <div class="alpha-layer" style="background: var(--color-border-subtle);"></div>
+        </div>
+        <div class="alpha-info">
+          <span class="alpha-var">--color-border-subtle</span>
+          <span class="alpha-val">offwhite / 8%</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- TABELA DE REFERÊNCIA COMPLETA -->
+  <section class="color-section">
+    <p class="section-label">06 — Tabela de Referência Completa</p>
+    <div class="table-scroll">
+    <table class="token-table">
+      <thead>
+        <tr>
+          <th>Variável CSS</th>
+          <th>Valor</th>
+          <th>Uso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>--color-navy</td>        <td><span class="dot" style="background:#07091A"></span>#07091A</td><td>Cor primária / fundo base (Midnight Indigo)</td></tr>
+        <tr><td>--color-red</td>         <td><span class="dot" style="background:#DC143C"></span>#DC143C</td><td>Cor primária / ação</td></tr>
+        <tr><td>--color-offwhite</td>    <td><span class="dot" style="background:#F5F0E6"></span>#F5F0E6</td><td>Texto principal (Warm Ivory)</td></tr>
+        <tr><td>--color-pink</td>        <td><span class="dot" style="background:#FF1B6B"></span>#FF1B6B</td><td>Labels japoneses / neon Shibuya (Electric Sakura)</td></tr>
+        <tr><td>--color-red-dark</td>    <td><span class="dot" style="background:#A50E2D"></span>#A50E2D</td><td>Hover do red</td></tr>
+        <tr><td>--color-white</td>       <td><span class="dot" style="background:#FFFFFF;border:1px solid #333"></span>#FFFFFF</td><td>Texto em fundos escuros</td></tr>
+        <tr><td>--color-bg-base</td>     <td><span class="dot" style="background:#07091A"></span>#07091A</td><td>Background principal</td></tr>
+        <tr><td>--color-bg-mid</td>      <td><span class="dot" style="background:#0A0D22"></span>#0A0D22</td><td>Background seções alt.</td></tr>
+        <tr><td>--color-bg-card</td>     <td><span class="dot" style="background:#0E1230"></span>#0E1230</td><td>Cards e surfaces</td></tr>
+        <tr><td>--color-bg-footer</td>   <td><span class="dot" style="background:#040610"></span>#040610</td><td>Footer</td></tr>
+        <tr><td>--color-navy-nav</td>    <td>midnight / 95%</td>  <td>Navbar backdrop</td></tr>
+        <tr><td>--color-red-subtle</td>  <td>red / 14%</td>       <td>Glow de fundo, gradientes</td></tr>
+        <tr><td>--color-red-border</td>  <td>red / 18%</td>       <td>Borda padrão de cards</td></tr>
+        <tr><td>--color-text-muted</td>  <td>ivory / 60%</td>     <td>Textos secundários</td></tr>
+        <tr><td>--color-text-dim</td>    <td>ivory / 48%</td>     <td>Textos terciários</td></tr>
+        <tr><td>--color-text-faint</td>  <td>ivory / 38%</td>     <td>Textos desabilitados</td></tr>
+        <tr><td>--color-text-ghost</td>  <td>ivory / 28%</td>     <td>Bordas de outline</td></tr>
+        <tr><td>--color-border-subtle</td><td>ivory / 9%</td>     <td>Bordas sutis de cards DNA</td></tr>
+        <tr><td>--color-border-faint</td><td>ivory / 7%</td>      <td>Divisores de tabela</td></tr>
+        <tr><td>--rgb-navy</td>          <td>7, 9, 26</td>        <td>Para rgba() dinâmico</td></tr>
+        <tr><td>--rgb-red</td>           <td>220, 20, 60</td>     <td>Para rgba() dinâmico</td></tr>
+        <tr><td>--rgb-offwhite</td>      <td>245, 240, 230</td>   <td>Para rgba() dinâmico</td></tr>
+        <tr><td>--rgb-pink</td>          <td>255, 27, 107</td>    <td>Para rgba() dinâmico</td></tr>
+        <tr><td>--rgb-white</td>         <td>255, 255, 255</td>   <td>Para rgba() dinâmico</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <a href="../index.html" class="back-link">← Voltar ao site</a>
+
+</body>
+</html>

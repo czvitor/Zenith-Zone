@@ -1,0 +1,143 @@
+/* ==========================================================
+   ZENITH ZONE — DESIGN TOKENS
+   Fonte única de verdade para cores, tipografia e espaçamento.
+   Importe este arquivo em qualquer página que precise usar
+   as variáveis da marca.
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+:root {
+
+  /* ── RGB CHANNELS (para composição com rgba()) ─────────── */
+  --rgb-navy:     7, 9, 26;
+  --rgb-red:      220, 20, 60;
+  --rgb-offwhite: 245, 240, 230;
+  --rgb-pink:     255, 27, 107;
+  --rgb-white:    255, 255, 255;
+
+
+  /* ── CORES PRIMÁRIAS ────────────────────────────────────── */
+  /* Stadium Palette Split — Brandbook V2.0 */
+
+  --color-navy:    #07091A;   /* Midnight Indigo  — 40% — Autoridade   */
+  --color-red:     #DC143C;   /* Crimson Red      — 35% — Competição   */
+
+
+  /* ── CORES SECUNDÁRIAS ──────────────────────────────────── */
+
+  --color-offwhite: #F5F0E6;  /* Warm Ivory       — 15% — Vintage      */
+  --color-pink:     #FF1B6B;  /* Electric Sakura  — 10% — Shibuya Neon */
+
+
+  /* ── CORES DE ESTADO ────────────────────────────────────── */
+
+  --color-red-dark: #A50E2D;  /* Hover / pressed — derivado do red */
+  --color-white:    #FFFFFF;
+
+
+  /* ── BACKGROUNDS ────────────────────────────────────────── */
+
+  --color-bg-base:   #07091A; /* Fundo principal (= midnight indigo)    */
+  --color-bg-mid:    #0A0D22; /* Seções alternadas                      */
+  --color-bg-card:   #0E1230; /* Cards e superfícies elevadas           */
+  --color-bg-footer: #040610; /* Footer — mais escuro que o midnight    */
+
+
+  /* ── TRANSPARÊNCIAS PRÉ-DEFINIDAS ───────────────────────── */
+  /* Uso: rgba(var(--rgb-red), 0.5) para qualquer opacidade   */
+
+  --color-navy-nav:    rgba(7,  9,  26,  0.95); /* navbar backdrop  */
+  --color-navy-card:   rgba(7,  9,  26,  0.65); /* DNA card overlay */
+
+  --color-red-glow:    rgba(220, 20, 60, 0.10); /* grid lines / glow */
+  --color-red-subtle:  rgba(220, 20, 60, 0.14); /* bg radial hero    */
+  --color-red-border:  rgba(220, 20, 60, 0.18); /* borda padrão      */
+  --color-red-border-hover: rgba(220, 20, 60, 0.55);
+  --color-red-icon-bg: rgba(220, 20, 60, 0.12); /* icon bg           */
+  --color-red-icon-border: rgba(220, 20, 60, 0.30);
+
+  --color-text-muted:  rgba(245, 240, 230, 0.60);
+  --color-text-dim:    rgba(245, 240, 230, 0.48);
+  --color-text-faint:  rgba(245, 240, 230, 0.38);
+  --color-text-ghost:  rgba(245, 240, 230, 0.28);
+
+  --color-border-subtle: rgba(245, 240, 230, 0.09);
+  --color-border-faint:  rgba(245, 240, 230, 0.07);
+
+
+  /* ── TIPOGRAFIA: FAMÍLIAS ───────────────────────────────── */
+  /* Druk Wide Bold (comercial) → substituído por Barlow Condensed */
+
+  --font-head: 'Barlow Condensed', sans-serif; /* titulos, display  */
+  --font-body: 'Zen Kaku Gothic New', sans-serif; /* corpo, UI      */
+
+
+  /* ── TIPOGRAFIA: PESOS ──────────────────────────────────── */
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+  --fw-black:   900;
+
+
+  /* ── TIPOGRAFIA: ESCALA DE TAMANHOS ─────────────────────── */
+
+  --text-2xs:  0.65rem;   /*  ~10.4px — labels, badges              */
+  --text-xs:   0.72rem;   /*  ~11.5px — footnotes, micro            */
+  --text-sm:   0.80rem;   /*  ~12.8px — captions, nav links         */
+  --text-base: 0.90rem;   /*  ~14.4px — corpo padrão                */
+  --text-md:   1.00rem;   /*  ~16px   — corpo destacado             */
+  --text-lg:   1.30rem;   /*  ~20.8px — subtítulos                  */
+  --text-xl:   1.60rem;   /*  ~25.6px — preços, destaque            */
+  --text-2xl:  2.00rem;   /*  ~32px   — títulos de seção            */
+  --text-3xl:  3.00rem;   /*  ~48px   — display secundário          */
+  --text-hero: clamp(5rem, 16vw, 13rem); /* hero display            */
+
+
+  /* ── TIPOGRAFIA: ESPAÇAMENTO DE LETRAS ─────────────────── */
+
+  --tracking-tight:   -0.01em;
+  --tracking-normal:   0.04em;
+  --tracking-wide:     0.12em;
+  --tracking-wider:    0.20em;
+  --tracking-widest:   0.35em;
+  --tracking-jp:       0.40em;  /* para textos em japonês / labels  */
+
+
+  /* ── TIPOGRAFIA: ALTURA DE LINHA ────────────────────────── */
+
+  --leading-display: 0.88;
+  --leading-tight:   1.25;
+  --leading-normal:  1.60;
+  --leading-loose:   1.85;
+
+
+  /* ── ESPAÇAMENTO ────────────────────────────────────────── */
+
+  --section-v: 6rem;
+  --section-h: 5%;
+  --section-pad: var(--section-v) var(--section-h);
+
+
+  /* ── BORDAS ─────────────────────────────────────────────── */
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-full: 9999px;
+
+
+  /* ── TRANSIÇÕES ─────────────────────────────────────────── */
+
+  --ease-fast:   0.15s ease;
+  --ease-mid:    0.25s ease;
+  --ease-slow:   0.70s ease;
+
+
+  /* ── SOMBRAS ────────────────────────────────────────────── */
+
+  --shadow-red:    0 0 32px rgba(220, 20, 60, 0.35);
+  --shadow-card:   0 4px 32px rgba(7, 9, 26, 0.75);
+
+}

@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZENITH ZONE — ゼニス・ゾーン</title>
+
+  <!-- Design tokens: cores, tipografia e espaçamentos da marca -->
+  <link rel="stylesheet" href="src/css/tokens.css">
+  <!-- Estilos do site (usa variáveis de tokens.css) -->
+  <link rel="stylesheet" href="src/css/main.css">
+  <!-- Mega Menu Navbar -->
+  <link rel="stylesheet" href="src/css/navbar.css">
+  <!-- Modal de autenticação -->
+  <link rel="stylesheet" href="src/css/auth-v2.css">
+
+  <style>
+    /* ══════════════════════════════════════════════════════
+       EXPLOSÃO NO 00:00 — efeitos globais de disparo
+    ══════════════════════════════════════════════════════ */
+
+    /* Tremor de tela */
+    @keyframes vibrationShock {
+      0%,100%{ transform:translate(0,0) rotate(0deg); }
+      10%    { transform:translate(-6px, 3px) rotate(-0.8deg); }
+      20%    { transform:translate( 7px,-4px) rotate( 0.6deg); }
+      30%    { transform:translate(-5px, 5px) rotate(-0.5deg); }
+      40%    { transform:translate( 6px,-3px) rotate( 0.7deg); }
+      50%    { transform:translate(-7px, 2px) rotate(-0.4deg); }
+      60%    { transform:translate( 4px,-5px) rotate( 0.3deg); }
+      70%    { transform:translate(-3px, 4px) rotate(-0.2deg); }
+      80%    { transform:translate( 5px,-2px) rotate( 0.1deg); }
+    }
+    .vibration-shock {
+      animation: vibrationShock 0.55s cubic-bezier(0.36,0.07,0.19,0.97) both;
+    }
+
+    /* Flash radial vermelho que cobre e some */
+    #drop-flash {
+      position:fixed; inset:0; z-index:99998; pointer-events:none;
+      background: radial-gradient(ellipse at center,
+        rgba(220,20,60,0.92) 0%,
+        rgba(255,27,107,0.55) 35%,
+        rgba(220,20,60,0.15) 70%,
+        transparent 100%
+      );
+      animation: dropFlashOut 0.7s ease-out forwards;
+    }
+    @keyframes dropFlashOut {
+      0%   { opacity:1; transform:scale(1);   }
+      30%  { opacity:1; transform:scale(1.08); }
+      100% { opacity:0; transform:scale(1.2);  }
+    }
+
+    /* Dissolve do logo */
+    .hero-logo-dissolve {
+      animation: logoDissolve 0.6s ease-in forwards !important;
+    }
+    @keyframes logoDissolve {
+      0%  { opacity:1; transform:none; filter:none; }
+      40% { opacity:.8; filter:blur(2px) brightness(2) saturate(0); transform:scale(1.04); }
+      100%{ opacity:0; filter:blur(18px) brightness(3); transform:scale(0.85) translateY(-20px); }
+    }
+
+    /* Canvas das pétalas sakura — cobre o hero, atrás do conteúdo */
+    #sakura-canvas {
+      position:absolute; inset:0; pointer-events:none; z-index:1;
+      opacity:0; transition:opacity 1s ease;
+    }
+    #sakura-canvas.visible { opacity:1; }
+
+    /* ══════════════════════════════════════════════════════
+       DROP PRODUCT REVEAL — hero de alto impacto
+    ══════════════════════════════════════════════════════ */
+    #drop-product-reveal { display: none; width: 100%; justify-content: center; }
+
+    /* ── Wrapper principal ── */
+    .dpb-arena {
+      position: relative; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      gap: clamp(2rem,5vw,5rem);
+      padding: clamp(2rem,4vw,3.5rem) 5%;
+      /* overflow: visible — necessário para o leque de fotos não ser cortado */
+      animation: dpbArenaIn 0.8s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes dpbArenaIn {
+      from { opacity:0; transform:scale(0.94) translateY(30px); }
+      to   { opacity:1; transform:scale(1)    translateY(0);    }
+    }
+
+    /* Fundo neon pulsante */
+    .dpb-arena::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 70% 60% at 30% 50%, rgba(220,20,60,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 75% 50%, rgba(255,27,107,0.10) 0%, transparent 65%);
+      animation: dpbGlowPulse 2.8s ease-in-out infinite alternate;
+    }
+    @keyframes dpbGlowPulse {
+      from { opacity:.6; }
+      to   { opacity:1; }
+    }
+
+    /* Scanlines de fundo */
+    .dpb-arena::after {
+      content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 3px,
+        rgba(220,20,60,0.025) 3px, rgba(220,20,60,0.025) 4px
+      );
+    }
+
+    /* ── Partículas ── */
+    .dpb-particles {
+      position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+    }
+    .dpb-spark {
+      position:absolute; border-radius:50%; pointer-events:none;
+      animation: dpbSparkFly var(--dur,3s) ease-in-out var(--delay,0s) infinite;
+    }
+    @keyframes dpbSparkFly {
+      0%   { transform:translate(0,0) scale(1); opacity:0; }
+      10%  { opacity:1; }
+      90%  { opacity:.8; }
+      100% { transform:translate(var(--tx,0px), var(--ty,-120px)) scale(0); opacity:0; }
+    }
+
+    /* ── Lado esquerdo: imagem principal + leque ── */
+    .dpb-visual { position:relative; flex-shrink:0; z-index:2; overflow:visible; }
+
+    /* Anel giratório neon atrás da imagem */
+    .dpb-ring {
+      position:absolute; inset:-14px; border-radius:12px; pointer-events:none;
+      background: conic-gradient(
+        from 0deg,
+        rgba(220,20,60,0), rgba(220,20,60,0.9), rgba(255,27,107,0.6),
+        rgba(220,20,60,0.9), rgba(220,20,60,0)
+      );
+      animation: dpbRingSpin 3s linear infinite;
+      filter: blur(2px);
+    }
+    @keyframes dpbRingSpin { to { transform:rotate(360deg); } }
+
+    /* Máscara sobre o anel para não vazar para fora */
+    .dpb-ring-mask {
+      position:absolute; inset:0; border-radius:10px;
+      background: #07091a; /* esconde o anel dentro do card */
+    }
+
+    /* Imagem principal */
+    .dpb-main-card {
+      position:relative; z-index:3;
+      width: clamp(180px,22vw,260px);
+      height: clamp(225px,28vw,325px);
+      border-radius:10px; overflow:hidden;
+      border:2px solid rgba(220,20,60,0.5);
+      box-shadow:
+        0 0 0 1px rgba(220,20,60,0.15),
+        0 0 48px rgba(220,20,60,0.35),
+        0 20px 60px rgba(0,0,0,0.7);
+      background: linear-gradient(135deg,#0c1030,#07091a);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dpb-visual:hover .dpb-main-card {
+      transform: scale(1.03);
+      box-shadow: 0 0 80px rgba(220,20,60,0.5), 0 28px 72px rgba(0,0,0,0.8);
+    }
+    .dpb-main-img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.3s ease; }
+
+    /* ── Leque de fotos — área expandida para nada ser cortado ── */
+    .dpb-fan-wrap {
+      position:absolute;
+      /* Extende 220px além de cada borda do card principal */
+      inset: -220px;
+      z-index:2; pointer-events:none;
+      perspective:600px; transform-style:preserve-3d;
+    }
+    .dpb-fan-card {
+      position:absolute;
+      width: clamp(78px,10vw,108px);
+      height: clamp(98px,12.5vw,134px);
+      border-radius:8px; overflow:hidden;
+      border:2px solid rgba(220,20,60,0.65);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.75), 0 0 14px rgba(220,20,60,0.28);
+      background:#0c1030;
+      cursor:pointer; pointer-events:auto;
+      top:50%; left:50%;
+      /* fechado: empilhado atrás, com profundidade 3D */
+      transform: translate(-50%,-50%) rotateY(0deg) scale(0.55);
+      opacity:0;
+      transition:
+        transform  0.46s cubic-bezier(0.175,0.885,0.32,1.275),
+        opacity    0.28s ease,
+        box-shadow 0.22s ease;
+      will-change: transform, opacity;
+    }
+    .dpb-fan-card img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .dpb-fan-label {
+      position:absolute; bottom:0; left:0; right:0; text-align:center;
+      font-family:'Barlow Condensed',sans-serif; font-weight:900;
+      font-size:0.54rem; letter-spacing:0.14em; text-transform:uppercase;
+      color:rgba(245,240,230,0.95);
+      background:linear-gradient(transparent,rgba(4,6,16,0.92));
+      padding:10px 4px 4px;
+    }
+
+    /* Abertura no hover — leque em 4 direções com rotação 3D */
+    .dpb-visual:hover .dpb-fan-card { opacity:1; }
+
+    .dpb-visual:hover .dpb-fan-card:nth-child(1) {
+      transform: translate(-180%,-95%) rotate(-24deg) rotateY(-12deg) scale(1);
+    }
+    .dpb-visual:hover .dpb-fan-card:nth-child(2) {
+      transform: translate(-200%, 15%) rotate(-12deg) rotateY(-8deg) scale(1);
+    }
+    .dpb-visual:hover .dpb-fan-card:nth-child(3) {
+      transform: translate(80%,-100%) rotate(20deg) rotateY(12deg) scale(1);
+    }
+    .dpb-visual:hover .dpb-fan-card:nth-child(4) {
+      transform: translate(90%,  12%) rotate(12deg) rotateY(8deg) scale(1);
+    }
+
+    .dpb-fan-card:hover {
+      box-shadow:0 16px 40px rgba(0,0,0,0.9), 0 0 32px rgba(220,20,60,0.65) !important;
+      filter:brightness(1.12) saturate(1.1);
+      z-index:10;
+    }
+
+    /* ── Lado direito: info ── */
+    .dpb-info {
+      display:flex; flex-direction:column; gap:0.85rem;
+      position:relative; z-index:2; max-width:480px;
+    }
+
+    /* "DISPONÍVEL AGORA" badge piscante */
+    .dpb-live-badge {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      background:rgba(220,20,60,0.12);
+      border:1.5px solid rgba(220,20,60,0.55);
+      border-radius:3px; padding:0.3rem 0.7rem;
+      width:fit-content;
+      animation: dpbBadgePop 0.6s cubic-bezier(0.34,1.5,0.64,1) 0.4s both;
+    }
+    @keyframes dpbBadgePop {
+      from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;}
+    }
+    .dpb-live-dot {
+      width:7px; height:7px; border-radius:50%; background:#dc143c;
+      box-shadow:0 0 8px rgba(220,20,60,.9);
+      animation:dpbLivePulse 1s ease-in-out infinite;
+    }
+    @keyframes dpbLivePulse {
+      0%,100%{transform:scale(1);opacity:1;}
+      50%{transform:scale(1.5);opacity:.5;}
+    }
+    .dpb-live-text {
+      font-family:'Barlow Condensed',sans-serif; font-weight:900;
+      font-size:0.62rem; letter-spacing:0.22em; text-transform:uppercase;
+      color:#dc143c;
+    }
+
+    /* Título com glitch */
+    .dpb-title {
+      font-family:'Barlow Condensed',sans-serif; font-weight:900;
+      font-size:clamp(2.2rem,4.5vw,4rem); text-transform:uppercase;
+      letter-spacing:-0.01em; color:#F5F0E6; line-height:0.9; margin:0;
+      position:relative;
+      animation: dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+    }
+    @keyframes dpbTitleIn {
+      from{transform:translateX(-30px);opacity:0;} to{transform:none;opacity:1;}
+    }
+    .dpb-title.glitch::before, .dpb-title.glitch::after {
+      content:attr(data-text); position:absolute; top:0; left:0; width:100%;
+      opacity:0.7; pointer-events:none;
+    }
+    .dpb-title.glitch::before {
+      color:#ff1b6b; clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%);
+      animation:dpbGlitch1 2.5s steps(1) infinite 0.5s;
+    }
+    .dpb-title.glitch::after {
+      color:#dc143c; clip-path:polygon(0 60%,100% 60%,100% 75%,0 75%);
+      animation:dpbGlitch2 2.5s steps(1) infinite;
+    }
+    @keyframes dpbGlitch1 {
+      0%,90%,100%{transform:none;opacity:0;}
+      92%{transform:translateX(-3px);opacity:.8;}
+      94%{transform:translateX(3px);opacity:.5;}
+      96%{transform:none;opacity:0;}
+    }
+    @keyframes dpbGlitch2 {
+      0%,88%,100%{transform:none;opacity:0;}
+      90%{transform:translateX(4px);opacity:.7;}
+      93%{transform:translateX(-4px);opacity:.4;}
+      95%{transform:none;opacity:0;}
+    }
+
+    .dpb-jp {
+      font-family:'Zen Kaku Gothic New',sans-serif; font-size:0.88rem;
+      letter-spacing:0.4em; color:#ff1b6b;
+      animation:dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both;
+    }
+
+    .dpb-price {
+      font-family:'Barlow Condensed',sans-serif; font-weight:900;
+      font-size:clamp(2rem,3.5vw,3rem); color:#F5F0E6; letter-spacing:-0.01em;
+      text-shadow:0 0 24px rgba(245,240,230,0.2);
+      animation:dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.45s both;
+    }
+
+    /* CTA com pulso */
+    .dpb-cta {
+      display:inline-flex; align-items:center; gap:0.6rem;
+      padding:0.95rem 2.2rem; background:#dc143c; color:#fff;
+      font-family:'Barlow Condensed',sans-serif; font-weight:900;
+      font-size:1.05rem; letter-spacing:0.16em; text-transform:uppercase;
+      text-decoration:none; border-radius:4px; width:fit-content;
+      box-shadow:0 0 0 0 rgba(220,20,60,0.7), 0 6px 30px rgba(220,20,60,0.5);
+      animation:
+        dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s both,
+        dpbCtaPulse 2s ease-in-out 1.5s infinite;
+      transition:background 0.2s, transform 0.15s;
+    }
+    @keyframes dpbCtaPulse {
+      0%,100%{box-shadow:0 0 0 0 rgba(220,20,60,0.6), 0 6px 30px rgba(220,20,60,0.4);}
+      50%    {box-shadow:0 0 0 14px rgba(220,20,60,0), 0 6px 30px rgba(220,20,60,0.4);}
+    }
+    .dpb-cta:hover {
+      background:#a5112e; transform:scale(1.04);
+      box-shadow:0 0 0 0 rgba(220,20,60,0),0 8px 40px rgba(220,20,60,0.7);
+    }
+    .dpb-cta svg { transition:transform 0.2s; }
+    .dpb-cta:hover svg { transform:translateX(4px); }
+
+    @media (max-width:700px) {
+      .dpb-arena { flex-direction:column; gap:1.8rem; }
+      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-105%,-80%) rotate(-18deg) scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-120%, 20%) rotate(-8deg)  scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate( 5%,-100%) rotate(15deg)  scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate( 10%, 25%) rotate(8deg)   scale(.9);}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════════════
+       NAV + MEGA MENU
+  ═══════════════════════════════════════════════════════ -->
+  <nav id="zz-header" role="navigation" aria-label="Navegação principal">
+
+    <!-- ── Barra principal ───────────────────────────────── -->
+    <div class="zz-nav-bar">
+
+      <!-- Logo -->
+      <a href="#hero" class="nav-logo">
+        <img src="src/images/logo%20curta%20ZZ%20(transparente).png"
+             alt="ZENITH ZONE" class="nav-logo-img">
+      </a>
+
+      <!-- Links / Triggers do mega menu -->
+      <ul class="zz-nav-list" role="menubar" aria-label="Menu principal">
+
+        <!-- OFERTAS -->
+        <li class="zz-nav-item zz-has-mega" role="none">
+          <button class="zz-nav-trigger" data-mega="ofertas"
+                  role="menuitem" aria-haspopup="true" aria-expanded="false"
+                  aria-controls="mega-ofertas">
+            Ofertas
+            <svg class="zz-trigger-chevron" viewBox="0 0 12 12" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="2 4 6 8 10 4"/>
+            </svg>
+          </button>
+        </li>
+
+        <!-- LANÇAMENTOS -->
+        <li class="zz-nav-item zz-has-mega" role="none">
+          <button class="zz-nav-trigger" data-mega="lancamentos"
+                  role="menuitem" aria-haspopup="true" aria-expanded="false"
+                  aria-controls="mega-lancamentos">
+            Lançamentos
+            <svg class="zz-trigger-chevron" viewBox="0 0 12 12" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="2 4 6 8 10 4"/>
+            </svg>
+          </button>
+        </li>
+
+        <!-- Zonas dinâmicas injetadas por zz-nav-dynamic.js (antes de navbar.js) -->
+
+        <!-- Separador -->
+        <li role="none"><div class="zz-nav-sep" aria-hidden="true"></div></li>
+
+        <!-- DROP (scroll âncora) -->
+        <li class="zz-nav-item" role="none">
+          <a href="#drop" class="zz-nav-link" role="menuitem">Drop</a>
+        </li>
+
+        <!-- COLEÇÃO (peças chave) -->
+        <li class="zz-nav-item" role="none">
+          <a href="#collection" class="zz-nav-link" role="menuitem">Coleção</a>
+        </li>
+
+        <!-- CONCEITO -->
+        <li class="zz-nav-item" role="none">
+          <a href="#conceito" class="zz-nav-link" role="menuitem">Conceito</a>
+        </li>
+
+        <!-- ENTRAR NA LISTA (CTA) -->
+        <li class="zz-nav-item" role="none">
+          <a href="#newsletter" class="zz-nav-link zz-nav-cta" role="menuitem">
+            Entrar na Lista
+          </a>
+        </li>
+
+      </ul><!-- /zz-nav-list -->
+
+      <!-- ── Ações: Pesquisa + Carrinho ─────────────────────── -->
+      <div class="zz-nav-actions" id="zz-nav-actions">
+
+        <!-- PESQUISA -->
+        <div class="zz-srch" id="zz-srch" role="search">
+
+          <!-- Formulário expandível -->
+          <form class="zz-srch-form" id="zz-srch-form" novalidate
+                aria-label="Pesquisar produtos na Zenith Zone">
+            <label for="zz-srch-input" class="zz-sr-only">Pesquisar</label>
+            <svg class="zz-srch-form-icon" viewBox="0 0 20 20" fill="none"
+                 aria-hidden="true" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round">
+              <circle cx="8.5" cy="8.5" r="5.5"/>
+              <line x1="13" y1="13" x2="18" y2="18"/>
+            </svg>
+            <input type="search" class="zz-srch-input" id="zz-srch-input"
+                   name="q" placeholder="Buscar produtos, coleções…"
+                   autocomplete="off" spellcheck="false"
+                   aria-autocomplete="list" aria-haspopup="listbox"
+                   aria-controls="zz-srch-panel" aria-expanded="false">
+            <button type="button" class="zz-srch-clear" id="zz-srch-clear"
+                    aria-label="Limpar campo" hidden>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round">
+                <line x1="3" y1="3" x2="13" y2="13"/>
+                <line x1="13" y1="3" x2="3"  y2="13"/>
+              </svg>
+            </button>
+          </form>
+
+          <!-- Botão de abertura (lupa) -->
+          <button type="button" class="zz-srch-trigger" id="zz-srch-trigger"
+                  aria-label="Abrir pesquisa" aria-expanded="false"
+                  aria-controls="zz-srch-panel">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round">
+              <circle cx="8.5" cy="8.5" r="5.5"/>
+              <line x1="13" y1="13" x2="18" y2="18"/>
+            </svg>
+          </button>
+
+          <!-- Cancelar (aparece quando aberto) -->
+          <button type="button" class="zz-srch-cancel" id="zz-srch-cancel"
+                  aria-label="Fechar pesquisa">
+            Cancelar
+          </button>
+
+        </div><!-- /zz-srch -->
+
+        <!-- FAVORITOS -->
+        <a href="src/pages/favoritos.html" class="zz-fav-btn" id="zz-fav-btn" aria-label="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span class="zz-fav-badge" id="zz-fav-badge">0</span>
+        </a>
+
+        <!-- CARRINHO -->
+        <button type="button" class="zz-cart-btn" id="zz-cart-btn"
+                aria-label="Carrinho de compras, 0 itens">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+          <span class="zz-cart-badge" id="zz-cart-badge"
+                role="status" aria-live="polite" aria-atomic="true">0</span>
+        </button>
+
+      </div><!-- /zz-nav-actions -->
+
+      <!-- Seção de autenticação -->
+      <div class="nav-auth" id="zz-nav-auth">
+        <a href="src/pages/admin-panel.html" data-mod-show class="nav-auth-admin" style="display:none">⚙ Admin</a>
+        <div data-auth-show class="nav-auth-user" style="display:none">
+          <a href="src/pages/perfil.html" class="nav-profile-btn" aria-label="Meu Perfil">
+            <span class="nav-avatar-ring"><span data-avatar></span></span>
+            <span class="nav-profile-name" data-username></span>
+          </a>
+          <a href="src/pages/pedidos.html" class="nav-auth-link">Pedidos</a>
+          <a href="#" data-logout>Sair</a>
+        </div>
+        <div data-guest-show class="nav-auth-guest" style="display:none">
+          <a href="#" data-open-auth="login"  class="nav-auth-login">Login</a>
+          <a href="#" data-open-auth="signup" class="nav-auth-signup">Cadastrar</a>
+        </div>
+      </div>
+
+      <!-- Hambúrguer (mobile) -->
+      <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menu">
+        <svg class="icon-open" viewBox="0 0 22 22" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6"  x2="19" y2="6"/>
+          <line x1="3" y1="11" x2="19" y2="11"/>
+          <line x1="3" y1="16" x2="19" y2="16"/>
+        </svg>
+        <svg class="icon-close" viewBox="0 0 22 22" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/>
+          <line x1="18" y1="4" x2="4"  y2="18"/>
+        </svg>
+      </button>
+
+    </div><!-- /zz-nav-bar -->
+
+    <!-- ══════════════════════════════════════════════════════
+         MEGA PANEL — OFERTAS
+    ═══════════════════════════════════════════════════════ -->
+    <div class="zz-mega-panel" id="mega-ofertas" data-panel="ofertas"
+         role="region" aria-label="Mega menu Ofertas" aria-hidden="true">
+      <div class="zz-mega-inner">
+
+        <!-- Col 1: Em Destaque -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Em Destaque</p>
+          <ul>
+            <li>
+              <a href="#collection" class="zz-mega-highlight">
+                Flash Sale — Até 40% Off
+                <em class="zz-hl-arrow">→</em>
+              </a>
+            </li>
+            <li>
+              <a href="#collection" class="zz-mega-highlight">
+                Últimas Peças
+                <em class="zz-hl-arrow">→</em>
+              </a>
+            </li>
+            <li>
+              <a href="#collection" class="zz-mega-highlight">
+                Bundle: 3 por 2
+                <em class="zz-hl-arrow">→</em>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Col 2: Masculino em Oferta -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Masculino</p>
+          <ul>
+            <li><a href="#collection" class="zz-mega-link">Camisetas &amp; Shorts</a></li>
+            <li><a href="#collection" class="zz-mega-link">Hoodies com Desconto</a></li>
+            <li><a href="#collection" class="zz-mega-link">Joggers Outlet</a></li>
+            <li><a href="#collection" class="zz-mega-link">Acessórios −30%</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Feminino em Oferta -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Feminino</p>
+          <ul>
+            <li><a href="#collection" class="zz-mega-link">Crop Tops &amp; Leggings</a></li>
+            <li><a href="#collection" class="zz-mega-link">Hoodies Selecionados</a></li>
+            <li><a href="#collection" class="zz-mega-link">Acessórios −30%</a></li>
+            <li><a href="#collection" class="zz-mega-link">Packs Exclusivos</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: CTA Oferta -->
+        <div class="zz-mega-col zz-col-collections">
+          <p class="zz-mega-col-title">Oferta Relâmpago</p>
+          <p style="font-size:var(--text-xs);color:rgba(245,240,230,0.5);line-height:1.6;margin-bottom:0.8rem;">
+            Peças selecionadas com desconto exclusivo para membros da lista.
+          </p>
+          <span class="zz-mega-badge gold" style="margin-bottom:0.9rem;display:inline-block;">
+            Só por tempo limitado
+          </span>
+          <br>
+          <a href="#newsletter" class="zz-col-cta">
+            Entrar na Lista
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+      <div class="zz-mega-glow-bar"></div>
+    </div><!-- /mega-ofertas -->
+
+    <!-- ══════════════════════════════════════════════════════
+         MEGA PANEL — LANÇAMENTOS
+    ═══════════════════════════════════════════════════════ -->
+    <div class="zz-mega-panel" id="mega-lancamentos" data-panel="lancamentos"
+         role="region" aria-label="Mega menu Lançamentos" aria-hidden="true">
+      <div class="zz-mega-inner">
+
+        <!-- Col 1: Drop Atual -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Drop Atual</p>
+          <a href="#drop" class="zz-mega-highlight" style="margin-bottom:0.4rem;display:flex;align-items:flex-start;flex-direction:column;gap:0.3rem;">
+            <span>Drop #03</span>
+            <span style="color:var(--color-pink);font-size:var(--text-lg);">Sakura Season</span>
+          </a>
+          <span class="zz-mega-badge red">Disponível Agora</span>
+          <p style="font-size:var(--text-xs);color:rgba(245,240,230,0.42);margin-top:0.7rem;line-height:1.6;">
+            Shibuya Streetwear × Brooklyn Basketball.
+            Edição limitada.
+          </p>
+          <a href="#drop" class="zz-col-cta" style="margin-top:1rem;">
+            Ver Countdown
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Col 2: Próximos Drops -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Próximos Drops</p>
+          <ul>
+            <li>
+              <a href="#newsletter" class="zz-mega-link" style="display:flex;align-items:center;gap:0.5rem;">
+                Drop #04
+                <span class="zz-mega-badge pink">Em Breve</span>
+              </a>
+            </li>
+            <li><a href="#newsletter" class="zz-mega-link">Drop #05 — Teaser</a></li>
+            <li><a href="#newsletter" class="zz-mega-link">Faça Parte da Lista</a></li>
+            <li><a href="#newsletter" class="zz-mega-link">Histórico de Drops</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Pré-Order -->
+        <div class="zz-mega-col">
+          <p class="zz-mega-col-title">Pré-Order</p>
+          <ul>
+            <li><a href="#newsletter" class="zz-mega-link">Reservar Minha Peça</a></li>
+            <li><a href="#newsletter" class="zz-mega-link">Como Funciona?</a></li>
+            <li><a href="#newsletter" class="zz-mega-link">Minha Reserva</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Novidades -->
+        <div class="zz-mega-col zz-col-collections">
+          <p class="zz-mega-col-title">Fique por Dentro</p>
+          <p style="font-size:var(--text-xs);color:rgba(245,240,230,0.5);line-height:1.6;margin-bottom:0.8rem;">
+            Receba avisos exclusivos antes de qualquer lançamento.
+          </p>
+          <span class="zz-mega-badge pink" style="margin-bottom:0.9rem;display:inline-block;">
+            Acesso Antecipado
+          </span>
+          <br>
+          <a href="#newsletter" class="zz-col-cta">
+            Entrar na Lista VIP
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+      <div class="zz-mega-glow-bar"></div>
+    </div><!-- /mega-lancamentos -->
+
+    <!-- Mega panels dinâmicos injetados por zz-nav-dynamic.js (antes de navbar.js) -->
+
+    <!-- ══════════════════════════════════════════════════════
+         PAINEL DE PESQUISA (dropdown de sugestões)
+    ═══════════════════════════════════════════════════════ -->
+    <div class="zz-srch-panel" id="zz-srch-panel"
+         role="listbox" aria-label="Sugestões de pesquisa" aria-hidden="true">
+      <div class="zz-srch-panel-inner">
+
+        <!-- Col 1: Tendências -->
+        <div class="zz-srch-col">
+          <p class="zz-srch-col-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <polyline points="1 12 5 7 9 9 15 3"/>
+              <polyline points="11 3 15 3 15 7"/>
+            </svg>
+            Tendências
+          </p>
+          <ul id="zz-trending-list" role="group" aria-label="Termos em destaque">
+            <li role="option">
+              <a class="zz-srch-suggestion" data-term="Drop #03 Sakura Season" href="#">
+                <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none"
+                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/>
+                </svg>
+                Drop #03 Sakura Season
+                <span class="zz-srch-sug-badge">Hot</span>
+              </a>
+            </li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Oversized Tees" href="#">
+              <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+              Oversized Tees
+            </a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Hoodies Feminino" href="#">
+              <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+              Hoodies Feminino
+            </a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Shibuya Streetwear" href="#">
+              <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+              Shibuya Streetwear
+            </a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Bonés Coleção" href="#">
+              <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+              Bonés Coleção
+            </a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Brooklyn Court Set" href="#">
+              <svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+              Brooklyn Court Set
+            </a></li>
+          </ul>
+        </div>
+
+        <!-- Col 2: Buscas Recentes -->
+        <div class="zz-srch-col zz-srch-col--recent">
+          <div class="zz-srch-col-head">
+            <p class="zz-srch-col-title">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                   stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <circle cx="8" cy="8" r="6"/>
+                <polyline points="8 5 8 8 11 10"/>
+              </svg>
+              Buscas Recentes
+            </p>
+            <button type="button" class="zz-srch-history-clear"
+                    id="zz-srch-history-clear" aria-label="Limpar histórico">
+              Limpar
+            </button>
+          </div>
+          <ul id="zz-recent-list" role="group" aria-label="Buscas recentes"></ul>
+          <p class="zz-srch-empty" id="zz-srch-empty">
+            Nenhuma busca recente
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Resultados de busca dinâmica (exibidos ao digitar, oculta as colunas) -->
+      <div id="zz-srch-results-wrap" class="zz-srch-results-wrap" hidden>
+        <ul id="zz-srch-result-list" class="zz-srch-result-list"
+            role="group" aria-label="Resultados da busca"></ul>
+        <p id="zz-srch-no-results" class="zz-srch-empty" hidden>
+          Nenhum produto encontrado.
+        </p>
+      </div>
+
+      <div class="zz-mega-glow-bar"></div>
+    </div><!-- /zz-srch-panel -->
+
+  </nav><!-- /zz-header -->
+
+  <!-- Overlay que escurece o conteúdo quando mega menu está aberto -->
+  <div class="zz-mega-overlay" id="zz-mega-overlay" aria-hidden="true"></div>
+
+  <!-- ── MOBILE NAV ────────────────────────────────────────── -->
+  <ul class="nav-mobile" id="nav-mobile">
+    <li><a href="#collection">Ofertas</a></li>
+    <li><a href="#drop">Lançamentos</a></li>
+    <li><a href="#collection">Masculino</a></li>
+    <li><a href="#collection">Feminino</a></li>
+    <li><a href="#drop">Drop</a></li>
+    <li><a href="#newsletter">Entrar na Lista</a></li>
+    <li data-mod-show style="display:none"><a href="src/pages/admin-panel.html">⚙ Admin</a></li>
+    <li data-auth-show  style="display:none"><a href="src/pages/perfil.html">Meu Perfil</a></li>
+    <li data-auth-show  style="display:none"><a href="src/pages/pedidos.html">Meus Pedidos</a></li>
+    <li data-auth-show  style="display:none"><a href="#" data-logout>Sair (<span data-username></span>)</a></li>
+    <li data-guest-show style="display:none"><a href="#" data-open-auth="login">Login</a></li>
+    <li data-guest-show style="display:none" class="nav-mobile-cta-item">
+      <a href="#" data-open-auth="signup">Cadastrar</a>
+    </li>
+  </ul>
+
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-content">
+      <!-- Logo padrão — oculta quando o drop ativar -->
+      <div id="hero-logo-wrap">
+        <img
+          src="src/images/logo%20longa%20ZZ%20(transparente).png"
+          alt="ZENITH ZONE — ゼニス・ゾーン — Shibuya Streetwear × Brooklyn Basketball — Todos os momentos são o cume."
+          class="hero-logo-img"
+        >
+        <div class="hero-actions">
+          <a href="#drop"       class="btn-primary">Ver Próximo Drop</a>
+          <a href="#collection" class="btn-outline">Coleção Atual</a>
+        </div>
+      </div>
+
+      <!-- Banner produto pós-drop — injetado por JS quando o contador zerar -->
+      <div id="drop-product-reveal"></div>
+    </div>
+
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+
+  <!-- ── DROP COUNTDOWN ───────────────────────────────────── -->
+  <section id="drop">
+    <p class="drop-label">Próximo Drop Exclusivo</p>
+    <h2 class="drop-title">DROP #03 — SAKURA SEASON</h2>
+
+    <div class="countdown">
+      <div class="cd-block">
+        <span class="cd-num" id="cd-days">00</span>
+        <span class="cd-label">Dias</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-hours">00</span>
+        <span class="cd-label">Horas</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-minutes">00</span>
+        <span class="cd-label">Min</span>
+      </div>
+      <span class="cd-sep">:</span>
+      <div class="cd-block">
+        <span class="cd-num" id="cd-seconds">00</span>
+        <span class="cd-label">Seg</span>
+      </div>
+    </div>
+
+    <p class="drop-sub">Peças limitadas e numeradas — 100% drops exclusivos</p>
+  </section>
+
+
+  <!-- ── COLLECTION ───────────────────────────────────────── -->
+  <section id="collection">
+    <div class="section-header reveal">
+      <div class="section-bar"></div>
+      <h2 class="section-title">Peças <span>Chave</span></h2>
+    </div>
+
+    <div class="products-grid">
+
+      <!-- Heavyweight Tee -->
+      <div class="product-card reveal reveal-delay-1">
+        <div class="product-visual pv-tee">
+          <span class="product-badge">Limited</span>
+          <!--
+            Coloque a foto do produto aqui:
+            <img class="product-image" src="src/images/products/heavyweight-tee.jpg" alt="Heavyweight Tee">
+          -->
+          <svg class="product-icon" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 30 L10 70 L35 80 L35 175 L125 175 L125 80 L150 70 L120 30 L100 50 C95 55 65 55 60 50 Z" fill="#12183A"/>
+            <path d="M40 30 L10 70 L35 80 L35 175 L125 175 L125 80 L150 70 L120 30 L100 50 C95 55 65 55 60 50 Z" stroke="rgba(220,20,60,0.5)" stroke-width="2"/>
+            <circle cx="80" cy="115" r="28" fill="none" stroke="rgba(240,237,230,0.15)" stroke-width="1.5"/>
+            <text x="80" y="110" text-anchor="middle" fill="rgba(240,237,230,0.6)" font-family="sans-serif" font-size="8" font-weight="bold" letter-spacing="2">ZENITH</text>
+            <text x="80" y="122" text-anchor="middle" fill="rgba(220,20,60,0.8)" font-family="sans-serif" font-size="8" font-weight="bold" letter-spacing="2">ZONE</text>
+            <text x="80" y="134" text-anchor="middle" fill="rgba(240,237,230,0.3)" font-family="sans-serif" font-size="6">ゼニス・ゾーン</text>
+          </svg>
+        </div>
+        <div class="product-info">
+          <p class="product-tag">Drop #03</p>
+          <h3 class="product-name">Heavyweight Tee</h3>
+          <p class="product-desc">Cotton 300GSM+ Boxy Fit. Patch bordado + tag 3D numerada. A base da Zenith Zone.</p>
+          <div class="product-footer">
+            <p class="product-price">R$249 <span>/ un.</span></p>
+            <button class="btn-buy">Comprar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boxy Hoodie -->
+      <div class="product-card reveal reveal-delay-2">
+        <div class="product-visual pv-hoodie">
+          <span class="product-badge">Esgotando</span>
+          <!--
+            Coloque a foto do produto aqui:
+            <img class="product-image" src="src/images/products/boxy-hoodie.jpg" alt="Boxy Hoodie">
+          -->
+          <svg class="product-icon" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M45 25 Q80 15 115 25 L145 75 L120 85 L120 175 L40 175 L40 85 L15 75 Z" fill="#300815"/>
+            <path d="M45 25 Q80 15 115 25 L145 75 L120 85 L120 175 L40 175 L40 85 L15 75 Z" stroke="rgba(220,20,60,0.5)" stroke-width="2"/>
+            <path d="M60 25 Q80 35 100 25" stroke="rgba(240,237,230,0.2)" stroke-width="8" stroke-linecap="round" fill="none"/>
+            <rect x="55" y="155" width="50" height="20" rx="3" fill="rgba(220,20,60,0.15)" stroke="rgba(220,20,60,0.3)" stroke-width="1"/>
+            <text x="80" y="140" text-anchor="middle" fill="rgba(240,237,230,0.5)" font-family="sans-serif" font-size="9" font-weight="bold" letter-spacing="1">ZZ</text>
+            <text x="80" y="152" text-anchor="middle" fill="rgba(220,20,60,0.7)" font-family="sans-serif" font-size="6">BOXY HOODIE</text>
+          </svg>
+        </div>
+        <div class="product-info">
+          <p class="product-tag">Drop #02</p>
+          <h3 class="product-name">Boxy Hoodie</h3>
+          <p class="product-desc">Fleece 380GSM oversized. Bordado frontal + estampa costas. Crimson Red Edition.</p>
+          <div class="product-footer">
+            <p class="product-price">R$389 <span>/ un.</span></p>
+            <button class="btn-buy">Comprar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Varsity Jacket -->
+      <div class="product-card reveal reveal-delay-3">
+        <div class="product-visual pv-varsity">
+          <span class="product-badge">Exclusivo</span>
+          <!--
+            Coloque a foto do produto aqui:
+            <img class="product-image" src="src/images/products/varsity-jacket.jpg" alt="Varsity Jacket">
+          -->
+          <svg class="product-icon" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30 40 L10 80 L10 175 L150 175 L150 80 L130 40 L105 55 L80 45 L55 55 Z" fill="#151510"/>
+            <path d="M30 40 L10 80 L10 175 L150 175 L150 80 L130 40 L105 55 L80 45 L55 55 Z" stroke="rgba(220,20,60,0.5)" stroke-width="2"/>
+            <path d="M80 45 L80 175" stroke="rgba(240,237,230,0.1)" stroke-width="1.5"/>
+            <rect x="10" y="155" width="140" height="20" rx="0" fill="rgba(220,20,60,0.2)"/>
+            <rect x="10" y="80" width="20" height="75" fill="rgba(240,237,230,0.05)"/>
+            <rect x="130" y="80" width="20" height="75" fill="rgba(240,237,230,0.05)"/>
+            <circle cx="50" cy="115" r="18" fill="none" stroke="rgba(220,20,60,0.5)" stroke-width="1.5"/>
+            <text x="50" y="119" text-anchor="middle" fill="rgba(220,20,60,0.8)" font-family="sans-serif" font-size="10" font-weight="bold">ZZ</text>
+            <text x="110" y="110" text-anchor="middle" fill="rgba(240,237,230,0.4)" font-family="sans-serif" font-size="7" font-weight="bold">VARSITY</text>
+            <text x="110" y="122" text-anchor="middle" fill="rgba(240,237,230,0.4)" font-family="sans-serif" font-size="7">JACKET</text>
+          </svg>
+        </div>
+        <div class="product-info">
+          <p class="product-tag">Drop #01</p>
+          <h3 class="product-name">Varsity Jacket</h3>
+          <p class="product-desc">Wool blend + couro sintético. Patches bordados exclusivos. 50 unidades numeradas.</p>
+          <div class="product-footer">
+            <p class="product-price">R$749 <span>/ un.</span></p>
+            <button class="btn-buy">Lista de Espera</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── DNA PILLARS ───────────────────────────────────────── -->
+  <section id="dna">
+    <div class="section-header reveal">
+      <div class="section-bar"></div>
+      <h2 class="section-title">Os Pilares do <span>DNA</span></h2>
+    </div>
+
+    <div class="dna-grid">
+      <div class="dna-card reveal reveal-delay-1">
+        <div class="dna-icon">⛩</div>
+        <h3 class="dna-name">Crossover</h3>
+        <p class="dna-text">O mix perfeito entre o lifestyle do asfalto de Tóquio e as quadras do Brooklyn. Duas culturas, um DNA único.</p>
+      </div>
+      <div class="dna-card reveal reveal-delay-2">
+        <div class="dna-icon">🖌</div>
+        <h3 class="dna-name">Ilustração</h3>
+        <p class="dna-text">Gráficos autorais pesados inspirados em mascotes vintage e animações dos anos 90. Arte que conta história.</p>
+      </div>
+      <div class="dna-card reveal reveal-delay-3">
+        <div class="dna-icon">📐</div>
+        <h3 class="dna-name">Oversized</h3>
+        <p class="dna-text">Modelagens Boxy Fit e tecidos heavyweight para uma silhueta urbana inconfundível. Conforto sem abrir mão da atitude.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── CONCEITO ──────────────────────────────────────────── -->
+  <section id="conceito">
+    <div class="conceito-visual reveal">
+      <div class="mascot-container">
+        <div class="mascot-ring"></div>
+        <!--
+          Mascote Bunny Samurai — substitua pelo arquivo:
+          src/images/mascot.png
+          Use PNG com fundo transparente para funcionar sobre o glow do círculo.
+        -->
+        <img
+          src="src/images/mascote%20completo%20(transparente).png"
+          alt="Bunny Samurai — Mascote Zenith Zone"
+          class="mascot-img"
+        >
+      </div>
+    </div>
+
+    <div class="conceito-text">
+      <div class="section-header reveal">
+        <div class="section-bar"></div>
+        <h2 class="section-title">O <span>Conceito</span></h2>
+      </div>
+      <h3 class="conceito-lead reveal">
+        A intersecção entre a <em>disciplina japonesa</em> e a <em>energia competitiva</em> americana.
+      </h3>
+      <p class="conceito-body reveal">
+        Zenith Zone nasce do choque entre dois mundos: o ritual do guerreiro samurai e a garra das quadras do Brooklyn. Atitude audaciosa, nostalgia dos anos 90 e acabamento premium em cada peça.
+      </p>
+      <p class="conceito-body reveal">
+        Nosso mascote, o <strong>Bunny Samurai</strong>, segura a bola de basquete com a mesma disciplina que segura sua katana — símbolo de quem joga com técnica e coração.
+      </p>
+      <p class="conceito-body reveal">
+        O posicionamento da marca é noturno, neon e urbano. Nossas peças são projetadas para brilhar sob as luzes de Shibuya e as torres do Brooklyn.
+      </p>
+      <div class="conceito-tags reveal">
+        <span class="conceito-tag">Streetwear</span>
+        <span class="conceito-tag">Nostalgia 90s</span>
+        <span class="conceito-tag">Basketball</span>
+        <span class="conceito-tag">Samurai</span>
+        <span class="conceito-tag">Premium</span>
+        <span class="conceito-tag">Limited Drops</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── PREMIUM TABLE ─────────────────────────────────────── -->
+  <section id="premium">
+    <div class="section-header reveal">
+      <div class="section-bar"></div>
+      <h2 class="section-title">Posicionamento <span>Premium</span></h2>
+    </div>
+
+    <div class="table-scroll reveal">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>Atributo</th>
+            <th>Zenith Zone</th>
+            <th>Concorrência</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tecitura</td>    <td>Cotton 300GSM+ Heavy</td>    <td>Cotton 160GSM Light</td></tr>
+          <tr><td>Detalhes</td>    <td>Patch Bordado & Tags 3D</td> <td>Estampa Silk-Screen Básica</td></tr>
+          <tr><td>Modelagem</td>   <td>Boxy Fit (Curto / Largo)</td><td>Standard Slim / Regular</td></tr>
+          <tr><td>Numeração</td>   <td>Peça numerada + certificado</td><td>Produção em massa</td></tr>
+          <tr><td>Estratégia</td>  <td>100% Drops exclusivos</td>   <td>Estoque permanente</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <!-- ── NEWSLETTER ────────────────────────────────────────── -->
+  <section id="newsletter">
+    <p class="nl-jp">ゼニス・ゾーン — ENTRE NA LISTA</p>
+    <h2 class="nl-title">Seja o Primeiro<br>do Drop</h2>
+    <p class="nl-sub">Cadastre seu e-mail e garanta acesso antecipado exclusivo antes de qualquer drop. Peças limitadas, sem segunda chance.</p>
+    <form class="nl-form">
+      <input type="email" class="nl-input" placeholder="seu@email.com" required>
+      <button type="submit" class="nl-btn">Entrar na Lista</button>
+    </form>
+  </section>
+
+
+  <!-- ── FOOTER ────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-brand-logo">
+          <img src="src/images/logo%20longa%20ZZ%20(transparente).png" alt="ZENITH ZONE" class="footer-logo-img">
+        </div>
+        <p class="footer-brand-jp">ゼニス・ゾーン — 2024</p>
+        <p class="footer-brand-desc">Shibuya Streetwear × Brooklyn Basketball. Atitude audaciosa, nostalgia e premium em cada peça.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Navegação</p>
+        <ul class="footer-links">
+          <li><a href="#drop">Próximo Drop</a></li>
+          <li><a href="#collection">Coleção</a></li>
+          <li><a href="#dna">DNA da Marca</a></li>
+          <li><a href="#conceito">Conceito</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Contato</p>
+        <ul class="footer-links">
+          <li><a href="mailto:contato@zenithzone.com">contato@zenithzone.com</a></li>
+          <li><a href="#">@zenithzone_oficial</a></li>
+          <li><a href="#">Política de Drops</a></li>
+          <li><a href="#">Rastrear Pedido</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2024 Zenith Zone. Todos os direitos reservados.</p>
+      <div class="footer-social">
+        <a href="#">Instagram</a>
+        <a href="#">TikTok</a>
+        <a href="#">WhatsApp</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════
+       MODAL DE AUTENTICAÇÃO
+       position: fixed — sobrepõe toda a página
+       ═══════════════════════════════════════════════════════ -->
+
+  <!-- Modal: backdrop + card -->
+  <div class="modal-wrap" id="auth-modal-wrap" aria-modal="true" role="dialog" aria-label="Autenticação">
+    <!-- Canvas de pétalas sakura — position:absolute dentro do modal-wrap
+         (z-index:0 = atrás do .modal z-index:1, nunca bloqueia cliques) -->
+    <canvas id="auth-petals-canvas" aria-hidden="true"></canvas>
+
+    <div class="modal" id="auth-modal">
+
+      <!-- Topo do card: logo + botão fechar -->
+      <div class="modal-header">
+        <a href="#" class="modal-logo">
+          <img src="src/images/logo%20curta%20ZZ%20(transparente).png" alt="ZENITH ZONE">
+        </a>
+        <button class="modal-close" id="auth-modal-close" aria-label="Fechar">✕</button>
+      </div>
+
+      <!-- Camada de efeito katana (slashes) -->
+      <div class="slash-layer" id="auth-slash-layer" aria-hidden="true"></div>
+
+      <!-- Container dos painéis (overflow:hidden mantém slides dentro) -->
+      <div class="panels-wrap" id="auth-panels-wrap">
+
+        <!-- ───────────── PAINEL: LOGIN ───────────────────── -->
+        <div class="panel" id="auth-panel-login">
+          <div class="panel-body">
+            <h2 class="panel-title">Entrar</h2>
+            <p class="panel-sub">Acesse sua conta Zenith Zone</p>
+            <div class="auth-alert error" id="am-login-alert" hidden></div>
+            <form id="am-login-form" novalidate>
+              <div class="field">
+                <label class="field-label" for="am-login-email">E-mail</label>
+                <input class="field-input" type="email" id="am-login-email"
+                       autocomplete="email" placeholder="seu@email.com" required>
+                <span class="field-error" id="am-login-email-err"></span>
+              </div>
+              <div class="field">
+                <label class="field-label" for="am-login-pass">Senha</label>
+                <div class="field-pass-wrap">
+                  <input class="field-input" type="password" id="am-login-pass"
+                         autocomplete="current-password" placeholder="••••••••" required>
+                  <button type="button" class="auth-toggle-pass toggle-pass"
+                          data-target="am-login-pass" aria-label="Mostrar/ocultar senha">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-error" id="am-login-pass-err"></span>
+              </div>
+              <button type="button" class="link-forgot" data-auth-goto="forgot">Esqueci minha senha</button>
+            </form>
+          </div>
+          <!-- Rodapé fixo: botão + link de alternância -->
+          <div class="panel-footer">
+            <button type="submit" form="am-login-form" class="btn-auth" id="am-login-submit">Entrar</button>
+            <p class="switch-text">
+              Não tem conta?
+              <button class="link-btn" data-auth-goto="signup">Cadastre-se</button>
+            </p>
+          </div>
+        </div>
+
+        <!-- ───────────── PAINEL: SIGNUP ──────────────────── -->
+        <div class="panel" id="auth-panel-signup">
+          <div class="panel-body">
+            <button class="btn-back" data-auth-goto="login" aria-label="Voltar ao login">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                   stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Voltar
+            </button>
+            <h2 class="panel-title">Criar Conta</h2>
+            <p class="panel-sub">Cadastro gratuito — perfil Cliente</p>
+            <div class="auth-alert error" id="am-signup-alert" hidden></div>
+            <form id="am-signup-form" novalidate>
+
+              <!-- Nome e Sobrenome: identidade pessoal -->
+              <div class="fields-row">
+                <div class="field">
+                  <label class="field-label" for="am-s-firstName">Nome</label>
+                  <input class="field-input" type="text" id="am-s-firstName"
+                         autocomplete="given-name" placeholder="João" required>
+                  <span class="field-error" id="am-s-firstName-err"></span>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="am-s-lastName">Sobrenome</label>
+                  <input class="field-input" type="text" id="am-s-lastName"
+                         autocomplete="family-name" placeholder="Silva" required>
+                  <span class="field-error" id="am-s-lastName-err"></span>
+                </div>
+              </div>
+
+              <!-- E-mail: campo principal de contato -->
+              <div class="field">
+                <label class="field-label" for="am-s-email">E-mail</label>
+                <input class="field-input" type="email" id="am-s-email"
+                       autocomplete="email" placeholder="joao@email.com" required>
+                <span class="field-error" id="am-s-email-err"></span>
+              </div>
+
+              <hr class="form-divider">
+
+              <!-- Senha com indicador de força -->
+              <div class="field">
+                <label class="field-label" for="am-s-password">Senha</label>
+                <div class="field-pass-wrap">
+                  <input class="field-input" type="password" id="am-s-password"
+                         autocomplete="new-password" placeholder="••••••••" required>
+                  <button type="button" class="auth-toggle-pass toggle-pass"
+                          data-target="am-s-password" aria-label="Mostrar/ocultar senha">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="pass-strength">
+                  <div class="pass-bar" id="am-s-bar1"></div>
+                  <div class="pass-bar" id="am-s-bar2"></div>
+                  <div class="pass-bar" id="am-s-bar3"></div>
+                </div>
+                <ul class="pass-rules">
+                  <li id="am-s-rule-len">Mínimo 6 caracteres</li>
+                  <li id="am-s-rule-upper">1 letra maiúscula</li>
+                  <li id="am-s-rule-special">1 caractere especial</li>
+                </ul>
+                <span class="field-error" id="am-s-password-err"></span>
+              </div>
+
+              <!-- Confirmação de senha -->
+              <div class="field">
+                <label class="field-label" for="am-s-confirm">Confirmar Senha</label>
+                <div class="field-pass-wrap">
+                  <input class="field-input" type="password" id="am-s-confirm"
+                         autocomplete="new-password" placeholder="••••••••" required>
+                  <button type="button" class="auth-toggle-pass toggle-pass"
+                          data-target="am-s-confirm" aria-label="Mostrar/ocultar senha">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-error" id="am-s-confirm-err"></span>
+              </div>
+
+            </form>
+          </div>
+          <!-- Rodapé fixo: botão + link de alternância -->
+          <div class="panel-footer">
+            <button type="submit" form="am-signup-form" class="btn-auth" id="am-signup-submit">Criar Conta</button>
+            <p class="switch-text">
+              Já tem conta?
+              <button class="link-btn" data-auth-goto="login">Entrar</button>
+            </p>
+          </div>
+        </div>
+
+        <!-- ───────────── PAINEL: FORGOT PASSWORD ─────────── -->
+        <div class="panel" id="auth-panel-forgot">
+          <div class="panel-body">
+            <button class="btn-back" data-auth-goto="login" aria-label="Voltar ao login">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                   stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Voltar ao Login
+            </button>
+            <h2 class="panel-title">Recuperar Senha</h2>
+            <p class="panel-sub">Informe seu e-mail cadastrado e enviaremos um link para redefinir sua senha.</p>
+            <div class="auth-alert error"   id="am-forgot-alert-err" hidden></div>
+            <div class="auth-alert success" id="am-forgot-alert-ok"  hidden></div>
+            <form id="am-forgot-form" novalidate>
+              <div class="field">
+                <label class="field-label" for="am-f-email">E-mail</label>
+                <input class="field-input" type="email" id="am-f-email"
+                       autocomplete="email" placeholder="seu@email.com" required>
+                <span class="field-error" id="am-f-email-err"></span>
+              </div>
+            </form>
+          </div>
+          <!-- Rodapé fixo: botão + link de alternância -->
+          <div class="panel-footer">
+            <button type="submit" form="am-forgot-form" class="btn-auth" id="am-forgot-submit">Enviar Link</button>
+            <p class="switch-text">
+              Lembrou a senha?
+              <button class="link-btn" data-auth-goto="login">Entrar</button>
+            </p>
+          </div>
+        </div>
+
+      </div><!-- /panels-wrap -->
+    </div><!-- /modal -->
+  </div><!-- /modal-wrap -->
+
+  <!-- ══════════════════════════════════════════════════════
+       CART DRAWER
+  ═══════════════════════════════════════════════════════ -->
+  <aside id="zz-cart-drawer" class="zz-cart-drawer"
+         role="dialog" aria-modal="true" aria-label="Carrinho de compras">
+    <div class="zz-cart-drawer-head">
+      <span class="zz-cart-drawer-title">
+        Carrinho
+        <span id="zz-cart-drawer-count" class="zz-cart-drawer-count"></span>
+      </span>
+      <button type="button" id="zz-cart-drawer-close"
+              class="zz-cart-drawer-close" aria-label="Fechar carrinho">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/>
+          <line x1="18" y1="4" x2="4"  y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <ul id="zz-cart-drawer-list" class="zz-cart-drawer-list"></ul>
+    <div id="zz-cart-drawer-empty" class="zz-cart-drawer-empty" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <p>Seu carrinho está vazio.</p>
+    </div>
+    <div class="zz-cart-drawer-footer">
+      <div class="zz-cart-drawer-total-row">
+        <span>Total</span>
+        <span id="zz-cart-drawer-total">R$&nbsp;0,00</span>
+      </div>
+      <button type="button" class="zz-cart-drawer-checkout">Finalizar Compra</button>
+    </div>
+  </aside>
+  <div id="zz-cart-overlay" class="zz-cart-overlay" aria-hidden="true"></div>
+
+  <script src="src/js/config.js"></script>
+  <script src="src/js/auth.js"></script>
+  <script src="src/js/avatar.js"></script>
+  <script src="src/js/wishlist.js"></script>
+  <script src="src/js/main.js"></script>
+
+  <!-- Zonas dinâmicas: módulo compartilhado, deve ser carregado ANTES de navbar.js -->
+  <script src="src/js/zz-nav-zones.js"></script>
+
+  <script src="src/js/navbar.js"></script>
+  <script src="src/js/auth-modal.js"></script>
+
+  <!-- Coleção dinâmica: substitui os cards estáticos pelos produtos publicados na API -->
+  <script>
+  ;(function () {
+    const API  = window.ZZ_API_BASE || 'http://localhost:3001/api';
+    const grid = document.querySelector('#collection .products-grid');
+    if (!grid) return;
+
+    function esc(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function truncate(str, n) {
+      const s = (str || '').replace(/[#*`_~]/g, '').trim();
+      return s.length > n ? s.slice(0, n).trimEnd() + '…' : s;
+    }
+
+    /* Retorna a primeira foto disponível entre as categorias do produto */
+    function firstPhoto(fotos) {
+      if (!fotos) return '';
+      for (const cat of ['frente', 'costas', 'detalhe', 'patch']) {
+        if (fotos[cat]?.length) return fotos[cat][0];
+      }
+      return '';
+    }
+
+    /* Determina badge de disponibilidade */
+    function badge(estoque) {
+      if (!estoque) return 'Disponível';
+      const total = Object.values(estoque).reduce((acc, colorStock) => {
+        if (typeof colorStock === 'object' && colorStock !== null) {
+          return acc + Object.values(colorStock).reduce(
+            (s, sz) => s + (typeof sz === 'object' ? (sz?.qtd || 0) : 0), 0
+          );
+        }
+        return acc + (colorStock?.qtd || 0);
+      }, 0);
+      return total === 0 ? 'Esgotado' : 'Disponível';
+    }
+
+    function renderCard(p, delay) {
+      const foto  = firstPhoto(p.fotos);
+      const price = Number(p.preco).toLocaleString('pt-BR', {
+        style:    'currency',
+        currency: 'BRL',
+      });
+
+      return `
+        <div class="product-card reveal reveal-delay-${delay}">
+          <div class="product-visual">
+            <span class="product-badge">${esc(badge(p.estoque))}</span>
+            ${foto
+              ? `<img class="product-image" src="${esc(foto)}" alt="${esc(p.titulo)}" loading="lazy">`
+              : ''
+            }
+          </div>
+          <div class="product-info">
+            <p class="product-tag">${esc(p.tituloJP || '')}</p>
+            <h3 class="product-name">${esc(p.titulo)}</h3>
+            <p class="product-desc">${esc(truncate(p.descricao, 80))}</p>
+            <div class="product-footer">
+              <p class="product-price">${esc(price)} <span>/ un.</span></p>
+              <a href="src/pages/produto.html?slug=${esc(p.slug)}" class="btn-buy">Comprar</a>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    fetch(`${API}/products?status=publicado&sort=bestseller&limit=10`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        if (!data.products?.length) return; /* mantém cards estáticos se API vazia */
+        grid.innerHTML = data.products
+          .map((p, i) => renderCard(p, (i % 3) + 1))
+          .join('');
+        /*
+         * Os novos cards têm a classe .reveal (opacity:0) mas o revealObserver
+         * do main.js já correu antes desta injeção — eles nunca seriam vistos.
+         * Registamos cada novo elemento para que o observer os anime ao entrar
+         * na viewport (ou imediatamente se já estiverem visíveis).
+         */
+        if (typeof revealObserver !== 'undefined') {
+          grid.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        } else {
+          /* Fallback: torna visíveis directamente se o observer não existir */
+          grid.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+        }
+      })
+      .catch(() => {
+        /* server offline: mantém os cards estáticos do HTML como fallback —
+           esses já foram observados pelo revealObserver quando main.js correu */
+      });
+  })();
+  </script>
+</body>
+</html>

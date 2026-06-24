@@ -1,0 +1,28 @@
+(DONE) criar uma pagina de criação e edição de categorias e subcategorias que serão apresentadas na vacbar (como as ofertas, lançamentos, masculino, feminino) e adicionar um campo de selecionar a categoria e subcategoria do produto na criação ou edição dos anuncios (as abas de ofertas, lançamentos, masculino e feminino são "Zonas", a categoria seria a masculino/roupas ou a feminino/acessórios, a subcategoria seria a masculino/roupas/camisetas ou a feminino/acessórios/meias... quero que seja possivel criar novas zonas e marcar ou desmarcar para elas aparecerem na navbar, criar novas categorias ou mover-las para qualquer zona que eu criar e o mesmo vale para as subcategorias... ja a zona de ofertas e a de lançamentos sempre permanece fixa em 1º e 2º da esquerda para a direita... faça as zonas, categorias e subcategorias atuais como padrão)
+
+(DONE) adicionar na criação de anuncio e na edição do anuncio no catalogo (edição de anuncio) uma opção de marcar o anuncio como "Drop Exclusivo" e faça uma badge de peça exclusiva para a pagina do anuncio marcado como drop exclusivo 
+
+(DONE) criar uma pagina de catalogo onde sera possivel ver todos os anuncios criados e editar-los, excluilos ou movelos de categoria e subcategoria, etc.
+
+(DONE) adicionar um botão na navbar de favoritos onde terá os itens marcados como favoritos, dito isso, adicionar um botão de favoritar o anuncio na pagina do anuncio e no card do anuncio no catalogo... (para marcar como favorito precisa estar logado)
+
+(DONE) adicionar pagina de perfil
+
+(DONE) faça a searchbar da navbar levar a pagina catalogo.html ja com o filtro certo que foi pesquisado
+
+(DONE) criar status para produtos (ativo (quanto o anuncio esta ativo mas não está publicado, então ele não aparece para os clientes),publicado (quando o anuncio esta ativo e publicado então ele aparece para os clientes), pausado (quando o anuncio está ativo, publicado mas o cliente não consegue efetuar a compra pois o anúncio está pausado (mostraria algo como "Produto não disponível")),inativo (quando o anuncio não está nem ativo e nem publicado)... para o anuncio estar publicado, ele precisa estar ativo... para o anuncio estar pausado, ele precisa estar publicado e ativo... para o anuncio estar inativo, ele não pode estar ativo, nem publicado e nem pausado...)
+
+(DONE) É PRECISO SINCRONIZAR AS NAVBAR... QUANDO CRIO UMA ZONA NOVA, ELA APARECE APENAS NA MAIN PAGE
+
+(DONE) os botões de tamanho estão muito apagados, colocar um fundo solido neles
+
+(DONE) sincronizar a coleção com a pagina do anuncio (produto.html)... na pagina do anuncio (produto.html) adicione a informação abaixo do título do produto (no lugar que está )
+
+(DONE) fazer a pagina de favoritos
+
+(DONE) fazer niveis de permissões onde o usuario administrador escolhe quais as permissões de cada moderador (niveis de acesso)
+
+adicionar ao menu "Configurações do Site":
+- no campo "Próximo Drop Exclusivo" adicione um campo onde eu posso escolher um dos anuncios criados para exibir ao final da contagem regressiva... esse anuncio sera exibido no lugar do logo principal da pagina main page (o maior logo que fica no topo da main page) com um botão chamativo de "Compre agora" ou "Seja Exclusivo" algo assim... ele ficará sendo exibido até alguem desativar o "Próximo Drop Exclusivo" nas configurações do site e quando desativar, volta a ser apenas o logo novamente
+
+adicionar um dashboard no painel admin

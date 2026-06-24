@@ -1,0 +1,457 @@
+/* =============================================================
+   ZENITH ZONE — Auth Modal V2
+   Importar após tokens.css
+   ============================================================= */
+
+/* Sem reset global aqui — auth-v2.css é importado no index.html
+   que já tem seus próprios estilos base em main.css */
+
+/* ── MODAL WRAP (backdrop + flex container do card) ──── */
+/*
+  modal-wrap serve COMO o backdrop: cobre o viewport inteiro,
+  aplica background escuro + blur, e centraliza o .modal dentro.
+  Isso evita conflito de z-index entre backdrop e card.
+*/
+.modal-wrap {
+  position: fixed; inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 15;
+  background: rgba(4, 6, 16, 0.80);
+  backdrop-filter: blur(12px) saturate(0.75);
+  -webkit-backdrop-filter: blur(12px) saturate(0.75);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.42s ease;
+}
+.modal-wrap.visible { opacity: 1; pointer-events: auto; }
+
+/* ── MODAL CARD ────────────────────────────────────────── */
+.modal {
+  width: min(478px, 100%);
+  position: relative;
+  background: rgba(9, 12, 32, 0.93);
+  backdrop-filter: blur(28px) saturate(1.7);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  border: 1px solid rgba(220, 20, 60, 0.17);
+  border-radius: 10px;
+  overflow: hidden; /* CRÍTICO: contém todos os slides */
+  box-shadow:
+    0 0 0 1px rgba(255, 27, 107, 0.05) inset,
+    0 36px 88px rgba(4, 6, 16, 0.96),
+    0 0 130px rgba(220, 20, 60, 0.06);
+  animation: modalPop 0.68s cubic-bezier(0.34, 1.48, 0.64, 1) both;
+}
+
+/* Linha superior animada */
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  z-index: 60;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 27, 107, 0.55) 20%,
+    rgba(255, 255, 255, 0.30) 50%,
+    rgba(220, 20, 60,  0.55) 80%,
+    transparent 100%);
+  animation: topShimmer 3.8s ease-in-out infinite;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.87) translateY(30px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+@keyframes topShimmer {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1; }
+}
+
+/* ── MODAL HEADER (logo + fechar) ─────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.55rem 1.8rem 0;
+  position: relative;
+  z-index: 55;
+}
+.modal-logo { text-decoration: none; display: flex; }
+.modal-logo img {
+  height: 52px; width: auto;
+  filter: drop-shadow(0 0 14px rgba(255, 27, 107, 0.30));
+}
+.modal-close {
+  background: none; border: none;
+  color: var(--color-text-faint);
+  font-size: 1.35rem; line-height: 1;
+  cursor: pointer; padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-body);
+  transition: color var(--ease-fast), background var(--ease-fast);
+}
+.modal-close:hover {
+  color: var(--color-offwhite);
+  background: rgba(245, 240, 230, 0.06);
+}
+
+/* ── SLASH LAYER (efeito katana) ───────────────────────── */
+.slash-layer {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+
+/* Elemento de corte individual */
+.slash-el {
+  position: absolute; inset: 0;
+  animation: slashMove var(--dur, 0.38s) var(--delay, 0s)
+             cubic-bezier(0.25, 0, 0.45, 1) forwards;
+}
+.slash-el::before {
+  content: '';
+  position: absolute;
+  left: var(--sx, 50%);
+  top: -40%; width: 2px; height: 180%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(255, 220, 240, 0.00) 8%,
+    rgba(255, 220, 240, 0.88) 28%,
+    rgba(255, 255, 255,  1.0) 50%,
+    rgba(255, 220, 240, 0.88) 72%,
+    rgba(255, 220, 240, 0.00) 92%,
+    transparent 100%);
+  filter:
+    drop-shadow(0 0 5px rgba(255, 60, 150, 1))
+    drop-shadow(0 0 16px rgba(255, 255, 255, 0.45));
+  transform: rotate(0deg); /* a rotação é no pai */
+}
+
+/* Segunda linha mais fina (eco do corte) */
+.slash-el.eco {
+  opacity: 0.55;
+}
+.slash-el.eco::before {
+  width: 1px;
+  left: calc(var(--sx, 50%) + 6px);
+  filter: drop-shadow(0 0 4px rgba(255, 27, 107, 0.8));
+}
+
+@keyframes slashMove {
+  0%   { opacity: 0; transform: translateX(-160%) rotate(-42deg); }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(260%)  rotate(-42deg); }
+}
+
+/* Flash de impacto (brilho radial no modal) */
+.slash-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 27, 107, 0.14) 0%,
+    rgba(220, 20, 60, 0.06)  40%,
+    transparent 70%);
+  animation: impactGlow 0.48s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes impactGlow {
+  0%   { opacity: 0; transform: scale(0.6); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+/* ── CANVAS DE PÉTALAS (dentro do modal-wrap, atrás do card) ── */
+#auth-petals-canvas {
+  position: absolute;   /* relativo ao modal-wrap (position:fixed) */
+  inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; /* nunca bloqueia cliques */
+  z-index: 0;           /* ATRÁS do .modal (z-index: 1) */
+}
+
+/* ── MODAL CARD (acima do canvas) ─────────────────────────── */
+/* O z-index: 1 garante que o card fica na frente do canvas */
+.modal { z-index: 1; }
+
+/* ── SCROLLBAR GLOBAL DA PÁGINA (igual ao modal) ──────────── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(220, 20, 60, 0.48) rgba(7, 9, 26, 0.30);
+}
+html::-webkit-scrollbar              { width: 5px; }
+html::-webkit-scrollbar-track        { background: rgba(7, 9, 26, 0.35); }
+html::-webkit-scrollbar-thumb        {
+  background: linear-gradient(180deg, rgba(255,27,107,0.75) 0%, rgba(220,20,60,0.95) 100%);
+  border-radius: 3px;
+}
+html::-webkit-scrollbar-thumb:hover  { background: var(--color-red); }
+html::-webkit-scrollbar-thumb:active { background: var(--color-pink); }
+
+/* ── PANELS WRAP — ALTURA FIXA (todos os painéis iguais) ──── */
+.panels-wrap {
+  position: relative;
+  overflow: hidden;
+  height: 510px;
+}
+
+/*
+  Estrutura de cada painel — flex coluna:
+  ┌─────────────────────────────┐  ← .panel (position absolute, inset 0)
+  │  .panel-body  (flex: 1)     │  ← conteúdo scrollável
+  │  ────────────────────────── │
+  │  .panel-footer (shrink: 0)  │  ← botão + link fixos no rodapé
+  └─────────────────────────────┘
+*/
+.panel {
+  display: none;
+  position: absolute;
+  inset: 0;
+  flex-direction: column; /* usado quando display:flex */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.panel.is-active  { display: flex; }
+.panel.is-exiting { display: flex; pointer-events: none; z-index: 1; }
+
+/* Área scrollável */
+.panel-body {
+  flex: 1;
+  min-height: 0; /* permite que flex:1 respeite overflow */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.65rem 1.8rem 0.6rem;
+
+  /* Scrollbar Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(220, 20, 60, 0.5) transparent;
+}
+
+/* Scrollbar Webkit — degradê Crimson→Electric Sakura */
+.panel-body::-webkit-scrollbar              { width: 3px; }
+.panel-body::-webkit-scrollbar-track        { background: rgba(7, 9, 26, 0.20); border-radius: 3px; }
+.panel-body::-webkit-scrollbar-thumb        {
+  background: linear-gradient(180deg, rgba(255,27,107,0.75) 0%, rgba(220,20,60,0.95) 100%);
+  border-radius: 3px;
+}
+.panel-body::-webkit-scrollbar-thumb:hover  { background: var(--color-red); }
+.panel-body::-webkit-scrollbar-thumb:active { background: var(--color-pink); }
+
+/* Rodapé fixo — botão de ação + link de alternância */
+.panel-footer {
+  flex-shrink: 0;
+  padding: 0.9rem 1.8rem 1.5rem;
+  border-top: 1px solid rgba(245, 240, 230, 0.07);
+  /* Fundo levemente opaco para cobrir conteúdo quando há scroll */
+  background: rgba(9, 12, 32, 0.96);
+}
+/* Remove a margem superior do btn-auth quando está no footer (o footer já tem padding-top) */
+.panel-footer .btn-auth { margin-top: 0; }
+
+/* ── CABEÇALHO DO PAINEL ───────────────────────────────── */
+.panel-title {
+  font-family: var(--font-head);
+  font-weight: var(--fw-black);
+  font-size: var(--text-2xl);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-normal);
+  color: var(--color-white);
+  margin-bottom: 0.22rem;
+}
+.panel-sub {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 1.35rem;
+  line-height: var(--leading-normal);
+}
+
+/* ── BOTÃO VOLTAR ──────────────────────────────────────── */
+.btn-back {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  background: none; border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-body); font-size: var(--text-sm);
+  cursor: pointer; padding: 0; margin-bottom: 1rem;
+  transition: color var(--ease-fast), gap var(--ease-fast);
+}
+.btn-back:hover { color: var(--color-pink); gap: 0.5rem; }
+.btn-back svg { width: 14px; height: 14px; }
+
+/* ── ALERTAS ───────────────────────────────────────────── */
+.auth-alert {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm); line-height: 1.5;
+  margin-bottom: 1.1rem; border: 1px solid;
+}
+.auth-alert.error {
+  background: rgba(220, 20, 60, 0.08);
+  border-color: rgba(220, 20, 60, 0.28);
+  color: #f07080;
+}
+.auth-alert.success {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.28);
+  color: #5dc78c;
+}
+
+/* ── CAMPOS ────────────────────────────────────────────── */
+.field { margin-bottom: 0.95rem; }
+
+.field-label {
+  display: block;
+  font-size: var(--text-2xs); font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-wider); text-transform: uppercase;
+  color: var(--color-text-faint); margin-bottom: 0.35rem;
+}
+.field-label .opt {
+  font-weight: var(--fw-regular); text-transform: none;
+  letter-spacing: 0; color: var(--color-text-ghost);
+}
+
+.field-input {
+  width: 100%;
+  background: rgba(7, 9, 26, 0.58);
+  border: 1px solid rgba(245, 240, 230, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 0.68rem 0.88rem;
+  color: var(--color-offwhite);
+  font-family: var(--font-body); font-size: var(--text-base);
+  outline: none;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+}
+.field-input::placeholder { color: rgba(245, 240, 230, 0.17); }
+.field-input:focus {
+  border-color: rgba(220, 20, 60, 0.52);
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.08), 0 0 16px rgba(220, 20, 60, 0.05);
+}
+.field-input.invalid {
+  border-color: rgba(220, 20, 60, 0.68);
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.09);
+}
+.field-error {
+  display: block; font-size: var(--text-2xs);
+  color: #f07080; margin-top: 0.26rem; min-height: 1em;
+}
+
+/* ── CAMPO SENHA ───────────────────────────────────────── */
+.field-pass-wrap { position: relative; }
+.field-pass-wrap .field-input { padding-right: 2.7rem; }
+.toggle-pass {
+  position: absolute; right: 0.7rem; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-faint);
+  display: flex; align-items: center; padding: 0;
+  transition: color var(--ease-fast);
+}
+.toggle-pass:hover { color: var(--color-offwhite); }
+.toggle-pass svg { width: 15px; height: 15px; }
+
+/* ── FORÇA DA SENHA ────────────────────────────────────── */
+.pass-strength { display: flex; gap: 0.26rem; margin-top: 0.36rem; }
+.pass-bar {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: rgba(245, 240, 230, 0.07);
+  transition: background var(--ease-mid);
+}
+.pass-bar.weak   { background: var(--color-red); }
+.pass-bar.medium { background: #f59e0b; }
+.pass-bar.strong { background: #22c55e; }
+
+.pass-rules {
+  list-style: none;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.16rem 0.5rem; margin-top: 0.4rem;
+}
+.pass-rules li {
+  font-size: var(--text-2xs); color: var(--color-text-faint);
+  display: flex; align-items: center; gap: 0.26rem;
+  transition: color var(--ease-mid);
+}
+.pass-rules li::before { content: '○'; font-size: 0.46rem; }
+.pass-rules li.ok { color: #22c55e; }
+.pass-rules li.ok::before { content: '●'; }
+
+/* ── GRID DE DOIS CAMPOS ───────────────────────────────── */
+.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.72rem; }
+
+/* ── DIVISOR ───────────────────────────────────────────── */
+.form-divider { border: none; border-top: 1px solid var(--color-border-subtle); margin: 1rem 0; }
+
+/* ── LINK "ESQUECI SENHA" ──────────────────────────────── */
+.link-forgot {
+  display: block; width: 100%; text-align: right;
+  font-size: var(--text-2xs); color: var(--color-text-faint);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-body); letter-spacing: 0.05em;
+  margin-top: -0.3rem; margin-bottom: 0.85rem; padding: 0;
+  transition: color var(--ease-fast);
+}
+.link-forgot:hover { color: var(--color-pink); }
+
+/* ── BOTÃO PRINCIPAL DO FORMULÁRIO ─────────────────────── */
+.btn-auth {
+  width: 100%; margin-top: 0.88rem; padding: 0.86rem;
+  background: var(--color-red); color: #fff;
+  font-family: var(--font-head); font-weight: var(--fw-black);
+  font-size: var(--text-md); letter-spacing: var(--tracking-wide);
+  text-transform: uppercase; border: none; border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--ease-fast), transform var(--ease-fast), box-shadow var(--ease-fast);
+}
+.btn-auth:hover:not(:disabled) {
+  background: var(--color-red-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(220, 20, 60, 0.44);
+}
+.btn-auth:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TEXTO DE ALTERNÂNCIA (rodapé do painel) ───────────── */
+.switch-text {
+  text-align: center; font-size: var(--text-sm);
+  color: var(--color-text-muted); margin-top: 1.2rem;
+}
+.link-btn {
+  background: none; border: none; color: var(--color-red);
+  font-family: var(--font-body); font-size: inherit;
+  font-weight: var(--fw-bold); cursor: pointer; padding: 0;
+  transition: opacity var(--ease-fast);
+}
+.link-btn:hover { opacity: 0.75; }
+
+/* ── DEV LINK ──────────────────────────────────────────── */
+.dev-link-box { margin-top: 1rem; }
+.dev-link-box p {
+  font-size: var(--text-2xs); color: var(--color-text-faint);
+  letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem;
+}
+.dev-link-box a {
+  font-size: var(--text-xs); color: var(--color-red);
+  word-break: break-all; text-decoration: underline;
+}
+
+
+/* ── RESPONSIVO ────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .modal-wrap { align-items: flex-end; padding: 0; }
+  .modal {
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  /* No mobile, panels-wrap ocupa o espaço disponível da tela */
+  .panels-wrap { height: calc(96dvh - 70px); }
+  .panel-body   { padding: 1.4rem 1.2rem 0.5rem; }
+  .panel-footer { padding: 0.8rem 1.2rem 1.4rem; }
+  .modal-header { padding: 1.2rem 1.2rem 0; }
+  .fields-row { grid-template-columns: 1fr; gap: 0; }
+  .pass-rules { grid-template-columns: 1fr; }
+}
+/* Telas baixas (laptop pequeno, landscape) */
+@media (max-height: 660px) {
+  .panels-wrap { height: calc(100dvh - 145px); }
+}

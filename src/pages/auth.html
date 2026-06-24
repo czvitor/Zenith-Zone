@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso — ZENITH ZONE</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/auth-v2.css">
+</head>
+<body>
+
+<!-- ── FUNDO: CANVAS SAKURA ──────────────────────────────── -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<!-- ── FUNDO: QUADRA DE BASQUETE (SVG perspectiva 3D) ────── -->
+<svg class="court-bg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid slice"
+     aria-hidden="true" fill="none"
+     stroke="rgba(255,138,28,1)" stroke-width="1.7" stroke-linecap="round">
+  <rect x="40" y="40" width="820" height="480" rx="5"/>
+  <line x1="450" y1="40" x2="450" y2="520"/>
+  <circle cx="450" cy="280" r="72"/>
+  <circle cx="450" cy="280" r="5" fill="rgba(255,138,28,1)" stroke="none"/>
+  <!-- Garrafão esquerdo -->
+  <rect x="40" y="172" width="188" height="216"/>
+  <path d="M 228 172 A 72 72 0 0 1 228 388"/>
+  <path d="M 228 172 A 72 72 0 0 0 228 388" stroke-dasharray="6 5"/>
+  <path d="M 40 112 A 278 278 0 0 1 40 448"/>
+  <path d="M 40 250 A 30 30 0 0 1 40 310"/>
+  <circle cx="62" cy="280" r="9" fill="rgba(255,138,28,0.15)" stroke-width="1.5"/>
+  <!-- Garrafão direito -->
+  <rect x="672" y="172" width="188" height="216"/>
+  <path d="M 672 172 A 72 72 0 0 0 672 388"/>
+  <path d="M 672 172 A 72 72 0 0 1 672 388" stroke-dasharray="6 5"/>
+  <path d="M 860 112 A 278 278 0 0 0 860 448"/>
+  <path d="M 860 250 A 30 30 0 0 0 860 310"/>
+  <circle cx="838" cy="280" r="9" fill="rgba(255,138,28,0.15)" stroke-width="1.5"/>
+</svg>
+
+<!-- ── TELA DE ENTRADA ────────────────────────────────────── -->
+<div class="entry-screen" id="entry-screen">
+  <img src="../images/logo%20curta%20ZZ%20(transparente).png" alt="Zenith Zone" class="entry-logo">
+  <h1 class="entry-wordmark">ZENITH<br>ZONE</h1>
+  <p class="entry-tagline">Sua arena. Seu estilo.</p>
+  <div class="entry-actions">
+    <button class="btn-entry-primary" id="btn-open-login">Entrar</button>
+    <button class="btn-entry-ghost"   id="btn-open-signup">Criar Conta</button>
+  </div>
+</div>
+
+<!-- ── MODAL (backdrop + card no mesmo elemento) ─────────── -->
+<!--
+  .modal-wrap é o backdrop: position fixed, cobre tudo,
+  aplica o blur/dark e centraliza o .modal via flex.
+-->
+<div class="modal-wrap" id="modal-wrap" role="dialog" aria-modal="true" aria-label="Autenticação">
+
+  <!-- Card do modal -->
+  <div class="modal" id="modal">
+
+    <!-- Topo: logo + fechar -->
+    <div class="modal-header">
+      <a href="../index.html" class="modal-logo">
+        <img src="../images/logo%20curta%20ZZ%20(transparente).png" alt="ZENITH ZONE">
+      </a>
+      <button class="modal-close" id="modal-close" aria-label="Fechar">✕</button>
+    </div>
+
+    <!-- Camada de efeitos de corte (katana slash) -->
+    <div class="slash-layer" id="slash-layer" aria-hidden="true"></div>
+
+    <!-- Container de painéis (overflow: hidden mantém slides dentro) -->
+    <div class="panels-wrap" id="panels-wrap">
+
+      <!-- ─────────────── PAINEL: LOGIN ──────────────────── -->
+      <div class="panel" id="panel-login">
+
+        <h2 class="panel-title">Entrar</h2>
+        <p class="panel-sub">Acesse sua conta Zenith Zone</p>
+
+        <div class="auth-alert error" id="login-alert" hidden></div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="login-id">Usuário ou E-mail</label>
+            <input class="field-input" type="text" id="login-id" name="login"
+                   autocomplete="username" placeholder="seu_usuario ou email@ex.com" required>
+            <span class="field-error" id="login-id-err"></span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="login-pass">Senha</label>
+            <div class="field-pass-wrap">
+              <input class="field-input" type="password" id="login-pass" name="password"
+                     autocomplete="current-password" placeholder="••••••••" required>
+              <button type="button" class="toggle-pass" data-target="login-pass" aria-label="Mostrar/ocultar senha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="login-pass-err"></span>
+          </div>
+
+          <!-- Dispara slide: Login → Forgot (de baixo para cima) -->
+          <button type="button" class="link-forgot" data-goto="forgot">Esqueci minha senha</button>
+
+          <button type="submit" class="btn-auth" id="login-submit">Entrar</button>
+        </form>
+
+        <p class="switch-text">
+          Não tem conta?
+          <!-- Dispara slide: Login → Signup (esquerda para direita) -->
+          <button class="link-btn" data-goto="signup">Cadastre-se</button>
+        </p>
+      </div><!-- /panel-login -->
+
+      <!-- ─────────────── PAINEL: SIGNUP ─────────────────── -->
+      <div class="panel" id="panel-signup">
+
+        <button class="btn-back" data-goto="login" aria-label="Voltar ao login">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Voltar
+        </button>
+
+        <h2 class="panel-title">Criar Conta</h2>
+        <p class="panel-sub">Cadastro gratuito — perfil Cliente</p>
+
+        <div class="auth-alert error" id="signup-alert" hidden></div>
+
+        <form id="signup-form" novalidate>
+          <div class="fields-row">
+            <div class="field">
+              <label class="field-label" for="s-firstName">Nome</label>
+              <input class="field-input" type="text" id="s-firstName"
+                     autocomplete="given-name" placeholder="João" required>
+              <span class="field-error" id="s-firstName-err"></span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="s-lastName">Sobrenome</label>
+              <input class="field-input" type="text" id="s-lastName"
+                     autocomplete="family-name" placeholder="Silva" required>
+              <span class="field-error" id="s-lastName-err"></span>
+            </div>
+          </div>
+          <div class="fields-row">
+            <div class="field">
+              <label class="field-label" for="s-username">Usuário</label>
+              <input class="field-input" type="text" id="s-username"
+                     autocomplete="username" placeholder="joaosilva99" required>
+              <span class="field-error" id="s-username-err"></span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="s-email">E-mail</label>
+              <input class="field-input" type="email" id="s-email"
+                     autocomplete="email" placeholder="joao@email.com" required>
+              <span class="field-error" id="s-email-err"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-birthDate">Data de Nascimento</label>
+            <input class="field-input" type="date" id="s-birthDate" required>
+            <span class="field-error" id="s-birthDate-err"></span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-address">
+              Endereço <span class="opt">(opcional)</span>
+            </label>
+            <input class="field-input" type="text" id="s-address"
+                   autocomplete="street-address" placeholder="Rua, número, bairro, cidade — UF">
+          </div>
+          <hr class="form-divider">
+          <div class="field">
+            <label class="field-label" for="s-password">Senha</label>
+            <div class="field-pass-wrap">
+              <input class="field-input" type="password" id="s-password"
+                     autocomplete="new-password" placeholder="••••••••" required>
+              <button type="button" class="toggle-pass" data-target="s-password" aria-label="Mostrar/ocultar senha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <div class="pass-strength">
+              <div class="pass-bar" id="s-bar1"></div>
+              <div class="pass-bar" id="s-bar2"></div>
+              <div class="pass-bar" id="s-bar3"></div>
+            </div>
+            <ul class="pass-rules" aria-label="Requisitos de senha">
+              <li id="s-rule-len">Mínimo 6 caracteres</li>
+              <li id="s-rule-upper">1 letra maiúscula</li>
+              <li id="s-rule-special">1 caractere especial</li>
+            </ul>
+            <span class="field-error" id="s-password-err"></span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-confirm">Repetir Senha</label>
+            <div class="field-pass-wrap">
+              <input class="field-input" type="password" id="s-confirm"
+                     autocomplete="new-password" placeholder="••••••••" required>
+              <button type="button" class="toggle-pass" data-target="s-confirm" aria-label="Mostrar/ocultar senha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="s-confirm-err"></span>
+          </div>
+          <button type="submit" class="btn-auth" id="signup-submit">Criar Conta</button>
+        </form>
+
+        <p class="switch-text">
+          Já tem conta?
+          <!-- Dispara slide: Signup → Login (direita para esquerda) -->
+          <button class="link-btn" data-goto="login">Entrar</button>
+        </p>
+      </div><!-- /panel-signup -->
+
+      <!-- ─────────────── PAINEL: FORGOT ─────────────────── -->
+      <div class="panel" id="panel-forgot">
+
+        <button class="btn-back" data-goto="login" aria-label="Voltar ao login">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Voltar ao Login
+        </button>
+
+        <h2 class="panel-title">Recuperar Senha</h2>
+        <p class="panel-sub">
+          Informe seu e-mail cadastrado e enviaremos um link para redefinir sua senha.
+        </p>
+
+        <div class="auth-alert error"   id="forgot-alert-err" hidden></div>
+        <div class="auth-alert success" id="forgot-alert-ok"  hidden></div>
+
+        <form id="forgot-form" novalidate>
+          <div class="field">
+            <label class="field-label" for="f-email">E-mail</label>
+            <input class="field-input" type="email" id="f-email"
+                   autocomplete="email" placeholder="seu@email.com" required>
+            <span class="field-error" id="f-email-err"></span>
+          </div>
+          <button type="submit" class="btn-auth" id="forgot-submit">Enviar Link</button>
+        </form>
+
+        <p class="switch-text">
+          Lembrou a senha?
+          <button class="link-btn" data-goto="login">Entrar</button>
+        </p>
+      </div><!-- /panel-forgot -->
+
+    </div><!-- /panels-wrap -->
+  </div><!-- /modal -->
+</div><!-- /modal-wrap -->
+
+<script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ZENITH ZONE — Auth Modal Engine
+   Gerencia: estado de painéis, transições com efeito katana,
+   lógica de formulários, canvas de sakura.
+   ═══════════════════════════════════════════════════════════ */
+
+ZZAuth.requireGuest();
+
+/* ── REFERÊNCIAS DOM ──────────────────────────────────────── */
+const entryEl     = document.getElementById('entry-screen');
+const modalWrap   = document.getElementById('modal-wrap');
+const slashLayer  = document.getElementById('slash-layer');
+const panelsWrap  = document.getElementById('panels-wrap');
+
+const PANELS = ['login', 'signup', 'forgot'];
+let currentPanel = null; // null = entry screen visível
+let isTransiting = false;
+const TRANS_MS   = 420;  // duração da transição em ms
+
+/* ── MAPA DE DIREÇÕES ─────────────────────────────────────── */
+/*
+  Cada entrada: { from: [saída X%, saída Y%], to: [entrada X%, entrada Y%] }
+  Positivo X = direita, Positivo Y = baixo
+  Especificação:
+    login  → signup : esquerda→direita (login sai dir, signup entra esq)
+    signup → login  : direita→esquerda (signup sai esq, login entra dir)
+    *      → forgot : baixo→cima       (atual sai cima, forgot entra baixo)
+    forgot → *      : cima→baixo       (forgot sai baixo, destino entra cima)
+*/
+const DIR_MAP = {
+  'login→signup':  { fromExit: [100, 0],   toEntry: [-100, 0]  },
+  'signup→login':  { fromExit: [-100, 0],  toEntry: [100, 0]   },
+  'login→forgot':  { fromExit: [0, -100],  toEntry: [0, 100]   },
+  'signup→forgot': { fromExit: [0, -100],  toEntry: [0, 100]   },
+  'forgot→login':  { fromExit: [0, 100],   toEntry: [0, -100]  },
+  'forgot→signup': { fromExit: [0, 100],   toEntry: [0, -100]  },
+};
+
+/* ── HELPERS ──────────────────────────────────────────────── */
+function getPanel(id) { return document.getElementById(`panel-${id}`); }
+
+function panelTx(el, x, y, duration = 0) {
+  el.style.transition = duration
+    ? `transform ${duration}ms cubic-bezier(0.4, 0, 0.2, 1)`
+    : 'none';
+  el.style.transform = `translate(${x}%, ${y}%)`;
+}
+
+/* Mede a altura de um painel mesmo que esteja fora de tela */
+function measurePanel(panel) {
+  const hadNone = panel.style.display === 'none' || getComputedStyle(panel).display === 'none';
+  if (hadNone) {
+    panel.style.cssText += 'display:block;visibility:hidden;';
+  }
+  const h = panel.scrollHeight;
+  if (hadNone) {
+    panel.style.display   = '';
+    panel.style.visibility = '';
+  }
+  return h;
+}
+
+/* ── INICIALIZAÇÃO DOS PAINÉIS ────────────────────────────── */
+function initPanels(initialPanel) {
+  PANELS.forEach(id => {
+    const p = getPanel(id);
+    // Define posição inicial padrão (fora do viewport, sem transição)
+    const defaultPos = { login: [0,0], signup: [-100,0], forgot: [0,100] };
+    const [x, y] = defaultPos[id] || [100, 0];
+    panelTx(p, x, y, 0);
+  });
+  panelTx(getPanel(initialPanel), 0, 0, 0);
+  currentPanel = initialPanel;
+
+  // Define altura inicial do wrap
+  const active = getPanel(initialPanel);
+  panelsWrap.style.transition = 'none';
+  panelsWrap.style.height = measurePanel(active) + 'px';
+}
+
+/* ── ABRIR MODAL ──────────────────────────────────────────── */
+function openModal(startPanel = 'login') {
+  entryEl.classList.add('exit');
+  setTimeout(() => entryEl.classList.add('gone'), 520);
+
+  initPanels(startPanel);
+  modalWrap.classList.add('visible');
+  // Habilita transição de altura após init
+  requestAnimationFrame(() => {
+    panelsWrap.style.transition = 'height 0.42s cubic-bezier(0.4, 0, 0.2, 1)';
+  });
+}
+
+/* ── FECHAR MODAL (volta para entry) ──────────────────────── */
+function closeModal() {
+  modalWrap.classList.remove('visible');
+  setTimeout(() => {
+    entryEl.classList.remove('gone', 'exit');
+    currentPanel = null;
+  }, 430);
+}
+
+/* ── MOTOR DE TRANSIÇÃO ENTRE PAINÉIS ─────────────────────── */
+function navigate(to) {
+  if (!to || to === currentPanel || isTransiting) return;
+
+  const from      = currentPanel;
+  const key       = `${from}→${to}`;
+  const dir       = DIR_MAP[key];
+  if (!dir) return;
+
+  isTransiting = true;
+
+  const fromPanel = getPanel(from);
+  const toPanel   = getPanel(to);
+  const [fex, fey] = dir.fromExit;
+  const [tex, tey] = dir.toEntry;
+
+  /* 1. Posiciona o painel entrante na posição de início (sem animação) */
+  panelTx(toPanel, tex, tey, 0);
+
+  /* 2. Mede e atualiza altura ANTES da animação */
+  const newH = measurePanel(toPanel);
+  panelsWrap.style.height = newH + 'px';
+
+  /* 3. Efeito katana IMEDIATO */
+  triggerKatana();
+
+  /* 4. Força reflow para aplicar o posicionamento sem transição */
+  void toPanel.offsetHeight;
+
+  /* 5. Dispara animações simultâneas */
+  panelTx(fromPanel, fex, fey, TRANS_MS);
+  panelTx(toPanel,   0,   0,   TRANS_MS);
+
+  /* 6. Limpeza após animação */
+  setTimeout(() => {
+    // Retorna fromPanel para sua posição padrão (off-screen sem animação)
+    panelTx(fromPanel, tex * -1, tey * -1, 0);
+    currentPanel = to;
+    isTransiting = false;
+  }, TRANS_MS + 40);
+}
+
+/* ── EFEITO KATANA SLASH ──────────────────────────────────── */
+function triggerKatana() {
+  slashLayer.innerHTML = '';
+
+  /* Flash de impacto */
+  const glow = document.createElement('div');
+  glow.className = 'slash-glow';
+  slashLayer.appendChild(glow);
+  glow.addEventListener('animationend', () => glow.remove(), { once: true });
+
+  /* 3 linhas de corte escalonadas */
+  const positions = [28, 52, 74]; // posições X% das linhas
+  positions.forEach((sx, i) => {
+    const el = document.createElement('div');
+    el.className = i === 1 ? 'slash-el eco' : 'slash-el';
+    el.style.setProperty('--sx', sx + '%');
+    el.style.setProperty('--delay', (i * 0.065) + 's');
+    slashLayer.appendChild(el);
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+  });
+
+  /* Dispara rajada de sakura */
+  sakuraBurst();
+}
+
+/* ── BINDINGS: ENTRADA ────────────────────────────────────── */
+document.getElementById('btn-open-login').addEventListener('click',  () => openModal('login'));
+document.getElementById('btn-open-signup').addEventListener('click', () => openModal('signup'));
+document.getElementById('modal-close').addEventListener('click', closeModal);
+
+/* Fechar ao clicar no backdrop */
+document.getElementById('modal-wrap').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+/* Fechar com ESC */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── BINDINGS: NAVEGAÇÃO ENTRE PAINÉIS ───────────────────── */
+document.querySelectorAll('[data-goto]').forEach(el =>
+  el.addEventListener('click', () => navigate(el.dataset.goto))
+);
+
+/* ── HASH AUTO-ROUTE ──────────────────────────────────────── */
+const hash = location.hash.slice(1);
+if (['login', 'signup', 'forgot'].includes(hash)) {
+  requestAnimationFrame(() => openModal(hash));
+}
+
+/* ── TOGGLE VISIBILIDADE DE SENHA ─────────────────────────── */
+document.querySelectorAll('.toggle-pass').forEach(btn =>
+  btn.addEventListener('click', () => {
+    const inp = document.getElementById(btn.dataset.target);
+    inp.type  = inp.type === 'password' ? 'text' : 'password';
+  })
+);
+
+/* ── FORÇA DA SENHA (SIGNUP) ──────────────────────────────── */
+document.getElementById('s-password').addEventListener('input', function () {
+  const v          = this.value;
+  const hasLen     = v.length >= 6;
+  const hasUpper   = /[A-Z]/.test(v);
+  const hasSpecial = /[@#$%!&*]/.test(v);
+
+  document.getElementById('s-rule-len').classList.toggle('ok', hasLen);
+  document.getElementById('s-rule-upper').classList.toggle('ok', hasUpper);
+  document.getElementById('s-rule-special').classList.toggle('ok', hasSpecial);
+
+  const score = [hasLen, hasUpper, hasSpecial].filter(Boolean).length;
+  const cls   = score === 1 ? 'weak' : score === 2 ? 'medium' : score === 3 ? 'strong' : '';
+  ['s-bar1', 's-bar2', 's-bar3'].forEach((id, i) => {
+    const bar = document.getElementById(id);
+    bar.className = 'pass-bar' + (score > i ? ` ${cls}` : '');
+  });
+});
+
+/* ── FORMULÁRIO: LOGIN ────────────────────────────────────── */
+const loginAlert  = document.getElementById('login-alert');
+const loginSubmit = document.getElementById('login-submit');
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  loginAlert.hidden = true;
+  document.getElementById('login-id-err').textContent   = '';
+  document.getElementById('login-pass-err').textContent = '';
+
+  const loginVal = document.getElementById('login-id').value.trim();
+  const passVal  = document.getElementById('login-pass').value;
+  let ok = true;
+  if (!loginVal) { document.getElementById('login-id-err').textContent   = 'Campo obrigatório.'; ok = false; }
+  if (!passVal)  { document.getElementById('login-pass-err').textContent = 'Campo obrigatório.'; ok = false; }
+  if (!ok) return;
+
+  loginSubmit.disabled = true; loginSubmit.textContent = 'Entrando…';
+  try {
+    const { user } = await ZZAuth.login(loginVal, passVal);
+    window.location.replace(user.role === 'admin' ? 'admin-panel.html' : '../index.html');
+  } catch (err) {
+    loginAlert.textContent = err.error || 'Erro ao fazer login. Tente novamente.';
+    loginAlert.hidden = false;
+    loginSubmit.disabled = false; loginSubmit.textContent = 'Entrar';
+  }
+});
+
+/* ── FORMULÁRIO: SIGNUP ───────────────────────────────────── */
+const signupAlert  = document.getElementById('signup-alert');
+const signupSubmit = document.getElementById('signup-submit');
+
+function sErr(f, msg) {
+  const e = document.getElementById(`s-${f}-err`);
+  const i = document.getElementById(`s-${f}`);
+  if (e) e.textContent = msg;
+  if (i) i.classList.add('invalid');
+}
+function sClear() {
+  signupAlert.hidden = true;
+  ['firstName','lastName','username','email','birthDate','password','confirm'].forEach(f => {
+    const e = document.getElementById(`s-${f}-err`);
+    const i = document.getElementById(`s-${f}`);
+    if (e) e.textContent = '';
+    if (i) i.classList.remove('invalid');
+  });
+}
+
+document.getElementById('signup-form').addEventListener('submit', async e => {
+  e.preventDefault(); sClear();
+
+  const firstName = document.getElementById('s-firstName').value.trim();
+  const lastName  = document.getElementById('s-lastName').value.trim();
+  const username  = document.getElementById('s-username').value.trim();
+  const email     = document.getElementById('s-email').value.trim();
+  const birthDate = document.getElementById('s-birthDate').value;
+  const address   = document.getElementById('s-address').value.trim();
+  const password  = document.getElementById('s-password').value;
+  const confirm   = document.getElementById('s-confirm').value;
+
+  let valid = true;
+  if (!firstName)  { sErr('firstName', 'Nome é obrigatório.'); valid = false; }
+  if (!lastName)   { sErr('lastName',  'Sobrenome é obrigatório.'); valid = false; }
+  if (!username)   { sErr('username',  'Usuário é obrigatório.'); valid = false; }
+  if (username && !/^[^\s]+$/.test(username)) { sErr('username', 'Sem espaços.'); valid = false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { sErr('email', 'E-mail inválido.'); valid = false; }
+  if (!birthDate)  { sErr('birthDate', 'Data obrigatória.'); valid = false; }
+
+  const passErrors = ZZAuth.validatePassword(password);
+  if (passErrors.length) { sErr('password', passErrors[0]); valid = false; }
+  if (password !== confirm) { sErr('confirm', 'As senhas não coincidem.'); valid = false; }
+  if (!valid) return;
+
+  signupSubmit.disabled = true; signupSubmit.textContent = 'Criando conta…';
+  try {
+    await ZZAuth.register({ firstName, lastName, username, email, birthDate, address, password });
+    signupAlert.textContent = 'Conta criada! Redirecionando…';
+    signupAlert.className   = 'auth-alert success';
+    signupAlert.hidden = false;
+    setTimeout(() => window.location.replace('../index.html'), 1500);
+  } catch (err) {
+    if (err.errors) {
+      err.errors.forEach(e => { const f = e.path || e.param; if (f) sErr(f, e.msg); });
+    } else {
+      signupAlert.textContent = err.error || 'Erro ao criar conta.';
+      signupAlert.className   = 'auth-alert error';
+      signupAlert.hidden = false;
+    }
+    signupSubmit.disabled = false; signupSubmit.textContent = 'Criar Conta';
+  }
+});
+
+/* ── FORMULÁRIO: FORGOT PASSWORD ──────────────────────────── */
+const forgotAlertErr = document.getElementById('forgot-alert-err');
+const forgotAlertOk  = document.getElementById('forgot-alert-ok');
+const forgotSubmit = document.getElementById('forgot-submit');
+
+document.getElementById('forgot-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  forgotAlertErr.hidden = forgotAlertOk.hidden = true;
+  document.getElementById('f-email-err').textContent = '';
+
+  const email = document.getElementById('f-email').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('f-email-err').textContent = 'Informe um e-mail válido.'; return;
+  }
+
+  forgotSubmit.disabled = true; forgotSubmit.textContent = 'Enviando…';
+  try {
+    const data = await ZZAuth.forgotPassword(email);
+    forgotAlertOk.textContent = data.message;
+    forgotAlertOk.hidden = false;
+    /* Link de reset enviado apenas por e-mail — nunca exibido no frontend */
+    document.getElementById('forgot-form').hidden = true;
+    panelsWrap.style.height = getPanel('forgot').scrollHeight + 'px';
+  } catch (err) {
+    forgotAlertErr.textContent = err.error || 'Erro ao processar solicitação.';
+    forgotAlertErr.hidden = false;
+    forgotSubmit.disabled = false; forgotSubmit.textContent = 'Enviar Link';
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   CANVAS: PÉTALAS DE SAKURA
+   ══════════════════════════════════════════════════════════════ */
+;(function () {
+  const canvas  = document.getElementById('bg-canvas');
+  const ctx     = canvas.getContext('2d');
+  const PINKS   = ['#FF1B6B','#FF4D8D','#FF69A0','#E8206E','#C91560'];
+  let   burst   = 0; // contador de frames de rajada
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  /* ── Classe Pétala ──────────────────────────────────────── */
+  class Petal {
+    constructor(init) { this.reset(init); }
+
+    reset(init) {
+      this.x       = Math.random() * canvas.width;
+      this.y       = init ? Math.random() * canvas.height : -20;
+      this.w       = 5 + Math.random() * 9;
+      this.speedY  = 0.5 + Math.random() * 1.1;
+      this.speedX  = (Math.random() - 0.5) * 0.5;
+      this.rot     = Math.random() * Math.PI * 2;
+      this.rotV    = (Math.random() - 0.5) * 0.025;
+      this.sway    = Math.random() * Math.PI * 2;
+      this.swaySpd = 0.006 + Math.random() * 0.014;
+      this.swayAmt = 0.4 + Math.random() * 0.85;
+      this.alpha   = 0.3 + Math.random() * 0.5;
+      this.color   = PINKS[Math.floor(Math.random() * PINKS.length)];
+    }
+
+    update() {
+      /* Durante rajada (katana), pétalas aceleram e balançam mais */
+      const boost = burst > 0 ? 2.8 : 1;
+      this.sway  += this.swaySpd * boost;
+      this.x     += (this.speedX + Math.sin(this.sway) * this.swayAmt) * boost;
+      this.y     += this.speedY * boost;
+      this.rot   += this.rotV * boost;
+      if (this.y > canvas.height + 25) this.reset(false);
+    }
+
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rot);
+      ctx.globalAlpha = this.alpha;
+
+      /* Forma de pétala: bezier teardrop */
+      const s = this.w;
+      const h = s * 2.9;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo( s * 0.6, -h * 0.14,  s * 0.55, h * 0.86, 0, h);
+      ctx.bezierCurveTo(-s * 0.55, h * 0.86, -s * 0.6, -h * 0.14, 0, 0);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+
+      /* Brilho (shimmer) */
+      ctx.globalAlpha = this.alpha * 0.30;
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.1, h * 0.28, s * 0.16, h * 0.40, -0.25, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
+  const COUNT  = Math.min(62, Math.floor(window.innerWidth / 20));
+  const petals = Array.from({ length: COUNT }, () => new Petal(true));
+
+  /* Adiciona pétalas extras na rajada */
+  let burstPetals = [];
+
+  ;(function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (burst > 0) burst--;
+
+    petals.forEach(p => { p.update(); p.draw(); });
+
+    burstPetals = burstPetals.filter(p => {
+      p.update(); p.draw();
+      return p.y < canvas.height + 30;
+    });
+
+    requestAnimationFrame(loop);
+  })();
+
+  /* Exposto globalmente para o triggerKatana() acima */
+  window.sakuraBurst = function () {
+    burst = 18; // frames de rajada
+    for (let i = 0; i < 18; i++) {
+      const p = new Petal(false);
+      p.y     = Math.random() * canvas.height * 0.6; // spawn no topo/meio
+      p.speedY = 2 + Math.random() * 3;
+      p.speedX = (Math.random() - 0.5) * 3;
+      p.alpha  = 0.55 + Math.random() * 0.4;
+      burstPetals.push(p);
+    }
+  };
+})();
+</script>
+</body>
+</html>

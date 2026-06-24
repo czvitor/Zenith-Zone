@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produto — Zenith Zone</title>
+
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="stylesheet" href="../css/auth-v2.css">
+
+  <style>
+    body { padding-top: 64px; }
+
+    /* ── LOADING / ERROR ──────────────────────────────────── */
+    #state-loading {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 1.2rem;
+    }
+    #state-error   { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; text-align: center; padding: 2rem; }
+    #state-product { display: none; }
+
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(220,20,60,.2); border-top-color: var(--color-red); border-radius: 50%; animation: spin .75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: var(--text-xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); }
+    #state-error h2 { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-2xl); text-transform: uppercase; color: var(--color-red); letter-spacing: var(--tracking-normal); }
+    #state-error p  { font-size: var(--text-sm); color: var(--color-text-muted); }
+    #state-error a  { color: var(--color-red); }
+
+    /* ── BREADCRUMB ─────────────────────────────────────── */
+    .breadcrumb { padding: 1.2rem 5%; display: flex; align-items: center; gap: .5rem; font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); border-bottom: 1px solid var(--color-border-faint); }
+    .breadcrumb a { color: var(--color-text-faint); text-decoration: none; transition: color var(--ease-fast); }
+    .breadcrumb a:hover { color: var(--color-red); }
+    .breadcrumb .sep { color: var(--color-red); }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; padding: 4rem 5%; max-width: 1300px; margin: 0 auto; }
+
+    /* ══════════════════════════════════════════════════════
+       GALERIA — SISTEMA DE CATEGORIAS + CARROSSEL INTERNO
+    ══════════════════════════════════════════════════════ */
+
+    /* Container principal */
+    .product-gallery {
+      display: flex; flex-direction: column; gap: .75rem;
+      position: sticky; top: 76px; align-self: start;
+    }
+
+    /* ── VISOR PRINCIPAL ──────────────────────────────── */
+    .pgal-viewer {
+      position: relative;
+      aspect-ratio: 4/5;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-red-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+    /* Placeholder sem imagem */
+    .pgal-ph {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+      background: radial-gradient(ellipse at 40% 30%, #12183A 0%, var(--color-bg-base) 70%);
+    }
+    .pgal-ph svg { width: 180px; height: 225px; opacity: .8; }
+    .pgal-ph p   { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); }
+
+    /* Imagem principal */
+    .pgal-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+      opacity: 0; transition: opacity .32s ease, transform .4s ease;
+      display: block;
+    }
+    .pgal-img.loaded  { opacity: 1; }
+    .pgal-viewer:hover .pgal-img { transform: scale(1.03); }
+
+    /* Badge topo-esquerdo — substituída pelo carimbo (pgal-badge agora é apenas um wrapper) */
+    .pgal-badge { display: none; }
+    /* Contador topo-direito */
+    .pgal-counter {
+      position: absolute; top: .9rem; right: .9rem; z-index: 3;
+      background: rgba(7,9,26,.75); border: 1px solid rgba(220,20,60,.25);
+      color: var(--color-text-muted); font-size: var(--text-2xs);
+      font-weight: var(--fw-bold); letter-spacing: var(--tracking-wide);
+      padding: .28rem .7rem; border-radius: var(--radius-xs);
+      backdrop-filter: blur(6px);
+      display: none;
+    }
+
+    /* Setas laterais — aparecem ao hover no visor */
+    .pgal-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(4,6,16,.72); border: 1px solid rgba(245,240,230,.15);
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      opacity: 0; transition: opacity .2s, background .15s, border-color .15s;
+    }
+    .pgal-viewer:hover .pgal-arrow { opacity: 1; }
+    .pgal-arrow:hover  { background: var(--color-red); border-color: var(--color-red); }
+    .pgal-arrow:disabled { opacity: .2 !important; cursor: not-allowed; }
+    .pgal-arrow svg    { width: 18px; height: 18px; pointer-events: none; }
+    .pgal-arrow-l { left: .65rem; }
+    .pgal-arrow-r { right: .65rem; }
+
+    /* Strip de miniaturas — dentro do visor, rodapé overlay */
+    .pgal-strip {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+      display: flex; gap: .35rem; padding: .6rem .7rem;
+      background: linear-gradient(transparent, rgba(4,6,16,.88));
+      overflow-x: auto; scroll-behavior: smooth;
+      scrollbar-width: none;
+      transition: opacity .2s;
+    }
+    .pgal-strip::-webkit-scrollbar { display: none; }
+    .pgal-strip-thumb {
+      width: 44px; height: 44px; flex-shrink: 0;
+      border-radius: var(--radius-xs); overflow: hidden;
+      border: 1.5px solid rgba(245,240,230,.18);
+      cursor: pointer; transition: border-color .15s, transform .15s;
+    }
+    .pgal-strip-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pgal-strip-thumb:hover  { border-color: rgba(245,240,230,.55); transform: scale(1.06); }
+    .pgal-strip-thumb.active { border-color: var(--color-red); }
+
+    /* ── ABAS DE CATEGORIA (abaixo do visor) ───────────── */
+    .pgal-cats {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: .5rem;
+    }
+    .pgal-cat {
+      position: relative; aspect-ratio: 1;
+      overflow: hidden; border-radius: var(--radius-xs);
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color .2s, transform .2s;
+    }
+    .pgal-cat:hover   { transform: scale(1.03); }
+    .pgal-cat.active  { border-color: var(--color-red); }
+    .pgal-cat-bg {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .35s ease;
+    }
+    .pgal-cat:hover .pgal-cat-bg { transform: scale(1.08); }
+    /* Fundo vazio quando categoria não tem imagens */
+    .pgal-cat-empty-bg {
+      width: 100%; height: 100%;
+      background: var(--color-bg-card);
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* Overlay com label da categoria */
+    .pgal-cat-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: .5rem .4rem .4rem;
+      background: linear-gradient(transparent, rgba(4,6,16,.92));
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-2xs); letter-spacing: var(--tracking-wider);
+      text-transform: uppercase; color: #fff;
+      text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,.8);
+    }
+    /* Indicador de aba ativa */
+    .pgal-cat.active::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: var(--color-red);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MODAL DE ZOOM GLOBAL
+    ══════════════════════════════════════════════════════ */
+    .pgal-modal {
+      position: fixed; inset: 0; z-index: 900;
+      display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none;
+      transition: opacity .32s ease;
+    }
+    .pgal-modal.open { opacity: 1; pointer-events: auto; }
+
+    .pgal-modal-bg {
+      position: absolute; inset: 0;
+      background: rgba(4,6,16,.96);
+      backdrop-filter: blur(14px) saturate(0.6);
+    }
+    .pgal-modal-wrap {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      width: 100%; height: 100%;
+    }
+    /* Fechar */
+    .pgal-modal-close {
+      position: absolute; top: 1rem; right: 1.5rem; z-index: 10;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(245,240,230,.08); border: 1px solid rgba(245,240,230,.15);
+      color: rgba(245,240,230,.6); font-size: 1.1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .pgal-modal-close:hover { background: var(--color-red); border-color: var(--color-red); color: #fff; }
+    /* Visor do modal */
+    .pgal-modal-viewer {
+      flex: 1; min-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; padding: 3.5rem 4.5rem 1rem;
+    }
+    .pgal-modal-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain; border-radius: var(--radius-sm);
+      opacity: 0; transition: opacity .28s ease, transform .28s ease;
+      transform: scale(.97);
+    }
+    .pgal-modal-img.loaded { opacity: 1; transform: scale(1); }
+    /* Setas do modal */
+    .pgal-modal-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px; border-radius: 50%;
+      background: rgba(4,6,16,.8); border: 1px solid rgba(245,240,230,.15);
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .pgal-modal-arrow:hover { background: var(--color-red); border-color: var(--color-red); }
+    .pgal-modal-arrow:disabled { opacity: .25; cursor: not-allowed; }
+    .pgal-modal-arrow svg { width: 20px; height: 20px; pointer-events: none; }
+    .pgal-modal-arrow-l { left: .9rem; }
+    .pgal-modal-arrow-r { right: .9rem; }
+    /* Info da foto no modal */
+    .pgal-modal-info {
+      position: absolute; bottom: .5rem; left: 50%; transform: translateX(-50%);
+      font-size: var(--text-2xs); font-weight: var(--fw-bold);
+      letter-spacing: var(--tracking-wider); text-transform: uppercase;
+      color: rgba(245,240,230,.35); white-space: nowrap;
+    }
+    /* Footer com TODAS as fotos */
+    .pgal-modal-all {
+      flex-shrink: 0;
+      display: flex; gap: .45rem; align-items: center;
+      padding: .75rem 1.25rem;
+      background: rgba(7,9,26,.9);
+      border-top: 1px solid rgba(245,240,230,.07);
+      overflow-x: auto; scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(220,20,60,.5) transparent;
+    }
+    .pgal-modal-all::-webkit-scrollbar { height: 3px; }
+    .pgal-modal-all::-webkit-scrollbar-thumb { background: rgba(220,20,60,.6); border-radius: 2px; }
+    .pgal-modal-all-cat {
+      flex-shrink: 0;
+      font-size: var(--text-2xs); font-weight: var(--fw-black);
+      letter-spacing: var(--tracking-wider); text-transform: uppercase;
+      color: rgba(245,240,230,.25); padding: 0 .35rem;
+      writing-mode: horizontal-tb;
+    }
+    .pgal-modal-thumb {
+      width: 58px; height: 58px; flex-shrink: 0;
+      border-radius: var(--radius-xs); overflow: hidden;
+      border: 1.5px solid transparent; cursor: pointer;
+      transition: border-color .15s, transform .15s;
+    }
+    .pgal-modal-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pgal-modal-thumb:hover  { border-color: rgba(245,240,230,.4); transform: scale(1.06); }
+    .pgal-modal-thumb.active { border-color: var(--color-red); }
+
+    /* ── BACKGROUND IMERSIVO (igual ao catálogo) ───────── */
+    #produto-bg {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      z-index: -1; pointer-events: none; user-select: none;
+      background-image: url('../images/Mesa de trabajo 1 copia.svg');
+      background-size: cover; background-position: center;
+      background-attachment: fixed; background-repeat: no-repeat;
+      opacity: 0.06;
+      filter: grayscale(100%) brightness(0.42);
+    }
+
+    /* ── CARIMBO "EXCLUSIVO" — streetwear stamp effect ── */
+    .carimbo-exclusivo {
+      position: absolute;
+      top: 1.1rem;
+      left: 0.85rem;
+      z-index: 10;
+      display: none;
+      pointer-events: none;
+      user-select: none;
+      transform: rotate(-12deg);
+      transform-origin: center;
+    }
+    .carimbo-exclusivo.is-visible { display: block; }
+
+    .carimbo-stamp {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 0.55rem 1.05rem 0.45rem;
+      border: 3.5px solid #dc143c;
+      box-shadow:
+        inset 0 0 0 2.5px rgba(220,20,60,0.22),
+        0 0 0 1.5px rgba(220,20,60,0.35);
+      opacity: 0.92;
+    }
+    /* linhas horizontais de reforço do carimbo */
+    .carimbo-stamp::before,
+    .carimbo-stamp::after {
+      content: '';
+      position: absolute;
+      left: 0.28rem; right: 0.28rem;
+      height: 1.5px;
+      background: rgba(220,20,60,0.55);
+    }
+    .carimbo-stamp::before { top:    0.32rem; }
+    .carimbo-stamp::after  { bottom: 0.32rem; }
+
+    .carimbo-text {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 1.32rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #dc143c;
+      line-height: 1;
+      text-shadow: 0 0 12px rgba(220,20,60,0.45);
+    }
+    .carimbo-jp {
+      display: block;
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      font-size: 0.56rem;
+      letter-spacing: 0.4em;
+      color: rgba(220,20,60,0.68);
+      margin-top: 0.14rem;
+      text-align: center;
+    }
+
+    /* ── INFO ──────────────────────────────────────────── */
+    .product-info { padding-top: .5rem; }
+    .product-drop { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-red); margin-bottom: .8rem; display: flex; align-items: center; gap: .6rem; }
+    .product-drop::before { content: ''; width: 6px; height: 6px; background: var(--color-red); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .product-name { font-family: var(--font-head); font-weight: var(--fw-black); font-size: clamp(2rem,4vw,3.2rem); text-transform: uppercase; letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); color: var(--color-white); margin-bottom: .5rem; }
+    .product-jp   { font-size: var(--text-sm); color: var(--color-pink); letter-spacing: var(--tracking-jp); margin-bottom: 1.5rem; }
+    .price-row    { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border-subtle); }
+    .price-main   { font-family: var(--font-head); font-weight: var(--fw-black); font-size: 2.8rem; color: var(--color-white); line-height: 1; }
+    .price-inst   { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
+    .price-inst strong { color: var(--color-offwhite); }
+    .opt-label    { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); margin-bottom: .8rem; }
+    .opt-label strong { color: var(--color-offwhite); margin-left: .4rem; }
+
+    /* Cores */
+    .color-opts { display: flex; gap: .6rem; margin-bottom: 2rem; }
+    .cdot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; box-shadow: 0 0 0 1.5px rgba(245,240,230,0.22); transition: border-color var(--ease-fast), transform var(--ease-fast), box-shadow var(--ease-fast); position: relative; }
+    .cdot:hover { transform: scale(1.1); box-shadow: 0 0 0 1.5px rgba(245,240,230,0.45); }
+    .cdot.active { border-color: #fff; box-shadow: 0 0 0 1.5px rgba(245,240,230,0.5); }
+    .cdot::after { content: attr(title); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--color-bg-card); border: 1px solid var(--color-border-subtle); color: var(--color-offwhite); font-size: 10px; font-weight: var(--fw-bold); letter-spacing: .1em; text-transform: uppercase; padding: .2rem .5rem; border-radius: var(--radius-xs); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity var(--ease-fast); }
+    .cdot:hover::after { opacity: 1; }
+
+    /* Tamanhos */
+    .size-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+    .size-guide-btn  { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-red); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; background: none; border: none; }
+    .size-opts { display: grid; grid-template-columns: repeat(5,1fr); gap: .5rem; margin-bottom: 2rem; }
+    .sbtn { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #121626; border: 1.5px solid rgba(245,240,230,0.14); color: var(--color-offwhite); font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-sm); letter-spacing: .05em; cursor: pointer; border-radius: var(--radius-xs); transition: border-color var(--ease-fast), background var(--ease-fast), color var(--ease-fast), box-shadow var(--ease-fast); position: relative; overflow: hidden; }
+    .sbtn:hover:not(.esgotado):not(.paused) { background: #1c2240; border-color: rgba(220,20,60,0.55); color: #fff; }
+    .sbtn.active { background: var(--color-red); border-color: var(--color-red); color: #fff; box-shadow: 0 0 0 1px var(--color-red), 0 0 18px rgba(220,20,60,0.45); }
+    /* Esgotado: diagonal + opacidade reduzida */
+    .sbtn.esgotado {
+      opacity: .42;
+      cursor: pointer;
+      border-color: rgba(245,240,230,0.1);
+      color: rgba(245,240,230,0.5);
+    }
+    .sbtn.esgotado::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        transparent 42%,
+        rgba(245,240,230,0.22) 42%,
+        rgba(245,240,230,0.22) 58%,
+        transparent 58%);
+      pointer-events: none;
+    }
+    /* Pausado: tom avermelhado + diagonal */
+    .sbtn.paused {
+      opacity: .42;
+      cursor: pointer;
+      border-color: rgba(220,20,60,0.15);
+      color: rgba(220,20,60,0.55);
+    }
+    .sbtn.paused::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        transparent 42%,
+        rgba(220,20,60,0.2) 42%,
+        rgba(220,20,60,0.2) 58%,
+        transparent 58%);
+      pointer-events: none;
+    }
+
+    /* Estoque */
+    .stock-info { display: flex; align-items: center; gap: .5rem; margin-bottom: 2rem; font-size: var(--text-xs); color: var(--color-text-muted); }
+    .stock-bar  { flex: 1; height: 3px; background: var(--color-border-subtle); border-radius: var(--radius-full); overflow: hidden; }
+    .stock-fill { height: 100%; background: var(--color-red); border-radius: var(--radius-full); transition: width .5s ease; }
+    .stock-num  { color: var(--color-red); font-weight: var(--fw-bold); }
+
+    /* CTAs */
+    .cta-group { display: flex; flex-direction: column; gap: .7rem; margin-bottom: 2rem; }
+    .btn-buy  { width: 100%; padding: 1.1rem; background: var(--color-red); color: #fff; font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-md); letter-spacing: var(--tracking-wide); text-transform: uppercase; border: none; border-radius: var(--radius-xs); cursor: pointer; transition: background var(--ease-fast), transform var(--ease-fast); display: flex; align-items: center; justify-content: center; gap: .55rem; }
+    .btn-buy:hover { background: var(--color-red-dark); transform: translateY(-2px); }
+    .btn-buy svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .btn-cart { width: 100%; padding: 1rem; background: transparent; color: var(--color-offwhite); font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-md); letter-spacing: var(--tracking-wide); text-transform: uppercase; border: 1.5px solid var(--color-border-subtle); border-radius: var(--radius-xs); cursor: pointer; transition: border-color var(--ease-fast), color var(--ease-fast), background var(--ease-fast); display: flex; align-items: center; justify-content: center; gap: .55rem; }
+    .btn-cart:hover { border-color: var(--color-red); color: var(--color-red); background: rgba(220,20,60,.04); }
+    .btn-cart svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════════════════════
+       ESTADO PAUSADO — Design premium "Edição Limitada / Drop"
+    ══════════════════════════════════════════════════════════ */
+
+    /* Badge de anúncio: faixa lateral Crimson Red + texto JP */
+    .cta-paused-badge {
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: .65rem;
+      padding: .75rem 1rem;
+      background: rgba(7,9,26,.88);
+      border: 1px solid rgba(220,20,60,.35);
+      border-left: 3px solid var(--color-red);
+      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-xs); letter-spacing: var(--tracking-wider);
+      text-transform: uppercase; color: var(--color-red);
+    }
+    .cta-paused-badge::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(220,20,60,.07) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .cta-paused-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .cta-paused-badge .badge-jp {
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      font-style: normal; font-size: .68em;
+      letter-spacing: var(--tracking-jp);
+      color: rgba(220,20,60,.6);
+      margin-left: .3rem;
+    }
+
+    /* Botão principal — fundo escuro com borda neon Electric Sakura */
+    .btn-waitlist {
+      position: relative; overflow: hidden;
+      width: 100%;
+      padding: 1.2rem 1.5rem;
+      background: rgba(7,9,26,.95);
+      border: 2px solid var(--color-pink);
+      border-radius: var(--radius-xs);
+      color: var(--color-pink);
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-md); letter-spacing: var(--tracking-wider);
+      text-transform: uppercase; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: .65rem;
+      /* Apenas propriedades GPU para 60fps garantido */
+      transition: color .22s ease, box-shadow .22s ease, transform .18s ease;
+      will-change: transform, box-shadow;
+    }
+    /* Shimmer: tira de luz que varre o botão no hover (translateX, GPU only) */
+    .btn-waitlist::before {
+      content: '';
+      position: absolute; top: 0; left: 0; width: 60%; height: 100%;
+      background: linear-gradient(90deg,
+        rgba(255,27,107,0)   0%,
+        rgba(255,27,107,.22) 50%,
+        rgba(255,27,107,0)  100%
+      );
+      transform: translateX(-120%);
+      transition: transform .5s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+    }
+    .btn-waitlist:hover {
+      color: #fff;
+      box-shadow:
+        0 0 20px rgba(255,27,107,.28),
+        0 0  6px rgba(255,27,107,.18),
+        inset 0 0 0 1px rgba(255,27,107,.15);
+      transform: translateY(-2px);
+    }
+    .btn-waitlist:hover::before { transform: translateX(220%); }
+    .btn-waitlist:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255,27,107,.45);
+    }
+    .btn-waitlist:active { transform: translateY(0) scale(.99); }
+    .btn-waitlist svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    /* Form de e-mail — conectado ao botão, sem gap visual */
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .waitlist-form {
+      display: flex; flex-direction: column; gap: .65rem;
+      padding: 1.1rem 1rem;
+      background: rgba(7,9,26,.8);
+      border: 2px solid var(--color-pink);
+      border-top: 1px solid rgba(255,27,107,.22);
+      border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+      animation: fadeInUp .25s ease both;
+    }
+    .waitlist-input {
+      background: rgba(245,240,230,.04);
+      border: 1px solid rgba(255,27,107,.28);
+      border-radius: var(--radius-xs);
+      padding: .78rem .95rem;
+      color: var(--color-offwhite);
+      font-family: var(--font-body); font-size: var(--text-sm);
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .waitlist-input::placeholder { color: rgba(245,240,230,.28); }
+    .waitlist-input:focus {
+      border-color: rgba(255,27,107,.65);
+      box-shadow: 0 0 0 3px rgba(255,27,107,.1);
+    }
+    .btn-wl-submit {
+      width: 100%; padding: .85rem;
+      background: var(--color-pink); color: #fff;
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-sm); letter-spacing: var(--tracking-wider);
+      text-transform: uppercase; border: none;
+      border-radius: var(--radius-xs); cursor: pointer;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .btn-wl-submit:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+    .btn-wl-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-wl-submit:disabled { opacity: .45; cursor: not-allowed; }
+    .wl-msg { font-size: var(--text-xs); text-align: center; padding: .35rem 0; letter-spacing: .04em; }
+    .wl-msg.success { color: #5dc78c; }
+    .wl-msg.error   { color: #f07080; }
+
+    /* Badge "temporariamente indisponível" — variação pausada, sem lista de espera */
+    .cta-temp-badge {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .75rem 1rem;
+      background: rgba(7,9,26,.88);
+      border: 1px solid rgba(245,240,230,.12);
+      border-left: 3px solid rgba(245,240,230,.35);
+      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-xs); letter-spacing: var(--tracking-wider);
+      text-transform: uppercase; color: var(--color-text-muted);
+    }
+    .cta-temp-badge svg { width: 14px; height: 14px; flex-shrink: 0; color: rgba(245,240,230,.5); }
+
+    /* ── Transições de CTA (60fps via opacity + transform) ── */
+    .cta-buy-group,
+    #cta-paused,
+    #cta-temp-pausado {
+      will-change: opacity, transform;
+    }
+    .cta-entering {
+      animation: ctaEnter 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .cta-leaving {
+      animation: ctaLeave 0.16s ease both;
+      pointer-events: none;
+    }
+    @keyframes ctaEnter {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
+    @keyframes ctaLeave {
+      from { opacity: 1; transform: translateY(0);    }
+      to   { opacity: 0; transform: translateY(-5px); }
+    }
+
+    /* Cores pausadas */
+    .cdot.paused { opacity: .35; cursor: not-allowed; position: relative; }
+    .cdot.paused::before { content: ''; position: absolute; inset: 2px; border-radius: 50%; border: 2px solid rgba(220,20,60,.6); }
+
+    /* Trust */
+    .trust { display: grid; grid-template-columns: repeat(3,1fr); gap: .8rem; padding: 1.5rem 0; border-top: 1px solid var(--color-border-faint); border-bottom: 1px solid var(--color-border-faint); margin-bottom: 2rem; }
+    .trust-item { display: flex; flex-direction: column; align-items: center; gap: .4rem; text-align: center; }
+    .trust-item svg { width: 22px; height: 22px; color: var(--color-red); }
+    .trust-item span { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-text-muted); line-height: 1.4; }
+
+    /* Acordeão */
+    .acc-section { margin-bottom: .5rem; }
+    .acc-toggle  { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 0; border: none; border-bottom: 1px solid var(--color-border-faint); background: none; cursor: pointer; font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-sm); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-white); text-align: left; transition: color var(--ease-fast); }
+    .acc-toggle:hover { color: var(--color-red); }
+    .acc-toggle svg { width: 16px; height: 16px; transition: transform var(--ease-mid); color: var(--color-text-faint); flex-shrink: 0; }
+    .acc-toggle.open svg { transform: rotate(45deg); color: var(--color-red); }
+    .acc-body { display: none; padding: 1.2rem 0; border-bottom: 1px solid var(--color-border-faint); }
+    .acc-body.open { display: block; }
+    .acc-body p { font-size: var(--text-sm); color: var(--color-text-muted); line-height: var(--leading-loose); margin-bottom: .8rem; }
+    .acc-body p:last-child { margin-bottom: 0; }
+
+    /* Specs */
+    .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+    .spec-item  { background: var(--color-bg-card); border-radius: var(--radius-xs); padding: .8rem 1rem; }
+    .spec-label { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-red); margin-bottom: .25rem; }
+    .spec-value { font-size: var(--text-xs); color: var(--color-offwhite); font-weight: var(--fw-medium); }
+
+    /* Medidas */
+    .medidas-scroll { overflow-x: auto; }
+    .medidas-scroll::-webkit-scrollbar { height: 3px; }
+    .medidas-scroll::-webkit-scrollbar-thumb { background: rgba(220,20,60,.3); border-radius: 2px; }
+    .medidas-table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); min-width: 300px; }
+    .medidas-table th { text-align: left; font-family: var(--font-head); font-size: var(--text-2xs); font-weight: var(--fw-black); letter-spacing: var(--tracking-wider); text-transform: uppercase; padding: .6rem .8rem; background: var(--color-bg-card); color: var(--color-red); }
+    .medidas-table td { padding: .6rem .8rem; border-bottom: 1px solid var(--color-border-faint); color: var(--color-text-muted); }
+    .medidas-table td:first-child { color: var(--color-offwhite); font-weight: var(--fw-bold); }
+
+    /* Markdown — paridade exata com o preview do painel admin */
+    .md { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-text-muted); line-height: 1.75; }
+    .md h1,.md h2,.md h3,.md h4,.md h5,.md h6 { font-family: var(--font-head); font-weight: var(--fw-black); text-transform: uppercase; letter-spacing: var(--tracking-normal); color: var(--color-white); line-height: 1.1; margin: 1rem 0 0.4rem; }
+    .md h1:first-child,.md h2:first-child,.md h3:first-child { margin-top: 0; }
+    .md h1 { font-size: var(--text-xl); }
+    .md h2 { font-size: var(--text-lg); color: var(--color-offwhite); }
+    .md h3 { font-size: var(--text-base); color: var(--color-offwhite); }
+    .md h4 { font-family: var(--font-head); font-weight: var(--fw-black); text-transform: uppercase; font-size: var(--text-sm); color: var(--color-text-muted); margin: 0.8rem 0 0.3rem; }
+    .md h5,.md h6 { font-family: var(--font-head); font-weight: var(--fw-bold); font-size: var(--text-xs); color: var(--color-text-ghost); text-transform: uppercase; letter-spacing: 0.08em; margin: 0.6rem 0 0.2rem; }
+    .md p  { margin: 0.4rem 0; }
+    .md strong { color: var(--color-offwhite); font-weight: var(--fw-bold); }
+    .md em { color: var(--color-pink); font-style: italic; }
+    .md a  { color: var(--color-red); text-decoration: underline; text-underline-offset: 3px; }
+    .md ul,.md ol { padding-left: 1.35rem; margin: 0.4rem 0; }
+    .md li { margin: 0.15rem 0; }
+    .md blockquote { border-left: 3px solid var(--color-red); padding: 0.28rem 0.75rem; margin: 0.5rem 0; color: var(--color-text-faint); background: rgba(220,20,60,0.05); border-radius: 0 var(--radius-xs) var(--radius-xs) 0; }
+    .md code { font-family: 'Cascadia Code','Fira Code','JetBrains Mono','Consolas','Courier New',monospace; font-size: 0.78em; background: rgba(3,4,14,0.72); border: 1px solid rgba(245,240,230,0.13); padding: 0.13em 0.46em; border-radius: 4px; color: var(--color-offwhite); letter-spacing: 0.01em; }
+    .md pre { background: rgba(3,4,14,0.88); border: 1px solid rgba(245,240,230,0.06); border-left: 3px solid rgba(220,20,60,0.4); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 1rem 1.15rem 0.9rem; overflow-x: auto; margin: 0.7rem 0; position: relative; tab-size: 2; }
+    .md pre[data-lang]::before { content: attr(data-lang); position: absolute; top: 0.46rem; right: 0.75rem; font-family: var(--font-head); font-size: 0.58rem; font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.12em; color: rgba(220,20,60,0.45); pointer-events: none; }
+    .md pre code { background: none; border: none; padding: 0; font-size: 0.84em; line-height: 1.78; color: var(--color-offwhite); }
+    .md pre::-webkit-scrollbar { height: 3px; }
+    .md pre::-webkit-scrollbar-thumb { background: rgba(220,20,60,0.35); border-radius: 2px; }
+    .md .hl-kw      { color: var(--color-red); font-weight: 600; }
+    .md .hl-fn      { color: var(--color-pink); }
+    .md .hl-str     { color: #C9A043; }
+    .md .hl-comment { color: var(--color-text-faint); font-style: italic; }
+    .md .hl-num     { color: #7EC8E3; }
+    .md .hl-type    { color: #4EC9B0; }
+    .md .hl-builtin,.md .hl-prop { color: #9CDCFE; }
+    .md .hl-var     { color: var(--color-offwhite); }
+    .md .hl-op      { color: rgba(245,240,230,0.38); }
+    .md .hl-punct   { color: rgba(245,240,230,0.24); }
+    .md hr { border: none; border-top: 1px solid var(--color-border-subtle); margin: 0.7rem 0; }
+    .md table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: var(--text-sm); }
+    .md th { background: rgba(220,20,60,0.1); color: var(--color-offwhite); font-family: var(--font-head); font-weight: var(--fw-black); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; padding: 0.45rem 0.7rem; border: 1px solid rgba(245,240,230,0.1); }
+    .md td { padding: 0.4rem 0.7rem; border: 1px solid rgba(245,240,230,0.08); color: var(--color-text-muted); }
+    .md tr:nth-child(even) td { background: rgba(245,240,230,0.02); }
+    .md del  { color: var(--color-text-ghost); text-decoration: line-through; }
+    .md mark { background: rgba(255,27,107,0.22); color: var(--color-offwhite); padding: 0.05em 0.3em; border-radius: 3px; }
+    .md sup,.md sub { font-size: 0.72em; line-height: 0; }
+    .md img { max-width: 100%; border-radius: var(--radius-sm); border: 1px solid rgba(245,240,230,0.09); margin: 0.4rem 0; display: block; }
+    .md input[type="checkbox"] { accent-color: var(--color-red); margin-right: 0.35rem; pointer-events: none; }
+
+    /* Seção inferior */
+    .bottom { max-width: 1300px; margin: 0 auto; padding: 4rem 5%; border-top: 1px solid var(--color-border-subtle); }
+    .bottom-title { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-2xl); text-transform: uppercase; letter-spacing: var(--tracking-normal); color: var(--color-white); margin-bottom: .4rem; }
+    .bottom-title span { color: var(--color-red); }
+    .bottom-sub   { font-size: var(--text-xs); color: var(--color-text-faint); letter-spacing: var(--tracking-wider); text-transform: uppercase; margin-bottom: 2.5rem; }
+    .care-grid { display: flex; flex-wrap: wrap; gap: .8rem; }
+    .care-chip { display: flex; align-items: center; gap: .5rem; background: var(--color-bg-card); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-xs); padding: .6rem 1rem; font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-text-muted); }
+    .care-chip svg { width: 16px; height: 16px; color: var(--color-red); }
+
+    /* Footer */
+    footer { background: var(--color-bg-footer); padding: 2rem 5%; border-top: 1px solid rgba(var(--rgb-red),.2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo-img { height: 56px; width: auto; }
+    footer p { font-size: var(--text-2xs); color: rgba(var(--rgb-offwhite),.25); letter-spacing: .1em; }
+
+    @media (max-width: 900px) { .product-layout { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 5%; } .gallery { position: static; } }
+    @media (max-width: 560px) { .trust { grid-template-columns: 1fr 1fr; } .specs-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .product-name { font-size: clamp(1.6rem,8vw,2rem); } .price-main { font-size: 2.2rem; } }
+
+    /* ── Botão Favoritar (produto) ─────────────────────────────── */
+    .btn-wish {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.82rem 1.2rem;
+      background: none;
+      border: 1px solid rgba(245,240,230,0.1);
+      border-radius: var(--radius-xs);
+      color: rgba(245,240,230,0.5);
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-sm); letter-spacing: var(--tracking-wide);
+      text-transform: uppercase; cursor: pointer;
+      transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+    .btn-wish:hover {
+      color: var(--color-offwhite);
+      border-color: rgba(220,20,60,0.28);
+      background: rgba(220,20,60,0.05);
+    }
+    .btn-wish.active {
+      color: var(--color-red);
+      border-color: rgba(220,20,60,0.42);
+      background: rgba(220,20,60,0.09);
+    }
+    .btn-wish svg { width: 15px; height: 15px; flex-shrink: 0; transition: fill 0.22s ease, stroke 0.22s ease; }
+    .btn-wish.active svg { fill: var(--color-red); stroke: var(--color-red); }
+
+    /* Animação de pulso no coração */
+    @keyframes zzHeartPop {
+      0%   { transform: scale(1); }
+      35%  { transform: scale(1.38); }
+      65%  { transform: scale(0.88); }
+      100% { transform: scale(1); }
+    }
+    .zz-heart-pop { animation: zzHeartPop 0.38s cubic-bezier(.34,1.56,.64,1) both !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Background imersivo — marca d'água SVG (idêntico ao catálogo) -->
+  <div id="produto-bg" aria-hidden="true"></div>
+
+
+  <!-- ── NAV (idêntico ao heavyweight-tee — padrão do site) ── -->
+  <nav id="zz-header" role="navigation" aria-label="Navegação principal">
+    <div class="zz-nav-bar">
+      <a href="../index.html" class="nav-logo">
+        <img src="../images/logo%20curta%20ZZ%20(transparente).png" alt="ZENITH ZONE" class="nav-logo-img">
+      </a>
+      <ul class="zz-nav-list" role="menubar" aria-label="Menu principal">
+        <li class="zz-nav-item zz-has-mega" role="none">
+          <button class="zz-nav-trigger" data-mega="ofertas" role="menuitem" aria-haspopup="true" aria-expanded="false" aria-controls="mega-ofertas">
+            Ofertas <svg class="zz-trigger-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 4 6 8 10 4"/></svg>
+          </button>
+        </li>
+        <li class="zz-nav-item zz-has-mega" role="none">
+          <button class="zz-nav-trigger" data-mega="lancamentos" role="menuitem" aria-haspopup="true" aria-expanded="false" aria-controls="mega-lancamentos">
+            Lançamentos <svg class="zz-trigger-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 4 6 8 10 4"/></svg>
+          </button>
+        </li>
+        <li role="none"><div class="zz-nav-sep" aria-hidden="true"></div></li>
+        <li class="zz-nav-item" role="none"><a href="../index.html#drop"       class="zz-nav-link" role="menuitem">Drop</a></li>
+        <li class="zz-nav-item" role="none"><a href="../index.html#collection" class="zz-nav-link" role="menuitem">Coleção</a></li>
+        <li class="zz-nav-item" role="none"><a href="../index.html#conceito"   class="zz-nav-link" role="menuitem">Conceito</a></li>
+        <li class="zz-nav-item" role="none"><a href="../index.html#newsletter" class="zz-nav-link zz-nav-cta" role="menuitem">Entrar na Lista</a></li>
+      </ul>
+
+      <div class="zz-nav-actions" id="zz-nav-actions">
+        <div class="zz-srch" id="zz-srch" role="search">
+          <form class="zz-srch-form" id="zz-srch-form" novalidate aria-label="Pesquisar produtos">
+            <label for="zz-srch-input" class="zz-sr-only">Pesquisar</label>
+            <svg class="zz-srch-form-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+            <input type="search" class="zz-srch-input" id="zz-srch-input" name="q" placeholder="Buscar produtos, coleções…" autocomplete="off" spellcheck="false" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="zz-srch-panel" aria-expanded="false">
+            <button type="button" class="zz-srch-clear" id="zz-srch-clear" aria-label="Limpar campo" hidden>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+            </button>
+          </form>
+          <button type="button" class="zz-srch-trigger" id="zz-srch-trigger" aria-label="Abrir pesquisa" aria-expanded="false" aria-controls="zz-srch-panel">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
+          </button>
+          <button type="button" class="zz-srch-cancel" id="zz-srch-cancel" aria-label="Fechar pesquisa">Cancelar</button>
+        </div>
+        <a href="favoritos.html" class="zz-fav-btn" id="zz-fav-btn" aria-label="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span class="zz-fav-badge" id="zz-fav-badge">0</span>
+        </a>
+        <button type="button" class="zz-cart-btn" id="zz-cart-btn" aria-label="Carrinho de compras, 0 itens">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="zz-cart-badge" id="zz-cart-badge" role="status" aria-live="polite" aria-atomic="true">0</span>
+        </button>
+      </div>
+
+      <div class="nav-auth" id="zz-nav-auth">
+        <a href="admin-panel.html" data-mod-show class="nav-auth-admin" style="display:none">⚙ Admin</a>
+        <div data-auth-show class="nav-auth-user" style="display:none">
+          <a href="perfil.html" class="nav-profile-btn" aria-label="Meu Perfil">
+            <span class="nav-avatar-ring"><span data-avatar></span></span>
+            <span class="nav-profile-name" data-username></span>
+          </a>
+          <a href="pedidos.html" class="nav-auth-link">Pedidos</a>
+          <a href="#" data-logout>Sair</a>
+        </div>
+        <div data-guest-show class="nav-auth-guest" style="display:none">
+          <a href="#" data-open-auth="login"  class="nav-auth-login">Login</a>
+          <a href="#" data-open-auth="signup" class="nav-auth-signup">Cadastrar</a>
+        </div>
+      </div>
+
+      <button class="nav-menu-btn" id="nav-menu-btn" aria-label="Abrir menu">
+        <svg class="icon-open"  viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="19" y2="6"/><line x1="3" y1="11" x2="19" y2="11"/><line x1="3" y1="16" x2="19" y2="16"/></svg>
+        <svg class="icon-close" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="18" y2="18"/><line x1="18" y1="4" x2="4"  y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Mega menu — Ofertas -->
+    <div class="zz-mega-panel" id="mega-ofertas" data-panel="ofertas" role="region" aria-label="Mega menu Ofertas" aria-hidden="true">
+      <div class="zz-mega-inner">
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Em Destaque</p><ul><li><a href="../index.html#collection" class="zz-mega-highlight">Flash Sale — Até 40% Off <em class="zz-hl-arrow">→</em></a></li><li><a href="../index.html#collection" class="zz-mega-highlight">Últimas Peças <em class="zz-hl-arrow">→</em></a></li><li><a href="../index.html#collection" class="zz-mega-highlight">Bundle: 3 por 2 <em class="zz-hl-arrow">→</em></a></li></ul></div>
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Masculino</p><ul><li><a href="../index.html#collection" class="zz-mega-link">Camisetas &amp; Shorts</a></li><li><a href="../index.html#collection" class="zz-mega-link">Hoodies com Desconto</a></li><li><a href="../index.html#collection" class="zz-mega-link">Joggers Outlet</a></li><li><a href="../index.html#collection" class="zz-mega-link">Acessórios −30%</a></li></ul></div>
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Feminino</p><ul><li><a href="../index.html#collection" class="zz-mega-link">Crop Tops &amp; Leggings</a></li><li><a href="../index.html#collection" class="zz-mega-link">Hoodies Selecionados</a></li><li><a href="../index.html#collection" class="zz-mega-link">Acessórios −30%</a></li><li><a href="../index.html#collection" class="zz-mega-link">Packs Exclusivos</a></li></ul></div>
+        <div class="zz-mega-col zz-col-collections"><p class="zz-mega-col-title">Oferta Relâmpago</p><p style="font-size:var(--text-xs);color:rgba(245,240,230,0.5);line-height:1.6;margin-bottom:0.8rem;">Peças selecionadas com desconto exclusivo para membros da lista.</p><span class="zz-mega-badge gold" style="margin-bottom:0.9rem;display:inline-block;">Só por tempo limitado</span><br><a href="../index.html#newsletter" class="zz-col-cta">Entrar na Lista <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/></svg></a></div>
+      </div>
+      <div class="zz-mega-glow-bar"></div>
+    </div>
+
+    <!-- Mega menu — Lançamentos -->
+    <div class="zz-mega-panel" id="mega-lancamentos" data-panel="lancamentos" role="region" aria-label="Mega menu Lançamentos" aria-hidden="true">
+      <div class="zz-mega-inner">
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Drop Atual</p><a href="../index.html#drop" class="zz-mega-highlight" style="margin-bottom:0.4rem;display:flex;align-items:flex-start;flex-direction:column;gap:0.3rem;"><span>Drop #03</span><span style="color:var(--color-pink);font-size:var(--text-lg);">Sakura Season</span></a><span class="zz-mega-badge red">Disponível Agora</span><a href="../index.html#drop" class="zz-col-cta" style="margin-top:1rem;">Ver Countdown <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/></svg></a></div>
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Próximos Drops</p><ul><li><a href="../index.html#newsletter" class="zz-mega-link" style="display:flex;align-items:center;gap:0.5rem;">Drop #04 <span class="zz-mega-badge pink">Em Breve</span></a></li><li><a href="../index.html#newsletter" class="zz-mega-link">Drop #05 — Teaser</a></li><li><a href="../index.html#newsletter" class="zz-mega-link">Faça Parte da Lista</a></li></ul></div>
+        <div class="zz-mega-col"><p class="zz-mega-col-title">Pré-Order</p><ul><li><a href="../index.html#newsletter" class="zz-mega-link">Reservar Minha Peça</a></li><li><a href="../index.html#newsletter" class="zz-mega-link">Como Funciona?</a></li></ul></div>
+        <div class="zz-mega-col zz-col-collections"><p class="zz-mega-col-title">Fique por Dentro</p><p style="font-size:var(--text-xs);color:rgba(245,240,230,0.5);line-height:1.6;margin-bottom:0.8rem;">Receba avisos exclusivos antes de qualquer lançamento.</p><span class="zz-mega-badge pink" style="margin-bottom:0.9rem;display:inline-block;">Acesso Antecipado</span><br><a href="../index.html#newsletter" class="zz-col-cta">Entrar na Lista VIP <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/></svg></a></div>
+      </div>
+      <div class="zz-mega-glow-bar"></div>
+    </div>
+
+    <!-- Painel de pesquisa -->
+    <div class="zz-srch-panel" id="zz-srch-panel" role="listbox" aria-label="Sugestões de pesquisa" aria-hidden="true">
+      <div class="zz-srch-panel-inner">
+        <div class="zz-srch-col">
+          <p class="zz-srch-col-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><polyline points="1 12 5 7 9 9 15 3"/><polyline points="11 3 15 3 15 7"/></svg>Tendências</p>
+          <ul id="zz-trending-list" role="group">
+            <li role="option"><a class="zz-srch-suggestion" data-term="Drop #03 Sakura Season" href="#"><svg class="zz-srch-sug-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>Drop #03 Sakura Season <span class="zz-srch-sug-badge">Hot</span></a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Oversized Tees" href="#">Oversized Tees</a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Hoodies Feminino" href="#">Hoodies Feminino</a></li>
+            <li role="option"><a class="zz-srch-suggestion" data-term="Shibuya Streetwear" href="#">Shibuya Streetwear</a></li>
+          </ul>
+        </div>
+        <div class="zz-srch-col zz-srch-col--recent">
+          <div class="zz-srch-col-head">
+            <p class="zz-srch-col-title"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><polyline points="8 5 8 8 11 10"/></svg>Buscas Recentes</p>
+            <button type="button" class="zz-srch-history-clear" id="zz-srch-history-clear" aria-label="Limpar histórico">Limpar</button>
+          </div>
+          <ul id="zz-recent-list" role="group"></ul>
+          <p class="zz-srch-empty" id="zz-srch-empty">Nenhuma busca recente</p>
+        </div>
+      </div>
+
+      <!-- Resultados de busca dinâmica -->
+      <div id="zz-srch-results-wrap" class="zz-srch-results-wrap" hidden>
+        <ul id="zz-srch-result-list" class="zz-srch-result-list"
+            role="group" aria-label="Resultados da busca"></ul>
+        <p id="zz-srch-no-results" class="zz-srch-empty" hidden>
+          Nenhum produto encontrado.
+        </p>
+      </div>
+
+      <div class="zz-mega-glow-bar"></div>
+    </div>
+  </nav>
+
+  <div class="zz-mega-overlay" id="zz-mega-overlay" aria-hidden="true"></div>
+
+  <ul class="nav-mobile" id="nav-mobile">
+    <li><a href="../index.html#collection">Ofertas</a></li>
+    <li><a href="../index.html#drop">Lançamentos</a></li>
+    <li><a href="../index.html#collection">Masculino</a></li>
+    <li><a href="../index.html#collection">Feminino</a></li>
+    <li><a href="../index.html#drop">Drop</a></li>
+    <li><a href="../index.html#newsletter">Entrar na Lista</a></li>
+    <li data-mod-show style="display:none"><a href="admin-panel.html">⚙ Admin</a></li>
+    <li data-auth-show  style="display:none"><a href="perfil.html">Meu Perfil</a></li>
+    <li data-auth-show  style="display:none"><a href="pedidos.html">Meus Pedidos</a></li>
+    <li data-auth-show  style="display:none"><a href="#" data-logout>Sair (<span data-username></span>)</a></li>
+    <li data-guest-show style="display:none"><a href="#" data-open-auth="login">Login</a></li>
+    <li data-guest-show style="display:none" class="nav-mobile-cta-item"><a href="#" data-open-auth="signup">Cadastrar</a></li>
+  </ul>
+
+  <!-- ── ESTADOS ──────────────────────────────────────────────── -->
+  <div id="state-loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Carregando produto…</p>
+  </div>
+
+  <div id="state-error">
+    <h2>Produto não encontrado</h2>
+    <p>Este produto não existe ou foi removido.</p>
+    <a href="../index.html">← Voltar à loja</a>
+  </div>
+
+  <!-- ── PRODUTO ───────────────────────────────────────────────── -->
+  <div id="state-product">
+    <div class="breadcrumb">
+      <a href="../index.html">Zenith Zone</a><span class="sep">›</span>
+      <a href="../index.html#collection">Coleção</a><span class="sep">›</span>
+      <span id="bc-title">—</span>
+    </div>
+
+    <div class="product-layout">
+      <!-- ══ GALERIA — CARROSSEL POR CATEGORIA ══ -->
+      <div class="product-gallery" id="product-gallery">
+
+        <!-- VISOR PRINCIPAL -->
+        <div class="pgal-viewer" id="pgal-viewer">
+          <!-- Placeholder -->
+          <div class="pgal-ph" id="pgal-ph">
+            <svg viewBox="0 0 160 200" fill="none">
+              <path d="M40 30 L10 70 L35 80 L35 175 L125 175 L125 80 L150 70 L120 30 L100 50 C95 55 65 55 60 50 Z" fill="#12183A" stroke="rgba(220,20,60,.3)" stroke-width="2"/>
+              <text x="80" y="120" text-anchor="middle" fill="rgba(240,237,230,.18)" font-family="sans-serif" font-size="10" font-weight="bold" letter-spacing="2">ZENITH ZONE</text>
+            </svg>
+            <p>Sem imagem</p>
+          </div>
+
+          <!-- Imagem principal -->
+          <img class="pgal-img" id="pgal-img" src="" alt="">
+
+          <!-- Carimbo Drop Exclusivo — JS ativa via .is-visible -->
+          <div class="carimbo-exclusivo" id="p-carimbo" aria-hidden="true">
+            <div class="carimbo-stamp">
+              <span class="carimbo-text">Exclusivo</span>
+              <span class="carimbo-jp">限定</span>
+            </div>
+          </div>
+          <span class="pgal-counter" id="pgal-counter"></span>
+
+          <!-- Setas de navegação (dentro do visor) -->
+          <button class="pgal-arrow pgal-arrow-l" id="pgal-prev" aria-label="Foto anterior" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <button class="pgal-arrow pgal-arrow-r" id="pgal-next" aria-label="Próxima foto" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 6 15 12 9 18"/>
+            </svg>
+          </button>
+
+          <!-- Strip de miniaturas (overlay interno, rodapé do visor) -->
+          <div class="pgal-strip" id="pgal-strip"></div>
+        </div>
+
+        <!-- ABAS DE CATEGORIA (abaixo do visor) -->
+        <div class="pgal-cats" id="pgal-cats">
+          <!-- Injetado pelo JS após carregar o produto -->
+        </div>
+
+      </div><!-- /product-gallery -->
+
+      <!-- INFO -->
+      <div class="product-info">
+        <p class="product-drop" id="p-drop" style="display:none">Peça Exclusiva</p>
+        <h1 class="product-name" id="p-titulo">—</h1>
+        <p class="product-jp"    id="p-jp"></p>
+
+        <div class="price-row">
+          <span class="price-main" id="p-preco">—</span>
+          <div class="price-inst"  id="p-inst"></div>
+        </div>
+
+        <!-- Cores -->
+        <div id="p-cores-wrap">
+          <p class="opt-label">Cor: <strong id="p-cor-nome">—</strong></p>
+          <div class="color-opts" id="p-cores"></div>
+        </div>
+
+        <!-- Tamanhos -->
+        <div class="size-row-header">
+          <p class="opt-label" style="margin:0">Tamanho: <strong id="p-sz-sel">Selecione</strong></p>
+          <button class="size-guide-btn" id="size-guide-btn">Guia de Medidas</button>
+        </div>
+        <div class="size-opts" id="p-sizes"></div>
+
+        <!-- Estoque -->
+        <div class="stock-info" id="p-stock" style="display:none">
+          Estoque:
+          <div class="stock-bar"><div class="stock-fill" id="p-stock-fill"></div></div>
+          <span class="stock-num" id="p-stock-num"></span> un.
+        </div>
+
+        <!-- CTAs — estado controlado por renderProduct() -->
+        <div class="cta-group" id="cta-group">
+
+          <!-- Estado NORMAL: publicado — wrapper único para transição -->
+          <div id="cta-buy-group" style="display:none;flex-direction:column;gap:.7rem">
+            <button class="btn-buy" id="btn-buy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              Comprar Agora
+            </button>
+            <button class="btn-cart" id="btn-cart">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              Adicionar ao Carrinho
+            </button>
+          </div>
+
+          <!-- Estado ESGOTADO: sem estoque — lista de espera disponível -->
+          <div id="cta-paused" style="display:none;flex-direction:column;gap:.65rem">
+            <div class="cta-paused-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Este tamanho não está disponível no momento<em class="badge-jp">在庫切れ</em>
+            </div>
+            <button class="btn-waitlist" id="btn-waitlist">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="4"/></svg>
+              Avise-me quando chegar
+            </button>
+            <div class="waitlist-form" id="waitlist-form" style="display:none">
+              <input type="email" class="waitlist-input" id="wl-email"
+                     placeholder="seu@email.com" autocomplete="email">
+              <button type="button" class="btn-wl-submit" id="wl-submit">Entrar na Lista de Espera</button>
+              <p class="wl-msg" id="wl-msg"></p>
+            </div>
+          </div>
+
+          <!-- Estado PAUSADO: variação temporariamente indisponível — sem lista de espera -->
+          <div id="cta-temp-pausado" style="display:none;flex-direction:column;gap:.65rem">
+            <div class="cta-temp-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              Esta opção está temporariamente indisponível
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Favoritar — sempre visível, independente do estado do produto -->
+        <button class="btn-wish zz-heart-btn" id="btn-wish" type="button" data-pid="" aria-label="Adicionar aos favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          Adicionar aos Favoritos
+        </button>
+
+        <!-- Trust -->
+        <div class="trust">
+          <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Peça numerada &amp; certificada</span></div>
+          <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg><span>Entrega expressa 3–7 dias</span></div>
+          <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg><span>Troca grátis em 30 dias</span></div>
+        </div>
+
+        <!-- Acordeão: Descrição -->
+        <div class="acc-section" id="acc-desc-wrap">
+          <button class="acc-toggle" data-acc="desc">Descrição<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <div class="acc-body" id="acc-desc"><div class="md" id="p-desc"></div></div>
+        </div>
+
+        <!-- Acordeão: Especificações -->
+        <div class="acc-section" id="acc-specs-wrap">
+          <button class="acc-toggle" data-acc="specs">Especificações<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <div class="acc-body" id="acc-specs"><div class="specs-grid" id="p-specs"></div></div>
+        </div>
+
+        <!-- Acordeão: Medidas -->
+        <div class="acc-section">
+          <button class="acc-toggle" id="acc-med-btn" data-acc="med">Guia de Medidas (cm)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <div class="acc-body" id="acc-med">
+            <div class="medidas-scroll">
+              <table class="medidas-table">
+                <thead><tr><th>Tam.</th><th>Largura</th><th>Comprimento</th><th>Manga</th><th>Estoque</th></tr></thead>
+                <tbody id="p-medidas"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /layout -->
+
+    <!-- Cuidados -->
+    <div class="bottom">
+      <h2 class="bottom-title">Cuidados com a <span>Peça</span></h2>
+      <p class="bottom-sub">Para manter a qualidade premium por mais tempo</p>
+      <div class="care-grid">
+        <div class="care-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Lavar frio — máquina ou à mão</div>
+        <div class="care-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Não usar secadora</div>
+        <div class="care-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Ferro médio pelo avesso</div>
+        <div class="care-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Guardar dobrado ou em cabide</div>
+      </div>
+    </div>
+  </div><!-- /state-product -->
+
+  <!-- ══ MODAL DE ZOOM GLOBAL ══════════════════════════════════ -->
+  <div class="pgal-modal" id="pgal-modal" role="dialog" aria-modal="true"
+       aria-label="Visualização ampliada" aria-hidden="true">
+    <!-- Backdrop com blur -->
+    <div class="pgal-modal-bg" id="pgal-modal-bg"></div>
+
+    <div class="pgal-modal-wrap">
+      <!-- Botão fechar -->
+      <button class="pgal-modal-close" id="pgal-modal-close" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Visor da imagem ampliada -->
+      <div class="pgal-modal-viewer">
+        <button class="pgal-modal-arrow pgal-modal-arrow-l" id="pgal-modal-prev" aria-label="Anterior" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+
+        <img class="pgal-modal-img" id="pgal-modal-img" src="" alt="">
+
+        <button class="pgal-modal-arrow pgal-modal-arrow-r" id="pgal-modal-next" aria-label="Próxima" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+
+        <!-- Contador posição -->
+        <span class="pgal-modal-info" id="pgal-modal-info"></span>
+      </div>
+
+      <!-- Rodapé: TODAS as fotos de TODOS os grupos -->
+      <div class="pgal-modal-all" id="pgal-modal-all">
+        <!-- Injetado pelo JS -->
+      </div>
+    </div>
+  </div><!-- /pgal-modal -->
+
+  <footer>
+    <a href="../index.html"><img src="../images/logo%20longa%20ZZ%20(transparente).png" alt="ZZ" class="footer-logo-img"></a>
+    <p>© 2026 Zenith Zone. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+  /* ══════════════════════════════════════════════════════
+     PRODUTO DINÂMICO
+  ══════════════════════════════════════════════════════ */
+  const API   = window.ZZ_API_BASE || 'http://localhost:3001/api';
+  const SIZES = ['P','M','G','GG','XGG'];
+  let produto = null, activeSz = null, activeColor = '';
+
+  /* ── helpers ──────────────────────────────────────── */
+  function el(id) { return document.getElementById(id); }
+
+  function setState(s) {
+    el('state-loading').style.display = s === 'loading' ? 'flex'  : 'none';
+    el('state-error'  ).style.display = s === 'error'   ? 'flex'  : 'none';
+    el('state-product').style.display = s === 'product' ? 'block' : 'none';
+  }
+
+  function fmtPrice(n) {
+    return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /* ── Color slug: "Midnight Indigo" → "midnight-indigo" ── */
+  function colorSlug(nome) {
+    return (nome || '')
+      .toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'sem-nome';
+  }
+
+  /* Retorna o estoque de tamanhos para a cor indicada.
+     Suporta estrutura por cor { 'cor-slug': { P: {qtd} } }
+     e estrutura plana legada  { P: {qtd} }.               */
+  function colorStockForName(estoque, nome) {
+    if (!estoque) return {};
+    if (nome) {
+      const s = estoque[colorSlug(nome)];
+      if (s) return s;
+    }
+    if (estoque.P !== undefined) return estoque; // legado
+    return {};
+  }
+
+  /* ── Parser Markdown completo (paridade com admin-panel preview) ── */
+  function parseMd(raw) {
+    if (!raw || !raw.trim()) return null;
+    const tokens = [];
+    const tok = (html) => { const k = `\x00T${tokens.length}\x00`; tokens.push(html); return k; };
+    const restoreToks = s => s.replace(/\x00T(\d+)\x00/g, (_, i) => tokens[+i]);
+    let html = raw.replace(/^```(\w*)\n?([\s\S]*?)```/gm, (_, lang, inner) => tok(hlCode(inner.trim(), lang)));
+    html = html.replace(/^(\|.+\|\n)((?:\|[-: ]+)+\|\n)((?:\|.+\|\n?)*)/gm, (_, head, sep, body) => {
+      const parseRow = r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+      const aligns = parseRow(sep).map(c => /^:-+:$/.test(c) ? 'center' : /^-+:$/.test(c) ? 'right' : /^:-+$/.test(c) ? 'left' : '');
+      const th = parseRow(head).map((c, i) => `<th${aligns[i] ? ` style="text-align:${aligns[i]}"` : ''}>${_escMd(c)}</th>`).join('');
+      const tb = body.trim().split('\n').map(row => '<tr>' + parseRow(row).map((c, i) => `<td${aligns[i] ? ` style="text-align:${aligns[i]}"` : ''}>${_escMd(c)}</td>`).join('') + '</tr>').join('');
+      return tok(`<table><thead><tr>${th}</tr></thead><tbody>${tb}</tbody></table>`);
+    });
+    html = html.replace(/&(?!#?\w+;)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    html = html
+      .replace(/^###### (.+)$/gm, '<h6>$1</h6>').replace(/^##### (.+)$/gm, '<h5>$1</h5>')
+      .replace(/^#### (.+)$/gm,   '<h4>$1</h4>').replace(/^### (.+)$/gm,   '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,     '<h2>$1</h2>').replace(/^# (.+)$/gm,     '<h1>$1</h1>');
+    html = html.replace(/^(.+)\n={3,}$/gm, '<h1>$1</h1>').replace(/^(.+)\n-{3,}$/gm, '<h2>$1</h2>');
+    html = html.replace(/^[ \t]*([*_-])[ \t]*\1[ \t]*\1[-_ \t*]*$/gm, '<hr>');
+    html = html.replace(/^(&gt;[ \t]?.*)(\n&gt;[ \t]?.*)*/gm, match => {
+      const lines = match.split('\n').map(l => l.replace(/^&gt;[ \t]?/, ''));
+      return tok(`<blockquote>${parseMd(lines.join('\n')) || lines.join('<br>')}</blockquote>`);
+    });
+    html = _parseLists(html);
+    html = html.replace(/!\[([^\]]*)\]\(([^)"]+?)(?:\s+"([^"]*)")?\)/g, (_, alt, src, title) => {
+      const safeSrc = /^https?:\/\/|^\/|^\.\//i.test(src) ? src : '#';
+      return tok(`<img src="${safeSrc}" alt="${_escMd(alt)}"${title ? ` title="${_escMd(title)}"` : ''} style="max-width:100%;border-radius:4px;margin:0.4rem 0">`);
+    });
+    html = html.replace(/\[([^\]]+)\]\(([^)"]+?)(?:\s+"([^"]*)")?\)/g, (_, text, href, title) => {
+      const safe = /^https?:\/\//i.test(href) ? href : '#';
+      return tok(`<a href="${safe}" target="_blank" rel="noopener noreferrer"${title ? ` title="${_escMd(title)}"` : ''}>${text}</a>`);
+    });
+    html = html.replace(/&lt;(https?:\/\/[^&]+?)&gt;/g, (_, url) => tok(`<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`));
+    html = html.replace(/&lt;([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})&gt;/g, (_, email) => tok(`<a href="mailto:${email}">${email}</a>`));
+    html = html
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/___(.+?)___/g,        '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g,      '<strong>$1</strong>')
+      .replace(/__(.+?)__/g,          '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,          '<em>$1</em>')
+      .replace(/(?<![_\w])_([^_\n]+)_(?![_\w])/g, '<em>$1</em>');
+    html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+    html = html.replace(/==(.+?)==/g, '<mark>$1</mark>');
+    html = html.replace(/\^([^\s^]+)\^/g, '<sup>$1</sup>');
+    html = html.replace(/~([^\s~]+)~/g,   '<sub>$1</sub>');
+    html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    html = html.replace(/  \n/g, '<br>\n');
+    const BLOCK = /^(<\/?(h[1-6]|ul|ol|li|blockquote|pre|table|thead|tbody|tr|th|td|hr|div|figure)|<\x00)/i;
+    html = html.split(/\n{2,}/).map(block => {
+      block = block.trim();
+      if (!block || BLOCK.test(block) || /^\x00T\d+\x00$/.test(block)) return block;
+      return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+    }).join('\n');
+    return restoreToks(html);
+  }
+
+  function _parseLists(html) {
+    const lines = html.split('\n');
+    const out   = [];
+    const stack = [];
+    const flush = (targetIndent) => {
+      while (stack.length && stack[stack.length - 1].indent >= targetIndent)
+        out.push(`</${stack.pop().type}>`);
+    };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const ulM  = line.match(/^([ \t]*)([-*+]) (\[[ xX]\] )?(.+)$/);
+      const olM  = line.match(/^([ \t]*)(\d+)\. (.+)$/);
+      if (ulM || olM) {
+        const indent   = (ulM || olM)[1].length;
+        const type     = ulM ? 'ul' : 'ol';
+        const content  = ulM ? ulM[4] : olM[3];
+        const taskMark = ulM && ulM[3];
+        const top = stack[stack.length - 1];
+        if (!top || top.indent < indent) { stack.push({ type, indent }); out.push(`<${type}>`); }
+        else if (top.indent > indent) {
+          flush(indent);
+          if (!stack.length || stack[stack.length - 1].indent < indent) { stack.push({ type, indent }); out.push(`<${type}>`); }
+        }
+        let liContent = content;
+        if (taskMark) {
+          const checked = /[xX]/.test(taskMark);
+          liContent = `<input type="checkbox" disabled${checked ? ' checked' : ''}> ${content}`;
+        }
+        out.push(`<li>${liContent}</li>`);
+      } else { flush(0); out.push(line); }
+    }
+    flush(0);
+    return out.join('\n');
+  }
+
+  function _escMd(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildPatterns(L) {
+    const is = (...a) => a.includes(L);
+    const p  = (cls, re) => ({ cls, re });
+    const JS = is('js','javascript','ts','typescript','jsx','tsx','mjs','cjs','node');
+    const PY = is('py','python','python3');
+    const CS = is('css','scss','sass','less');
+    const JN = is('json','jsonc');
+    const SH = is('bash','sh','shell','zsh','fish','ps1','powershell','bat');
+    const SQ = is('sql','mysql','postgresql','sqlite');
+    const HT = is('html','xml','svg','htm');
+    if (JN) return [p('str',/"(?:[^"\\]|\\.)*"/),p('num',/-?\b\d+\.?\d*(?:[eE][+-]?\d+)?\b/),p('kw',/\b(?:true|false|null)\b/),p('punct',/[{}\[\]:,]/)];
+    if (HT) return [p('comment',/<!--[\s\S]*?-->/),p('str',/"[^"]*"|'[^']*'/),p('kw',/<\/?\w[\w.-]*/),p('fn',/[\w:-]+(?=\s*=)/),p('op',/\/?>|</)];
+    if (CS) return [p('comment',/\/\*[\s\S]*?\*\//),p('kw',/@[\w-]+/),p('num',/#[\da-fA-F]{3,8}\b|\b\d+\.?\d*(?:px|em|rem|vh|vw|%|pt|fr|deg|s|ms|ch|ex|vmin|vmax|dvh|svh)/),p('fn',/\b(?:var|calc|rgba?|hsla?|oklch|linear-gradient|radial-gradient|min|max|clamp|env|url|attr)(?=\s*\()/),p('prop',/[\w-]+(?=\s*:)/),p('builtin',/\b(?:auto|none|inherit|initial|revert|unset|block|inline|flex|grid|absolute|relative|fixed|sticky|bold|normal|italic|underline|nowrap|center|left|right|top|bottom|transparent|currentColor)\b/)];
+    if (SH) return [p('comment',/#[^\n]*/),p('str',/"(?:[^"\\\n]|\\.)*"|'[^'\n]*'/),p('var',/\$(?:\{[^}]+\}|[\w@#?$!*-]+)/),p('kw',/\b(?:if|then|else|elif|fi|for|in|do|done|while|until|case|esac|function|return|exit|break|continue|local|export|readonly|source|echo|printf|read|shift|set|unset|alias)\b/),p('fn',/\b(?:ls|cd|mkdir|rm|cp|mv|cat|grep|sed|awk|find|chmod|chown|curl|wget|git|npm|yarn|pnpm|node|python|pip|docker|kubectl|ssh|tar|zip|unzip|apt|brew)\b/),p('num',/\b\d+\b/),p('op',/[|&;><]+/)];
+    if (SQ) return [p('comment',/--[^\n]*|\/\*[\s\S]*?\*\//),p('str',/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/),p('kw',/\b(?:SELECT|FROM|WHERE|AND|OR|NOT|IN|IS|NULL|LIKE|BETWEEN|EXISTS|CASE|WHEN|THEN|ELSE|END|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|PRIMARY|KEY|FOREIGN|REFERENCES|UNIQUE|DEFAULT|JOIN|LEFT|RIGHT|INNER|OUTER|FULL|ON|GROUP|BY|ORDER|HAVING|LIMIT|OFFSET|DISTINCT|AS|WITH|UNION|BEGIN|COMMIT|ROLLBACK|RETURNING|VIEW|IF|CASCADE)\b/i),p('type',/\b(?:INT|INTEGER|VARCHAR|TEXT|BOOLEAN|BOOL|FLOAT|DOUBLE|DECIMAL|DATE|DATETIME|TIMESTAMP|BIGINT|SMALLINT|SERIAL|UUID|JSON|JSONB|ARRAY)\b/i),p('num',/\b-?\d+\.?\d*\b/)];
+    const out = [];
+    const CLIKE = ['go','golang','rust','rs','java','kotlin','kt','cs','csharp','c','cpp','cc','h','php','swift','dart'].includes(L);
+    if (JS || CLIKE) { out.push(p('comment',/\/\*[\s\S]*?\*\//)); out.push(p('comment',/\/\/[^\n]*/)); }
+    if (PY || ['rb','ruby','r','perl','julia'].includes(L)) out.push(p('comment',/#[^\n]*/));
+    if (PY) {
+      out.push(p('str',/(?:f|b|r|rb|br|fr|rf)?"""[\s\S]*?"""/)); out.push(p('str',/(?:f|b|r|rb|br|fr|rf)?'''[\s\S]*?'''/));
+      out.push(p('str',/(?:f|b|r|rb|br|fr|rf)?"(?:[^"\\\n]|\\.)*"/)); out.push(p('str',/(?:f|b|r|rb|br|fr|rf)?'(?:[^'\\\n]|\\.)*'/));
+    } else if (JS) {
+      out.push(p('str', new RegExp('`(?:[^`\\\\]|\\\\[\\s\\S])*`')));
+      out.push(p('str',/"(?:[^"\\\n]|\\.)*"/)); out.push(p('str',/'(?:[^'\\\n]|\\.)*'/));
+    } else { out.push(p('str',/"(?:[^"\\\n]|\\.)*"/)); out.push(p('str',/'(?:[^'\\\n]|\\.)*'/)); }
+    const KW = {
+      js:     /\b(?:async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|static|super|switch|this|throw|try|typeof|var|void|while|with|yield)\b/,
+      py:     /\b(?:and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|match)\b/,
+      go:     /\b(?:break|case|chan|const|continue|default|defer|else|fallthrough|for|func|go|goto|if|import|interface|map|package|range|return|select|struct|switch|type|var)\b/,
+      rust:   /\b(?:as|async|await|break|const|continue|crate|dyn|else|enum|extern|fn|for|if|impl|in|let|loop|match|mod|move|mut|pub|ref|return|self|static|struct|super|trait|type|unsafe|use|where|while)\b/,
+      java:   /\b(?:abstract|assert|break|byte|case|catch|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|try|void|volatile|while)\b/,
+      kotlin: /\b(?:abstract|as|break|by|catch|class|companion|const|constructor|continue|data|do|else|enum|false|final|finally|for|fun|get|if|import|in|infix|init|inline|inner|interface|internal|is|lateinit|null|object|open|operator|out|override|package|private|protected|public|reified|return|sealed|set|super|suspend|tailrec|this|throw|true|try|typealias|val|var|vararg|when|where|while)\b/,
+      cs:     /\b(?:abstract|as|base|bool|break|byte|case|catch|char|class|const|continue|decimal|default|delegate|do|double|else|enum|event|explicit|extern|false|finally|fixed|float|for|foreach|goto|if|implicit|in|int|interface|internal|is|lock|long|namespace|new|null|object|operator|out|override|params|private|protected|public|readonly|ref|return|sealed|short|static|string|struct|switch|this|throw|true|try|typeof|uint|ulong|using|virtual|void|volatile|while)\b/,
+      cpp:    /\b(?:auto|bool|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|extern|false|final|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|nullptr|operator|override|private|protected|public|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typename|union|unsigned|using|virtual|void|volatile|while)\b/,
+      php:    /\b(?:abstract|array|as|break|case|catch|class|clone|const|continue|declare|default|do|echo|else|elseif|empty|enum|extends|false|final|finally|fn|for|foreach|function|global|if|implements|include|instanceof|interface|isset|list|match|namespace|new|null|private|protected|public|readonly|return|static|switch|throw|trait|true|try|use|var|while|yield)\b/,
+      ruby:   /\b(?:alias|and|begin|break|case|class|def|do|else|elsif|end|ensure|false|for|if|in|module|next|nil|not|or|redo|rescue|retry|return|self|super|then|true|undef|unless|until|when|while|yield)\b/,
+      swift:  /\b(?:actor|as|async|await|break|case|catch|class|continue|default|defer|deinit|do|else|enum|extension|false|final|for|func|get|guard|if|import|in|indirect|init|inout|internal|is|lazy|let|mutating|nil|nonmutating|open|optional|override|private|protocol|public|repeat|required|return|set|static|struct|subscript|super|switch|throw|throws|true|try|typealias|unowned|var|where|while)\b/,
+      dart:   /\b(?:abstract|as|assert|async|await|break|case|catch|class|const|continue|default|do|else|enum|extends|extension|external|factory|false|final|finally|for|get|if|implements|import|in|is|late|library|mixin|new|null|operator|required|return|set|static|super|switch|this|throw|true|try|typedef|var|void|while|with|yield)\b/,
+    };
+    const lk = JS ? 'js' : PY ? 'py' : (L === 'kt' ? 'kotlin' : L === 'rb' ? 'ruby' : L === 'cc' || L === 'h' ? 'cpp' : L === 'csharp' || L === 'c#' ? 'cs' : L);
+    if (KW[lk]) out.push(p('kw', KW[lk]));
+    if (JS) out.push(p('builtin',/\b(?:true|false|null|undefined|NaN|Infinity|Array|Boolean|Date|Error|Function|JSON|Map|Math|Number|Object|Promise|RegExp|Set|String|Symbol|WeakMap|WeakSet|console|document|window|process|globalThis|setTimeout|setInterval|clearTimeout|clearInterval|fetch|URL|URLSearchParams|FormData|localStorage|sessionStorage|navigator|location|history|Event|Element|Node|HTMLElement|Blob|File|AbortController|AbortSignal|MutationObserver|WebSocket|Worker|crypto|performance|Proxy|Reflect|Intl|BigInt|TextEncoder|TextDecoder|Response|Request|Headers)\b/));
+    if (PY) out.push(p('builtin',/\b(?:True|False|None|self|cls|print|len|range|type|int|str|float|bool|list|dict|set|tuple|input|open|super|isinstance|issubclass|hasattr|getattr|setattr|zip|map|filter|enumerate|sorted|reversed|min|max|sum|abs|round|repr|id|hash|iter|next|any|all|vars|dir|eval|exec|globals|locals|staticmethod|classmethod|property|object|Exception|ValueError|TypeError|KeyError|IndexError|AttributeError|RuntimeError|StopIteration|NotImplementedError|FileNotFoundError|ImportError)\b/));
+    if (JS || PY) out.push(p('fn',/@[\w$.]+/));
+    if (JS)      out.push(p('num',/\b(?:0x[\da-fA-F]+n?|0b[01]+n?|0o[0-7]+n?|\d+\.?\d*(?:[eE][+-]?\d+)?n?)\b/));
+    else if (PY) out.push(p('num',/\b\d+\.?\d*(?:[eEjJ][+-]?\d+)?\b/));
+    else         out.push(p('num',/\b\d+\.?\d*(?:[eE][+-]?\d+)?\b/));
+    out.push(p('type',/\b[A-Z][a-zA-Z0-9_$]*\b/));
+    out.push(p('fn',/\b[a-zA-Z_$][\w$]*(?=\s*\()/));
+    out.push(p('op',/[+\-*/%=!<>&|^~?:]+/));
+    out.push(p('punct',/[{}[\]();,]/));
+    return out;
+  }
+
+  function hlCode(rawCode, lang) {
+    const E  = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const L  = (lang || '').toLowerCase().trim();
+    const lb = E(lang || '');
+    const open  = `<pre${lb ? ` data-lang="${lb}"` : ''}><code>`;
+    const close = `</code></pre>`;
+    if (!rawCode) return open + close;
+    const defs = buildPatterns(L);
+    if (!defs.length) return open + E(rawCode) + close;
+    const patterns = defs.map(({ cls, re }) => ({ re: new RegExp(re.source, re.flags.includes('i') ? 'gi' : 'g'), cls }));
+    let result = '', pos = 0;
+    const len = rawCode.length;
+    let guard = 0;
+    while (pos < len && guard++ < 500000) {
+      let bestMatch = null, bestIdx = Infinity, bestCls = null;
+      for (const { re, cls } of patterns) {
+        re.lastIndex = pos;
+        const m = re.exec(rawCode);
+        if (m && m.index < bestIdx) { bestIdx = m.index; bestMatch = m; bestCls = cls; }
+      }
+      if (!bestMatch) { result += E(rawCode.slice(pos)); break; }
+      if (bestIdx > pos) result += E(rawCode.slice(pos, bestIdx));
+      result += `<span class="hl-${bestCls}">${E(bestMatch[0])}</span>`;
+      pos = bestIdx + (bestMatch[0].length || 1);
+    }
+    return open + result + close;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     GALERIA — CATEGORIAS + CARROSSEL INTERNO + ZOOM MODAL
+  ══════════════════════════════════════════════════════════ */
+  const CATS       = ['frente','costas','detalhe','patch'];
+  const CAT_LABELS = { frente:'Frente', costas:'Costas', detalhe:'Detalhe', patch:'Patch' };
+
+  let gFotos    = {};
+  let gCat      = 'frente';
+  let gIdx      = 0;
+  let gAllImgs  = [];   /* { url, cat } — todas as fotos juntas */
+  let gModalIdx = 0;
+
+  /* ── Troca de categoria ─────────────────────────────── */
+  function gSetCat(cat) {
+    if (!gFotos[cat]?.length) return;
+    gCat = cat; gIdx = 0;
+    document.querySelectorAll('.pgal-cat')
+      .forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+    gRenderStrip();
+    gSetImg(0);
+  }
+
+  /* ── Troca de foto no visor ─────────────────────────── */
+  function gSetImg(idx) {
+    const imgs = gFotos[gCat] || [];
+    if (!imgs.length) return;
+    gIdx = Math.max(0, Math.min(idx, imgs.length - 1));
+
+    const imgEl = el('pgal-img');
+    if (imgEl) {
+      imgEl.classList.remove('loaded');
+      imgEl.src = imgs[gIdx];
+      imgEl.alt = produto?.titulo || '';
+      imgEl.onload = () => imgEl.classList.add('loaded');
+    }
+    el('pgal-ph').style.display = 'none';
+
+    const counter = el('pgal-counter');
+    if (counter) {
+      counter.textContent  = `${gIdx+1} / ${imgs.length}`;
+      counter.style.display = imgs.length > 1 ? 'block' : 'none';
+    }
+
+    const prev = el('pgal-prev'), next = el('pgal-next');
+    if (prev) prev.disabled = gIdx === 0;
+    if (next) next.disabled = gIdx === imgs.length - 1;
+
+    document.querySelectorAll('.pgal-strip-thumb')
+      .forEach((t,i) => t.classList.toggle('active', i === gIdx));
+    document.querySelector('.pgal-strip-thumb.active')
+      ?.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+  }
+
+  /* ── Strip interno de miniaturas ────────────────────── */
+  function gRenderStrip() {
+    const strip = el('pgal-strip');
+    if (!strip) return;
+    const imgs = gFotos[gCat] || [];
+    if (imgs.length <= 1) { strip.style.display = 'none'; return; }
+    strip.style.display = 'flex';
+    strip.innerHTML = '';
+    imgs.forEach((url, i) => {
+      const t = document.createElement('div');
+      t.className = 'pgal-strip-thumb' + (i===0 ? ' active' : '');
+      t.innerHTML = `<img src="${url}" alt="foto ${i+1}" loading="lazy">`;
+      t.addEventListener('click', e => { e.stopPropagation(); gSetImg(i); });
+      strip.appendChild(t);
+    });
+  }
+
+  function gNext() { gSetImg(gIdx + 1); }
+  function gPrev() { gSetImg(gIdx - 1); }
+
+  /* ── Zoom modal ─────────────────────────────────────── */
+  function gOpenZoom() {
+    const curUrl = gFotos[gCat]?.[gIdx];
+    const gi = gAllImgs.findIndex(x => x.url === curUrl);
+    gModalIdx = gi >= 0 ? gi : 0;
+    const modal = el('pgal-modal');
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+    gModalRender();
+  }
+
+  function gCloseZoom() {
+    el('pgal-modal')?.classList.remove('open');
+    el('pgal-modal')?.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  function gModalSetIdx(idx) {
+    gModalIdx = Math.max(0, Math.min(idx, gAllImgs.length - 1));
+    gModalRender();
+  }
+
+  function gModalRender() {
+    const imgEl = el('pgal-modal-img');
+    if (imgEl) {
+      imgEl.classList.remove('loaded');
+      imgEl.src = gAllImgs[gModalIdx]?.url || '';
+      imgEl.onload = () => imgEl.classList.add('loaded');
+    }
+    const info = el('pgal-modal-info');
+    if (info) {
+      const item = gAllImgs[gModalIdx];
+      if (item) {
+        const catImgs = gFotos[item.cat] || [];
+        const pos = catImgs.indexOf(item.url);
+        info.textContent = `${CAT_LABELS[item.cat]} — ${pos+1}/${catImgs.length}`;
+      }
+    }
+    document.querySelectorAll('.pgal-modal-thumb')
+      .forEach((t,i) => t.classList.toggle('active', i === gModalIdx));
+    document.querySelector('.pgal-modal-thumb.active')
+      ?.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' });
+    const prev = el('pgal-modal-prev'), next = el('pgal-modal-next');
+    if (prev) prev.disabled = gModalIdx === 0;
+    if (next) next.disabled = gModalIdx === gAllImgs.length - 1;
+  }
+
+  /* ── Build: constrói toda a galeria ─────────────────── */
+  function buildGallery(fotos) {
+    gFotos = fotos || {};
+    gAllImgs = [];
+    CATS.forEach(cat =>
+      (fotos[cat]||[]).forEach(url => gAllImgs.push({ url, cat }))
+    );
+
+    if (!gAllImgs.length) {
+      el('pgal-ph').style.display   = 'flex';
+      el('pgal-strip').style.display = 'none';
+      return;
+    }
+
+    /* Abas de categoria */
+    const catsEl = el('pgal-cats');
+    if (catsEl) {
+      catsEl.innerHTML = '';
+      CATS.forEach(cat => {
+        const imgs  = fotos[cat] || [];
+        const first = imgs[0];
+        const card  = document.createElement('div');
+        card.className   = 'pgal-cat' + (cat === 'frente' ? ' active' : '');
+        card.dataset.cat = cat;
+        if (first) {
+          card.innerHTML = `
+            <img class="pgal-cat-bg" src="${first}" alt="${CAT_LABELS[cat]}" loading="lazy">
+            <div class="pgal-cat-label">${CAT_LABELS[cat]}</div>`;
+        } else {
+          card.innerHTML = `
+            <div class="pgal-cat-empty-bg"></div>
+            <div class="pgal-cat-label" style="color:rgba(245,240,230,.3);background:none;position:static;padding:.4rem">${CAT_LABELS[cat]}</div>`;
+        }
+        card.addEventListener('click', () => gSetCat(cat));
+        catsEl.appendChild(card);
+      });
+    }
+
+    /* Rodapé do modal: todas as fotos com separadores por categoria */
+    const modalAll = el('pgal-modal-all');
+    if (modalAll) {
+      modalAll.innerHTML = '';
+      let prevCat = null;
+      gAllImgs.forEach((img, i) => {
+        if (img.cat !== prevCat) {
+          const sep = document.createElement('div');
+          sep.className   = 'pgal-modal-all-cat';
+          sep.textContent = CAT_LABELS[img.cat];
+          modalAll.appendChild(sep);
+          prevCat = img.cat;
+        }
+        const t = document.createElement('div');
+        t.className = 'pgal-modal-thumb';
+        t.innerHTML = `<img src="${img.url}" alt="${img.cat} ${i+1}" loading="lazy">`;
+        t.addEventListener('click', () => gModalSetIdx(i));
+        modalAll.appendChild(t);
+      });
+    }
+
+    /* Bindings do modal */
+    el('pgal-modal-close')?.addEventListener('click', gCloseZoom);
+    el('pgal-modal-bg')?.addEventListener('click', gCloseZoom);
+    el('pgal-modal-prev')?.addEventListener('click', () => gModalSetIdx(gModalIdx - 1));
+    el('pgal-modal-next')?.addEventListener('click', () => gModalSetIdx(gModalIdx + 1));
+    document.addEventListener('keydown', e => {
+      const open = el('pgal-modal')?.classList.contains('open');
+      if (e.key === 'Escape'      && open) gCloseZoom();
+      if (e.key === 'ArrowLeft'  && open) gModalSetIdx(gModalIdx - 1);
+      if (e.key === 'ArrowRight' && open) gModalSetIdx(gModalIdx + 1);
+      if (e.key === 'ArrowLeft'  && !open) gPrev();
+      if (e.key === 'ArrowRight' && !open) gNext();
+    });
+
+    /* Bindings do visor */
+    el('pgal-prev')?.addEventListener('click', e => { e.stopPropagation(); gPrev(); });
+    el('pgal-next')?.addEventListener('click', e => { e.stopPropagation(); gNext(); });
+    el('pgal-viewer')?.addEventListener('click', e => {
+      if (e.target.closest('.pgal-arrow,.pgal-strip')) return;
+      gOpenZoom();
+    });
+
+    /* Inicia na categoria com imagens */
+    const initCat = CATS.find(c => fotos[c]?.length) || 'frente';
+    gSetCat(initCat);
+  }
+
+  /* ── Verifica se uma variação está pausada ────────────── */
+  function isVariationPaused(pausedVariations, colorSlug, size) {
+    const pv = pausedVariations || {};
+    if (pv.tamanhos?.[size])            return true;
+    if (pv.cores?.[colorSlug])          return true;
+    if (pv.combos?.[`${colorSlug}_${size}`]) return true;
+    return false;
+  }
+
+  /* ── Converte nome de cor para slug ───────────────────── */
+  function toColorSlug(nome) {
+    return (nome || '').toLowerCase().normalize('NFD')
+      .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'sem-nome';
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     CTA REATIVO — alternância suave por combinação Cor+Tamanho
+  ══════════════════════════════════════════════════════════ */
+
+  /*
+   * Determina se a combinação atual está indisponível
+   * (produto pausado globalmente, cor pausada, tamanho pausado,
+   *  combo pausado ou estoque zerado) e transiciona os CTAs.
+   */
+  function updateCtaState(colorName, sizeName) {
+    if (!produto) return;
+
+    const pv           = produto.pausedVariations || {};
+    const globalPaused = produto.status === 'pausado';
+
+    /* Sem tamanho selecionado: usa apenas o status global */
+    if (!sizeName) {
+      setCtas(globalPaused ? 'esgotado' : 'normal');
+      return;
+    }
+
+    const slug      = toColorSlug(colorName);
+    const stockMap  = colorStockForName(produto.estoque, colorName);
+    const qty       = stockMap?.[sizeName]?.qtd ?? 0;
+    const varPaused = isVariationPaused(pv, slug, sizeName);
+
+    /*
+     * Três estados distintos:
+     *   'normal'   — disponível, compra habilitada
+     *   'esgotado' — sem estoque (qty === 0), mostra lista de espera
+     *   'paused'   — variação pausada manualmente, mensagem de indisponibilidade
+     */
+    if (globalPaused || qty === 0) {
+      setCtas('esgotado');    /* produto pausado globalmente ou sem estoque — mostra lista de espera */
+    } else if (varPaused) {
+      setCtas('paused');      /* só variação específica pausada — mensagem simples, sem lista de espera */
+    } else {
+      setCtas('normal');
+    }
+  }
+
+  /*
+   * Aplica a transição animada entre os dois estados de CTA.
+   * Usa opacity + transform para manter 60fps.
+   */
+  /* Utilitários de visibilidade — gerencia display via JS inline
+     (immune a conflito de especificidade com o atributo hidden)  */
+  function _ctaVisible(el)  { return el.style.display !== 'none'; }
+  function _ctaShow(target) {
+    target.style.display = 'flex';
+    void target.offsetWidth;            /* reflow garante restart da animação CSS */
+    target.classList.remove('cta-entering', 'cta-leaving');
+    target.classList.add('cta-entering');
+    target.addEventListener('animationend', () => target.classList.remove('cta-entering'), { once: true });
+  }
+  function _ctaHide(target) { target.style.display = 'none'; }
+
+  function setCtas(newState) {
+    const buyGroup    = el('cta-buy-group');
+    const estGroup    = el('cta-paused');         /* esgotado: lista de espera */
+    const pauseGroup  = el('cta-temp-pausado');   /* pausado: mensagem simples */
+    if (!buyGroup || !estGroup || !pauseGroup) return;
+
+    /* Qual elemento mostrar conforme o estado */
+    const showEl = newState === 'normal'   ? buyGroup
+                 : newState === 'esgotado' ? estGroup
+                 :                           pauseGroup;
+
+    const hideEls = [buyGroup, estGroup, pauseGroup].filter(e => e !== showEl);
+
+    /* Guarda: se showEl já está visível e todos os outros ocultos, nada a fazer */
+    if (_ctaVisible(showEl) && hideEls.every(e => !_ctaVisible(e))) return;
+
+    /* Reset do form de lista de espera ao sair do estado esgotado */
+    if (newState !== 'esgotado') {
+      const form = el('waitlist-form');
+      const msg  = el('wl-msg');
+      if (form) form.style.display = 'none';
+      if (msg)  msg.textContent    = '';
+    }
+
+    /* Esconde imediatamente tudo o que estava visível (exceto showEl) */
+    hideEls.forEach(e => {
+      e.classList.remove('cta-entering', 'cta-leaving');
+      _ctaHide(e);
+    });
+
+    /* Anima entrada do elemento alvo */
+    _ctaShow(showEl);
+  }
+
+  /* ── Tamanhos ─────────────────────────────────────────── */
+  function buildSizes(estoque, pausedVariations, colorSlug) {
+    const cont  = el('p-sizes');
+    const stock = el('p-stock');
+    cont.innerHTML = '';
+    activeSz = null;
+
+    /*
+     * SOBREPOSIÇÃO HIERÁRQUICA: status global 'pausado' curto-circuita tudo.
+     * Independente de variações individuais, TODOS os tamanhos ficam
+     * indisponíveis. As pausedVariations no banco NÃO são alteradas.
+     */
+    const globalPaused = produto?.status === 'pausado';
+
+    SIZES.forEach(sz => {
+      const qty     = estoque?.[sz]?.qtd || 0;
+      const paused  = globalPaused || isVariationPaused(pausedVariations, colorSlug, sz);
+      const unavail = qty === 0 || paused;
+      const btn     = document.createElement('button');
+
+      btn.className   = 'sbtn' + (unavail ? (paused ? ' paused' : ' esgotado') : '');
+      btn.textContent = sz;
+      btn.dataset.sz  = sz;
+      if (paused) btn.title = 'Indisponível';
+
+      /* Todos os botões têm listener — paused/esgotado também disparam a transição */
+      btn.addEventListener('click', () => {
+        /* Marca visualmente o tamanho selecionado (mesmo que indisponível) */
+        activeSz = sz;
+        cont.querySelectorAll('.sbtn').forEach(b => b.classList.toggle('active', b.dataset.sz === sz));
+        el('p-sz-sel').textContent = sz;
+
+        if (!unavail) {
+          /* Disponível: mostra barra de estoque */
+          const pct = Math.min(100, Math.round((qty / 50) * 100));
+          el('p-stock-fill').style.width = pct + '%';
+          el('p-stock-num').textContent  = qty;
+          stock.style.display = 'flex';
+        } else {
+          stock.style.display = 'none';
+        }
+
+        /* Transiciona CTAs com base na disponibilidade desta combinação */
+        updateCtaState(activeColor, sz);
+      });
+
+      cont.appendChild(btn);
+    });
+  }
+
+  /* ── Medidas ──────────────────────────────────────── */
+  function fmtCm(n) {
+    if (!n && n !== 0) return '—';
+    return Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  }
+  function buildMedidas(estoque) {
+    el('p-medidas').innerHTML = SIZES.map(sz => {
+      const d = estoque?.[sz] || {};
+      return `<tr>
+        <td>${sz}</td>
+        <td>${fmtCm(d.largura)}</td>
+        <td>${fmtCm(d.comprimento)}</td>
+        <td>${fmtCm(d.manga)}</td>
+        <td style="color:${(d.qtd||0)>0?'var(--color-red)':'var(--color-text-ghost)'}">${d.qtd||'Esgotado'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Render ───────────────────────────────────────── */
+  function renderProduct(p) {
+    produto = p;
+    document.title = `${p.titulo} — Zenith Zone`;
+    el('bc-title').textContent  = p.titulo;
+    el('p-titulo').textContent  = p.titulo;
+    el('p-drop').style.display  = p.dropExclusivo ? 'flex' : 'none';
+    el('p-jp').textContent      = p.tituloJP || '';
+    el('p-jp').style.display    = p.tituloJP ? 'block' : 'none';
+    el('p-preco').textContent   = fmtPrice(p.preco);
+
+    /* Drop Exclusivo — carimbo na galeria */
+    const carimbo = el('p-carimbo');
+    if (carimbo) carimbo.classList.toggle('is-visible', !!p.dropExclusivo);
+
+    if (p.parcelas > 1) {
+      el('p-inst').innerHTML = `ou <strong>${p.parcelas}x de ${fmtPrice(p.preco/p.parcelas)}</strong><br>sem juros no cartão`;
+    }
+
+    /* Cores — com suporte a pausa por cor + sobreposição global */
+    const coresWrap    = el('p-cores-wrap');
+    const coresEl      = el('p-cores');
+    const pv           = p.pausedVariations || {};
+    const isGlobalPaus = p.status === 'pausado';   /* curto-circuito hierárquico */
+    activeColor        = p.cores?.[0]?.nome || '';
+    if (p.cores?.length) {
+      coresWrap.style.display = 'block';
+      coresEl.innerHTML = '';
+      p.cores.forEach((c, i) => {
+        const slug      = toColorSlug(c.nome);
+        /* Pausa hierárquica: global passa por cima de individual */
+        const corPaused = isGlobalPaus || !!pv.cores?.[slug];
+        const dot       = document.createElement('div');
+        dot.className   = 'cdot' + (i === 0 && !corPaused ? ' active' : '') + (corPaused ? ' paused' : '');
+        dot.style.background = c.hex;
+        dot.title = corPaused ? `${c.nome} — Indisponível` : c.nome;
+        if (!corPaused) {
+          dot.addEventListener('click', () => {
+            coresEl.querySelectorAll('.cdot').forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+            el('p-cor-nome').textContent = c.nome;
+            activeColor = c.nome;
+            el('p-stock').style.display = 'none';
+            /* Reseta label de tamanho — activeSz volta a null dentro de buildSizes */
+            el('p-sz-sel').textContent = 'Selecione';
+            el('p-sz-sel').style.color = '';
+            const stock = colorStockForName(p.estoque, c.nome);
+            buildSizes(stock, pv, toColorSlug(c.nome));
+            buildMedidas(stock);
+            /* Cor mudou: reavalia CTAs com o novo activeColor (sem tamanho selecionado) */
+            updateCtaState(c.nome, null);
+          });
+        }
+        coresEl.appendChild(dot);
+      });
+      /* Seleciona primeira cor não-pausada */
+      const firstAvail = p.cores.find(c => !pv.cores?.[toColorSlug(c.nome)]);
+      activeColor = firstAvail?.nome || p.cores[0]?.nome || '';
+      el('p-cor-nome').textContent = activeColor || '—';
+    } else coresWrap.style.display = 'none';
+
+    buildGallery(p.fotos || {});
+    const initStock    = colorStockForName(p.estoque, activeColor);
+    const initColorSlug = toColorSlug(activeColor);
+    buildSizes(initStock, pv, initColorSlug);
+    buildMedidas(initStock);
+
+    /* ── Estado inicial dos CTAs ── */
+    /* Uma única chamada após tudo estar configurado.
+     * Ambos os grupos já começam com hidden=true no HTML.
+     * setCtas animará a entrada do grupo correto. */
+    updateCtaState(activeColor, null);
+
+    /* Descrição */
+    if (p.descricao?.trim()) {
+      el('p-desc').innerHTML = parseMd(p.descricao) || '';
+      el('acc-desc-wrap').style.display = 'block';
+    } else {
+      el('acc-desc-wrap').style.display = 'none';
+    }
+
+    /* Especificações */
+    if (p.especificacoes?.length) {
+      el('p-specs').innerHTML = p.especificacoes.map(s =>
+        `<div class="spec-item"><p class="spec-label">${s.label}</p><p class="spec-value">${s.valor}</p></div>`
+      ).join('');
+      el('acc-specs-wrap').style.display = 'block';
+    } else {
+      el('acc-specs-wrap').style.display = 'none';
+    }
+
+    /* Wishlist — injeta o ID do produto no botão e sincroniza estado */
+    const wishBtn = el('btn-wish');
+    if (wishBtn) {
+      wishBtn.dataset.pid = p._id;
+      window.ZZWishlist?.syncCards();
+    }
+
+    setState('product');
+  }
+
+  /* ── Carrega produto (inclui token para acesso admin) ── */
+  async function loadProduct() {
+    const params = new URLSearchParams(location.search);
+    const ref    = params.get('id') || params.get('slug');
+    if (!ref) { setState('error'); return; }
+
+    setState('loading');
+    try {
+      const headers = {};
+      const token = (typeof ZZAuth !== 'undefined') ? ZZAuth.getToken() : null;
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res  = await fetch(`${API}/products/${encodeURIComponent(ref)}`, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.product) throw new Error('Produto não retornado');
+      renderProduct(data.product);
+    } catch (err) {
+      console.error('[ZZ Produto] Erro ao carregar:', err);
+      setState('error');
+    }
+  }
+
+  /* ── Handler: Comprar Agora (bypass carrinho → checkout) */
+  el('btn-buy')?.addEventListener('click', () => {
+    if (!activeSz) {
+      el('p-sz-sel').textContent = 'Selecione!';
+      el('p-sz-sel').style.color = 'var(--color-red)';
+      setTimeout(() => { el('p-sz-sel').style.color = ''; }, 2000);
+      return;
+    }
+    const item = {
+      id:    produto._id,
+      name:  produto.titulo,
+      price: produto.preco,
+      qty:   1,
+      size:  activeSz,
+      color: activeColor,
+      slug:  produto.slug,
+      image: produto.fotos?.frente?.[0] || '',
+    };
+    sessionStorage.setItem('zz_buy_now', JSON.stringify(item));
+    window.location.href = `${window.location.origin}/src/pages/checkout.html`;
+  });
+
+  /* ── Handler: Adicionar ao Carrinho ─────────────────── */
+  el('btn-cart')?.addEventListener('click', () => {
+    if (!activeSz) {
+      el('p-sz-sel').textContent = 'Selecione!';
+      el('p-sz-sel').style.color = 'var(--color-red)';
+      setTimeout(() => { el('p-sz-sel').style.color = ''; }, 2000);
+      return;
+    }
+    if (window.ZZCart?.add) {
+      window.ZZCart.add({
+        id:    produto._id,
+        name:  produto.titulo,
+        price: produto.preco,
+        qty:   1,
+        size:  activeSz,
+        color: activeColor,
+        slug:  produto.slug,
+        image: produto.fotos?.frente?.[0] || '',
+      });
+    }
+    /* Feedback visual no botão */
+    const btn = el('btn-cart');
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><polyline points="20 6 9 17 4 12"/></svg> Adicionado!`;
+    btn.style.borderColor = 'rgba(93,199,140,.5)';
+    btn.style.color       = '#5dc78c';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.borderColor = ''; btn.style.color = ''; }, 2200);
+  });
+
+  /* ── Handler: Lista de Espera ────────────────────────── */
+  el('btn-waitlist')?.addEventListener('click', () => {
+    const form = el('waitlist-form');
+    if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    if (form?.style.display !== 'none') el('wl-email')?.focus();
+  });
+
+  el('wl-submit')?.addEventListener('click', async () => {
+    const emailEl = el('wl-email');
+    const msgEl   = el('wl-msg');
+    const btn     = el('wl-submit');
+    const email   = emailEl?.value.trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      if (msgEl) { msgEl.textContent = 'Digite um e-mail válido.'; msgEl.className = 'wl-msg error'; }
+      return;
+    }
+
+    /* Garante que o produto foi carregado antes de enviar */
+    if (!produto?._id) {
+      if (msgEl) { msgEl.textContent = 'Erro: produto não carregado. Recarregue a página.'; msgEl.className = 'wl-msg error'; }
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Enviando…';
+
+    /* AbortController com timeout de 10s */
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const res = await fetch(`${API}/waitlist`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal:  controller.signal,
+        body:    JSON.stringify({
+          email,
+          productId: produto._id,
+          cor:       activeColor || '',
+          tamanho:   activeSz   || '',
+        }),
+      });
+      clearTimeout(tid);
+      const data = await res.json();
+      if (msgEl) {
+        msgEl.textContent = data.message || (res.ok ? 'Você entrou na lista!' : data.error);
+        msgEl.className   = `wl-msg ${res.ok ? 'success' : 'error'}`;
+      }
+      if (res.ok && emailEl) emailEl.value = '';
+    } catch (err) {
+      clearTimeout(tid);
+      if (msgEl) {
+        msgEl.textContent = err.name === 'AbortError'
+          ? 'Tempo esgotado. Tente novamente.'
+          : 'Erro ao conectar. Tente novamente.';
+        msgEl.className = 'wl-msg error';
+      }
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Confirmar meu interesse';
+    }
+  });
+
+  /* ── Acordeão ─────────────────────────────────────── */
+  document.querySelectorAll('.acc-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const body = el('acc-' + btn.dataset.acc);
+      if (!body) return;
+      const open = body.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    });
+  });
+  el('size-guide-btn')?.addEventListener('click', () => {
+    const body = el('acc-med');
+    const btn  = el('acc-med-btn');
+    body.classList.add('open');
+    btn.classList.add('open');
+    body.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  /* Nota: handlers de btn-buy, btn-cart, btn-waitlist e wl-submit
+     estão definidos mais acima (linhas 1549–1661). Bloco legado removido. */
+
+  /* ── Inicializa ────────────────────────────────────── */
+  loadProduct().then(() => window.ZZWishlist?.initPage());
+  </script>
+
+  <!-- Cart drawer -->
+  <aside id="zz-cart-drawer" class="zz-cart-drawer"
+         role="dialog" aria-modal="true" aria-label="Carrinho de compras">
+    <div class="zz-cart-drawer-head">
+      <span class="zz-cart-drawer-title">
+        Carrinho
+        <span id="zz-cart-drawer-count" class="zz-cart-drawer-count"></span>
+      </span>
+      <button type="button" id="zz-cart-drawer-close"
+              class="zz-cart-drawer-close" aria-label="Fechar carrinho">
+        <svg viewBox="0 0 22 22" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round">
+          <line x1="4" y1="4" x2="18" y2="18"/>
+          <line x1="18" y1="4" x2="4"  y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <ul id="zz-cart-drawer-list" class="zz-cart-drawer-list"></ul>
+    <div id="zz-cart-drawer-empty" class="zz-cart-drawer-empty" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <p>Seu carrinho está vazio.</p>
+    </div>
+    <div class="zz-cart-drawer-footer">
+      <div class="zz-cart-drawer-total-row">
+        <span>Total</span>
+        <span id="zz-cart-drawer-total">R$&nbsp;0,00</span>
+      </div>
+      <button type="button" class="zz-cart-drawer-checkout">Finalizar Compra</button>
+    </div>
+  </aside>
+  <div id="zz-cart-overlay" class="zz-cart-overlay" aria-hidden="true"></div>
+
+  <!-- navbar.js gerencia mega menu, mobile nav, pesquisa e carrinho -->
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/auth-modal.js"></script>
+  <script src="../js/avatar.js"></script>
+  <script src="../js/wishlist.js"></script>
+  <script src="../js/zz-nav-zones.js"></script>
+  <script src="../js/navbar.js"></script>
+</body>
+</html>

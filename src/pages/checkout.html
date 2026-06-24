@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — ZENITH ZONE</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--color-bg-base); color: var(--color-offwhite); font-family: var(--font-body); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+
+    .checkout-wrap { width: 100%; max-width: 540px; }
+
+    .checkout-logo { text-align: center; margin-bottom: 2rem; }
+    .checkout-logo img { height: 40px; }
+
+    .checkout-card {
+      background: rgba(4,6,16,0.9);
+      border: 1px solid var(--color-red-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .checkout-header {
+      padding: 1.5rem 1.75rem 1.2rem;
+      border-bottom: 1px solid var(--color-border-faint);
+      background: rgba(220,20,60,0.04);
+    }
+    .checkout-eyebrow { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-jp); text-transform: uppercase; color: var(--color-red); margin-bottom: 0.3rem; }
+    .checkout-title { font-family: var(--font-head); font-weight: var(--fw-black); font-size: clamp(1.4rem,4vw,2rem); text-transform: uppercase; letter-spacing: var(--tracking-normal); color: var(--color-white); }
+
+    .checkout-body { padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* Item selecionado */
+    .item-card {
+      display: flex; gap: 1rem; align-items: center;
+      padding: 1rem; background: rgba(245,240,230,0.03);
+      border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm);
+    }
+    .item-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius-xs); flex-shrink: 0; background: rgba(245,240,230,0.06); }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-weight: var(--fw-bold); color: var(--color-offwhite); font-size: var(--text-base); margin-bottom: 0.25rem; }
+    .item-meta { font-size: var(--text-xs); color: var(--color-text-muted); display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .item-badge { background: rgba(220,20,60,0.1); border: 1px solid rgba(220,20,60,0.2); color: var(--color-red); padding: 0.1rem 0.4rem; border-radius: var(--radius-xs); font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: 0.06em; text-transform: uppercase; }
+    .item-price { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-lg); color: var(--color-white); white-space: nowrap; }
+
+    /* Divisor */
+    .divider { height: 1px; background: var(--color-border-faint); }
+
+    /* Resumo */
+    .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: var(--text-sm); }
+    .summary-row span:first-child { color: var(--color-text-muted); }
+    .summary-row span:last-child { color: var(--color-offwhite); font-weight: var(--fw-bold); }
+    .summary-total { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-2xl); color: var(--color-white); }
+
+    /* Alertas */
+    .co-alert { padding: 0.75rem 1rem; border-radius: var(--radius-xs); font-size: var(--text-sm); border: 1px solid; }
+    .co-alert.error   { background: rgba(220,20,60,0.08); border-color: rgba(220,20,60,0.3); color: #f07080; }
+    .co-alert.success { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #5dc78c; }
+    .co-alert.info    { background: rgba(99,130,255,0.08); border-color: rgba(99,130,255,0.3); color: #8ba0ff; }
+
+    /* Botões */
+    .btn-confirm {
+      width: 100%; padding: 1.15rem; background: var(--color-red); color: #fff;
+      font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-base);
+      letter-spacing: var(--tracking-wide); text-transform: uppercase; border: none;
+      border-radius: var(--radius-xs); cursor: pointer;
+      transition: background var(--ease-fast), transform var(--ease-fast);
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-confirm:hover:not(:disabled) { background: var(--color-red-dark); transform: translateY(-1px); }
+    .btn-confirm:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-confirm svg { width: 18px; height: 18px; }
+
+    .btn-back {
+      width: 100%; padding: 0.85rem; background: transparent; color: var(--color-text-muted);
+      font-family: var(--font-head); font-weight: var(--fw-bold); font-size: var(--text-sm);
+      letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xs); cursor: pointer; text-decoration: none; display: block; text-align: center;
+      transition: border-color var(--ease-fast), color var(--ease-fast);
+    }
+    .btn-back:hover { border-color: rgba(220,20,60,0.35); color: var(--color-offwhite); }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-sm { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+    /* Nota de segurança */
+    .secure-note { text-align: center; font-size: var(--text-2xs); color: var(--color-text-ghost); letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+    .secure-note svg { width: 12px; height: 12px; color: var(--color-text-faint); }
+
+    /* Estado de erro de carregamento */
+    .empty-state { text-align: center; padding: 2.5rem 1rem; }
+    .empty-state h2 { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-xl); text-transform: uppercase; color: var(--color-white); margin-bottom: 0.75rem; }
+    .empty-state p { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+
+  <div class="checkout-wrap">
+    <div class="checkout-logo">
+      <a href="../index.html">
+        <img src="../images/logo%20longa%20ZZ%20(transparente).png" alt="ZENITH ZONE">
+      </a>
+    </div>
+
+    <div class="checkout-card" id="checkout-card">
+      <!-- Preenchido pelo JS -->
+      <div class="checkout-body">
+        <div class="empty-state">
+          <h2>Carregando…</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+  (() => {
+    const API = window.ZZ_API_BASE || (window.location.origin + '/api');
+
+    /* ── Redireciona para login se não autenticado ── */
+    if (!ZZAuth.isLoggedIn()) {
+      sessionStorage.setItem('zz_after_login', window.location.href);
+      window.location.href = window.location.origin + '/src/pages/auth.html';
+    }
+
+    const raw = sessionStorage.getItem('zz_buy_now');
+    const card = document.getElementById('checkout-card');
+
+    function fmtPrice(n) {
+      return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /* ── Sem item no sessionStorage ── */
+    if (!raw) {
+      card.innerHTML = `
+        <div class="checkout-body">
+          <div class="empty-state">
+            <h2>Nenhum item</h2>
+            <p>Selecione um produto e tamanho antes de prosseguir para o checkout.</p>
+            <a href="../index.html" class="btn-back">← Voltar à loja</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    let item;
+    try { item = JSON.parse(raw); } catch {
+      card.innerHTML = `<div class="checkout-body"><div class="empty-state"><h2>Erro</h2><p>Dados do pedido inválidos.</p><a href="../index.html" class="btn-back">← Voltar</a></div></div>`;
+      return;
+    }
+
+    const user = ZZAuth.getUser();
+
+    /* ── Renderiza o checkout ── */
+    card.innerHTML = `
+      <div class="checkout-header">
+        <p class="checkout-eyebrow">Confirmação de Pedido</p>
+        <h1 class="checkout-title">Comprar Agora</h1>
+      </div>
+      <div class="checkout-body">
+        <div id="co-alert-wrap"></div>
+
+        <!-- Item selecionado -->
+        <div class="item-card">
+          ${item.image ? `<img class="item-thumb" src="${item.image}" alt="${item.name}" loading="lazy">` : '<div class="item-thumb"></div>'}
+          <div class="item-info">
+            <div class="item-name">${item.name || '—'}</div>
+            <div class="item-meta">
+              ${item.color ? `<span class="item-badge">${item.color}</span>` : ''}
+              ${item.size  ? `<span class="item-badge">${item.size}</span>` : ''}
+              <span>Qtd: 1</span>
+            </div>
+          </div>
+          <div class="item-price">${fmtPrice(item.price)}</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Resumo -->
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>${fmtPrice(item.price)}</span>
+          </div>
+          <div class="summary-row">
+            <span>Frete</span>
+            <span style="color:var(--color-pink);font-weight:var(--fw-bold)">A calcular</span>
+          </div>
+          <div class="divider"></div>
+          <div class="summary-row" style="margin-top:0.25rem">
+            <span style="font-family:var(--font-head);font-weight:var(--fw-black);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-white)">Total</span>
+            <span class="summary-total">${fmtPrice(item.price)}</span>
+          </div>
+        </div>
+
+        <!-- Dados do comprador -->
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted);padding:0.75rem 1rem;background:rgba(245,240,230,0.03);border:1px solid var(--color-border-faint);border-radius:var(--radius-xs)">
+          <strong style="color:var(--color-offwhite)">Comprador:</strong> ${user?.firstName || ''} ${user?.lastName || ''}<br>
+          <strong style="color:var(--color-offwhite)">E-mail:</strong> ${user?.email || '—'}
+        </div>
+
+        <!-- CTA -->
+        <button class="btn-confirm" id="co-confirm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Confirmar Pedido
+        </button>
+
+        <a href="produto.html?slug=${item.slug || item.id}" class="btn-back">← Voltar ao produto</a>
+
+        <p class="secure-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Pedido processado com segurança
+        </p>
+      </div>`;
+
+    /* ── Confirmar pedido ── */
+    document.getElementById('co-confirm')?.addEventListener('click', async () => {
+      const btn     = document.getElementById('co-confirm');
+      const alertWrap = document.getElementById('co-alert-wrap');
+      alertWrap.innerHTML = '';
+      btn.disabled  = true;
+      btn.innerHTML = `<div class="spinner-sm"></div> Processando…`;
+
+      try {
+        const token = ZZAuth.getToken();
+        const res   = await fetch(`${API}/orders`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body:    JSON.stringify({
+            items: [{
+              id:    item.id,
+              name:  item.name,
+              price: item.price,
+              qty:   1,
+              size:  item.size,
+              color: item.color,
+            }],
+            total: item.price,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+
+        sessionStorage.removeItem('zz_buy_now');
+        alertWrap.innerHTML = `<div class="co-alert success">✔ Pedido <strong>#${String(data.order._id).slice(-6).toUpperCase()}</strong> realizado com sucesso!</div>`;
+
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><polyline points="20 6 9 17 4 12"/></svg> Pedido Confirmado!`;
+        btn.style.background = 'rgba(34,197,94,0.2)';
+        btn.style.border     = '1px solid rgba(34,197,94,0.4)';
+        btn.style.color      = '#5dc78c';
+
+        setTimeout(() => {
+          window.location.href = window.location.origin + '/src/pages/pedidos.html';
+        }, 2000);
+
+      } catch (err) {
+        alertWrap.innerHTML = `<div class="co-alert error">${err.message}</div>`;
+        btn.disabled  = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Tentar Novamente`;
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
