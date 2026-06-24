@@ -85,7 +85,7 @@ const ZZAuth = (() => {
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.location.replace(_projectRoot() + 'src/index.html');
+    window.location.replace(_projectRoot() + 'index.html');
   }
 
   // ── Fetch helper (injeta Authorization header automaticamente) ──────────────
@@ -154,13 +154,13 @@ const ZZAuth = (() => {
 
   function requireAdmin() {
     if (!isLoggedIn()) { window.location.replace(_projectRoot() + 'src/pages/login.html'); return; }
-    if (!isAdmin())    { window.location.replace(_projectRoot() + 'src/index.html'); }
+    if (!isAdmin())    { window.location.replace(_projectRoot() + 'index.html'); }
   }
 
   /* Permite entrada de admin E moderadores com qualquer permissão */
   function requireMod() {
     if (!isLoggedIn()) { window.location.replace(_projectRoot() + 'src/pages/login.html'); return; }
-    if (!isMod())      { window.location.replace(_projectRoot() + 'src/index.html'); }
+    if (!isMod())      { window.location.replace(_projectRoot() + 'index.html'); }
   }
 
   function requireGuest() {
@@ -168,7 +168,7 @@ const ZZAuth = (() => {
     window.location.replace(
       isAdmin()
         ? _projectRoot() + 'src/pages/admin-panel.html'
-        : _projectRoot() + 'src/index.html'
+        : _projectRoot() + 'index.html'
     );
   }
 
