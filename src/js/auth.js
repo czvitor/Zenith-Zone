@@ -85,7 +85,7 @@ const ZZAuth = (() => {
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.location.replace(_projectRoot() + 'index.html');
+    window.location.replace(_projectRoot() + '../../index.html');
   }
 
   // ── Fetch helper (injeta Authorization header automaticamente) ──────────────
