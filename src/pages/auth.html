@@ -59,7 +59,7 @@
 
     <!-- Topo: logo + fechar -->
     <div class="modal-header">
-      <a href="../index.html" class="modal-logo">
+      <a href="../../index.html" class="modal-logo">
         <img src="../images/logo%20curta%20ZZ%20(transparente).png" alt="ZENITH ZONE">
       </a>
       <button class="modal-close" id="modal-close" aria-label="Fechar">✕</button>
@@ -500,7 +500,7 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   loginSubmit.disabled = true; loginSubmit.textContent = 'Entrando…';
   try {
     const { user } = await ZZAuth.login(loginVal, passVal);
-    window.location.replace(user.role === 'admin' ? 'admin-panel.html' : '../index.html');
+    window.location.replace(user.role === 'admin' ? 'admin-panel.html' : '../../index.html');
   } catch (err) {
     loginAlert.textContent = err.error || 'Erro ao fazer login. Tente novamente.';
     loginAlert.hidden = false;
@@ -559,7 +559,7 @@ document.getElementById('signup-form').addEventListener('submit', async e => {
     signupAlert.textContent = 'Conta criada! Redirecionando…';
     signupAlert.className   = 'auth-alert success';
     signupAlert.hidden = false;
-    setTimeout(() => window.location.replace('../index.html'), 1500);
+    setTimeout(() => window.location.replace('../../index.html'), 1500);
   } catch (err) {
     if (err.errors) {
       err.errors.forEach(e => { const f = e.path || e.param; if (f) sErr(f, e.msg); });

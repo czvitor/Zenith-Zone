@@ -99,7 +99,7 @@
 
   <div class="checkout-wrap">
     <div class="checkout-logo">
-      <a href="../index.html">
+      <a href="../../index.html">
         <img src="../images/logo%20longa%20ZZ%20(transparente).png" alt="ZENITH ZONE">
       </a>
     </div>
@@ -140,7 +140,7 @@
           <div class="empty-state">
             <h2>Nenhum item</h2>
             <p>Selecione um produto e tamanho antes de prosseguir para o checkout.</p>
-            <a href="../index.html" class="btn-back">← Voltar à loja</a>
+            <a href="../../index.html" class="btn-back">← Voltar à loja</a>
           </div>
         </div>`;
       return;
@@ -148,7 +148,7 @@
 
     let item;
     try { item = JSON.parse(raw); } catch {
-      card.innerHTML = `<div class="checkout-body"><div class="empty-state"><h2>Erro</h2><p>Dados do pedido inválidos.</p><a href="../index.html" class="btn-back">← Voltar</a></div></div>`;
+      card.innerHTML = `<div class="checkout-body"><div class="empty-state"><h2>Erro</h2><p>Dados do pedido inválidos.</p><a href="../../index.html" class="btn-back">← Voltar</a></div></div>`;
       return;
     }
 
