@@ -37,76 +37,66 @@ applyAdminConfig();
 let _sakuraRAF    = null;
 let _sakuraCanvas = null;
 let _sakuraCtx    = null;
-const _PETALS     = [];
-const PETAL_COUNT = 48;
+const _PETALS = [];
+const _PINKS  = ['#FF1B6B','#FF4D8D','#FF69A0','#E8206E','#C91560'];
 
-const SAKURA_COLORS = [
-  'rgba(220,20,60,VAL)',
-  'rgba(255,27,107,VAL)',
-  'rgba(245,200,210,VAL)',
-  'rgba(200,20,60,VAL)',
-];
-
-function _petalColor(alpha) {
-  const c = SAKURA_COLORS[Math.floor(Math.random() * SAKURA_COLORS.length)];
-  return c.replace('VAL', alpha.toFixed(2));
-}
-
-function _createPetal(w, h, fromTop = false) {
+function _createPetal(w, h, scatter = true) {
   return {
-    x:       Math.random() * w * 1.3,
-    y:       fromTop ? -10 - Math.random() * 80 : Math.random() * h,
-    size:    2.5 + Math.random() * 5.5,
-    speedY:  0.6 + Math.random() * 1.2,    /* queda vertical */
-    speedX: -(0.8 + Math.random() * 1.8),  /* vento forte para a esquerda */
-    rot:     Math.random() * Math.PI * 2,
-    rotSpd:  (Math.random() - 0.5) * 0.06,
+    x:       scatter ? Math.random() * w              : (w + 15 + Math.random() * 120),
+    y:       scatter ? Math.random() * h              : Math.random() * h * 1.1,
+    size:    5 + Math.random() * 9,
+    speedX:  -(1.6 + Math.random() * 1.8),
+    speedY:  0.35 + Math.random() * 0.75,
     sway:    Math.random() * Math.PI * 2,
-    swaySpd: 0.01 + Math.random() * 0.025,
-    swayAmp: 0.3 + Math.random() * 0.5,
-    scaleX:  1,                             /* giro 3D (scaleX varia) */
-    scaleSpd:(Math.random() > 0.5 ? 1 : -1) * (0.008 + Math.random() * 0.012),
-    alpha:   0.3 + Math.random() * 0.65,
-    color:   _petalColor(1),
-    layer:   0.4 + Math.random() * 0.6,    /* parallax: 0.4=fundo, 1=frente */
+    swaySpd: 0.025 + Math.random() * 0.04,
+    swayAmt: 0.4 + Math.random() * 0.7,
+    rot:     Math.random() * Math.PI * 2,
+    rotV:    (Math.random() - 0.5) * 0.04,
+    alpha:   0.35 + Math.random() * 0.45,
+    color:   _PINKS[Math.floor(Math.random() * _PINKS.length)],
   };
 }
 
 function _initSakura() {
-  _sakuraCanvas = document.getElementById('sakura-canvas');
-  if (!_sakuraCanvas) return;
-
-  _sakuraCtx = _sakuraCanvas.getContext('2d');
-  const { offsetWidth: w, offsetHeight: h } = _sakuraCanvas.parentElement;
-  _sakuraCanvas.width  = w;
-  _sakuraCanvas.height = h;
+  let canvas = document.getElementById('sakura-canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'sakura-canvas';
+    document.body.appendChild(canvas);
+  }
+  _sakuraCanvas = canvas;
+  _sakuraCtx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
 
   _PETALS.length = 0;
-  for (let i = 0; i < PETAL_COUNT; i++) {
-    _PETALS.push(_createPetal(w, h, false));
+  const count = Math.min(55, Math.floor(window.innerWidth / 22));
+  for (let i = 0; i < count; i++) {
+    _PETALS.push(_createPetal(canvas.width, canvas.height, true));
   }
 
-  requestAnimationFrame(() => _sakuraCanvas.classList.add('visible'));
+  requestAnimationFrame(() => canvas.classList.add('visible'));
 }
 
 function _drawPetal(ctx, p) {
   ctx.save();
-  ctx.globalAlpha = p.alpha * p.layer;
+  ctx.globalAlpha = p.alpha;
   ctx.translate(p.x, p.y);
-  ctx.rotate(p.rot);
-  ctx.scale(p.scaleX, 1);
+  ctx.rotate(p.rot + 0.4);
 
-  /* Forma pétala: elipse com extremidade pontiaguda */
+  const s = p.size, h = s * 2.9;
   ctx.beginPath();
-  ctx.ellipse(0, 0, p.size * 0.55, p.size, 0, 0, Math.PI * 2);
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo( s*0.6, -h*0.14,  s*0.55, h*0.86, 0, h);
+  ctx.bezierCurveTo(-s*0.55, h*0.86, -s*0.6, -h*0.14, 0, 0);
   ctx.fillStyle = p.color;
   ctx.fill();
 
-  /* Brilho central */
-  ctx.globalAlpha = p.alpha * p.layer * 0.4;
+  /* Shimmer */
+  ctx.globalAlpha = p.alpha * 0.28;
   ctx.beginPath();
-  ctx.ellipse(0, -p.size * 0.2, p.size * 0.18, p.size * 0.45, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,200,220,0.7)';
+  ctx.ellipse(-s*0.1, h*0.28, s*0.16, h*0.4, -0.25, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
   ctx.fill();
 
   ctx.restore();
@@ -121,17 +111,13 @@ function _sakuraLoop() {
   _sakuraCtx.clearRect(0, 0, w, h);
 
   for (const p of _PETALS) {
-    /* Física */
-    p.sway  += p.swaySpd;
-    p.x     += p.speedX * p.layer + Math.sin(p.sway) * p.swayAmp;
-    p.y     += p.speedY * p.layer;
-    p.rot   += p.rotSpd;
-    p.scaleX = Math.sin(Date.now() * p.scaleSpd * 0.5 + p.sway);
+    p.sway += p.swaySpd;
+    p.x    += p.speedX;
+    p.y    += p.speedY + Math.sin(p.sway) * p.swayAmt;
+    p.rot  += p.rotV;
 
-    /* Reciclagem: sai pela esquerda ou pelo fundo */
-    if (p.x < -20 || p.y > h + 20) {
-      Object.assign(p, _createPetal(w, h, true));
-      p.x = p.x > w * 0.5 ? w + Math.random() * 60 : Math.random() * w * 1.2;
+    if (p.x < -30 || p.y > h + 30) {
+      Object.assign(p, _createPetal(w, h, false));
     }
 
     _drawPetal(_sakuraCtx, p);
@@ -148,16 +134,21 @@ function _startSakura() {
 
 function _stopSakura() {
   if (_sakuraRAF) { cancelAnimationFrame(_sakuraRAF); _sakuraRAF = null; }
-  if (_sakuraCanvas) { _sakuraCanvas.classList.remove('visible'); }
+  if (_sakuraCanvas) {
+    _sakuraCanvas.classList.remove('visible');
+    const c = _sakuraCanvas;
+    setTimeout(() => { if (c.parentNode) c.parentNode.removeChild(c); }, 1100);
+    _sakuraCanvas = null;
+    _sakuraCtx    = null;
+  }
   _PETALS.length = 0;
 }
 
 /* Redimensiona canvas se a janela mudar */
 window.addEventListener('resize', () => {
   if (!_sakuraCanvas || !_sakuraCanvas.classList.contains('visible')) return;
-  const p = _sakuraCanvas.parentElement;
-  _sakuraCanvas.width  = p.offsetWidth;
-  _sakuraCanvas.height = p.offsetHeight;
+  _sakuraCanvas.width  = window.innerWidth;
+  _sakuraCanvas.height = window.innerHeight;
 });
 
 
@@ -329,13 +320,9 @@ async function showDropProduct(productId) {
     /* Render principal */
     bannerWrap.innerHTML = `
       <div class="dpb-arena">
-        <!-- Pétalas sakura -->
-        <canvas id="sakura-canvas"></canvas>
-
         <!-- Visual: anel + leque + card principal -->
         <div class="dpb-visual">
           <div class="dpb-ring"></div>
-          <div class="dpb-ring-mask"></div>
           <div class="dpb-fan-wrap">${fanHTML}</div>
           <div class="dpb-main-card" id="dpb-main-card">
             ${mainImg

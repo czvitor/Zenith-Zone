@@ -62,9 +62,9 @@
       100%{ opacity:0; filter:blur(18px) brightness(3); transform:scale(0.85) translateY(-20px); }
     }
 
-    /* Canvas das pétalas sakura — cobre o hero, atrás do conteúdo */
+    /* Canvas das pétalas sakura — cobre toda a tela, atrás do conteúdo */
     #sakura-canvas {
-      position:absolute; inset:0; pointer-events:none; z-index:1;
+      position:fixed; inset:0; pointer-events:none; z-index:-1;
       opacity:0; transition:opacity 1s ease;
     }
     #sakura-canvas.visible { opacity:1; }
@@ -128,30 +128,37 @@
     /* ── Lado esquerdo: imagem principal + leque ── */
     .dpb-visual { position:relative; flex-shrink:0; z-index:2; overflow:visible; }
 
-    /* Anel giratório neon atrás da imagem */
+    /* Shuriken giratória neon atrás da imagem */
     .dpb-ring {
-      position:absolute; inset:-14px; border-radius:12px; pointer-events:none;
-      background: conic-gradient(
-        from 0deg,
-        rgba(220,20,60,0), rgba(220,20,60,0.9), rgba(255,27,107,0.6),
-        rgba(220,20,60,0.9), rgba(220,20,60,0)
+      position:absolute; pointer-events:none; z-index:1;
+      width: clamp(270px,34vw,400px);
+      height: clamp(270px,34vw,400px);
+      top:50%; left:50%;
+      background: linear-gradient(
+        135deg,
+        rgba(255,60,110,0.95) 0%,
+        rgba(220,20,60,0.9)  45%,
+        rgba(180,10,50,0.95) 75%,
+        rgba(255,60,110,0.8) 100%
       );
-      animation: dpbRingSpin 3s linear infinite;
-      filter: blur(2px);
+      clip-path: polygon(
+        50% 0%, 60% 37%, 100% 50%, 60% 63%,
+        50% 100%, 40% 63%, 0% 50%, 40% 37%
+      );
+      animation: dpbRingSpin 4s linear infinite;
+      filter: drop-shadow(0 0 18px rgba(220,20,60,0.85));
     }
-    @keyframes dpbRingSpin { to { transform:rotate(360deg); } }
-
-    /* Máscara sobre o anel para não vazar para fora */
-    .dpb-ring-mask {
-      position:absolute; inset:0; border-radius:10px;
-      background: #07091a; /* esconde o anel dentro do card */
+    @keyframes dpbRingSpin {
+      from { transform: translate(-50%,-50%) rotate(0deg);   }
+      to   { transform: translate(-50%,-50%) rotate(360deg); }
     }
+    .dpb-ring-mask { display:none; }
 
     /* Imagem principal */
     .dpb-main-card {
       position:relative; z-index:3;
-      width: clamp(180px,22vw,260px);
-      height: clamp(225px,28vw,325px);
+      width: clamp(220px,27vw,310px);
+      height: clamp(275px,33.5vw,388px);
       border-radius:10px; overflow:hidden;
       border:2px solid rgba(220,20,60,0.5);
       box-shadow:
@@ -171,24 +178,23 @@
     /* ── Leque de fotos — área expandida para nada ser cortado ── */
     .dpb-fan-wrap {
       position:absolute;
-      /* Extende 220px além de cada borda do card principal */
-      inset: -220px;
+      /* Extende 300px além de cada borda do card principal */
+      inset: -300px;
       z-index:2; pointer-events:none;
       perspective:600px; transform-style:preserve-3d;
     }
     .dpb-fan-card {
       position:absolute;
-      width: clamp(78px,10vw,108px);
-      height: clamp(98px,12.5vw,134px);
+      width: clamp(110px,14vw,155px);
+      height: clamp(138px,17.5vw,194px);
       border-radius:8px; overflow:hidden;
-      border:2px solid rgba(220,20,60,0.65);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.75), 0 0 14px rgba(220,20,60,0.28);
+      border:2px solid rgba(220,20,60,0.75);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.75), 0 0 18px rgba(220,20,60,0.4);
       background:#0c1030;
       cursor:pointer; pointer-events:auto;
       top:50%; left:50%;
-      /* fechado: empilhado atrás, com profundidade 3D */
-      transform: translate(-50%,-50%) rotateY(0deg) scale(0.55);
-      opacity:0;
+      transform: translate(-50%,-50%) rotateY(0deg) scale(0.6);
+      opacity:0.22;
       transition:
         transform  0.46s cubic-bezier(0.175,0.885,0.32,1.275),
         opacity    0.28s ease,
@@ -210,16 +216,16 @@
     .dpb-visual:hover .dpb-fan-card { opacity:1; }
 
     .dpb-visual:hover .dpb-fan-card:nth-child(1) {
-      transform: translate(-180%,-95%) rotate(-24deg) rotateY(-12deg) scale(1);
+      transform: translate(-220%,-105%) rotate(-26deg) rotateY(-14deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(2) {
-      transform: translate(-200%, 15%) rotate(-12deg) rotateY(-8deg) scale(1);
+      transform: translate(-240%, 18%) rotate(-14deg) rotateY(-10deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(3) {
-      transform: translate(80%,-100%) rotate(20deg) rotateY(12deg) scale(1);
+      transform: translate(110%,-108%) rotate(24deg) rotateY(14deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(4) {
-      transform: translate(90%,  12%) rotate(12deg) rotateY(8deg) scale(1);
+      transform: translate(120%, 16%) rotate(14deg) rotateY(10deg) scale(1.05);
     }
 
     .dpb-fan-card:hover {
@@ -264,7 +270,7 @@
     /* Título com glitch */
     .dpb-title {
       font-family:'Barlow Condensed',sans-serif; font-weight:900;
-      font-size:clamp(2.2rem,4.5vw,4rem); text-transform:uppercase;
+      font-size:clamp(2.8rem,5.5vw,5rem); text-transform:uppercase;
       letter-spacing:-0.01em; color:#F5F0E6; line-height:0.9; margin:0;
       position:relative;
       animation: dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.2s both;
@@ -298,14 +304,14 @@
     }
 
     .dpb-jp {
-      font-family:'Zen Kaku Gothic New',sans-serif; font-size:0.88rem;
+      font-family:'Zen Kaku Gothic New',sans-serif; font-size:1.05rem;
       letter-spacing:0.4em; color:#ff1b6b;
       animation:dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both;
     }
 
     .dpb-price {
       font-family:'Barlow Condensed',sans-serif; font-weight:900;
-      font-size:clamp(2rem,3.5vw,3rem); color:#F5F0E6; letter-spacing:-0.01em;
+      font-size:clamp(2.5rem,4.2vw,3.6rem); color:#F5F0E6; letter-spacing:-0.01em;
       text-shadow:0 0 24px rgba(245,240,230,0.2);
       animation:dpbTitleIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.45s both;
     }
@@ -336,10 +342,10 @@
 
     @media (max-width:700px) {
       .dpb-arena { flex-direction:column; gap:1.8rem; }
-      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-105%,-80%) rotate(-18deg) scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-120%, 20%) rotate(-8deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate( 5%,-100%) rotate(15deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate( 10%, 25%) rotate(8deg)   scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-130%,-90%) rotate(-20deg) scale(.95);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-150%, 22%) rotate(-10deg) scale(.95);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate( 22%,-108%) rotate(18deg) scale(.95);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate( 28%, 28%) rotate(10deg)  scale(.95);}
     }
   </style>
 </head>
