@@ -1497,6 +1497,48 @@
   <script src="src/js/navbar.js"></script>
   <script src="src/js/auth-modal.js"></script>
 
+  <!-- Newsletter: inscrição na waitlist do próximo drop -->
+  <script>
+  ;(function () {
+    const form  = document.querySelector('.nl-form');
+    const input = form?.querySelector('.nl-input');
+    const btn   = form?.querySelector('.nl-btn');
+    if (!form || !input || !btn) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = input.value.trim();
+      if (!email) return;
+
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
+
+      try {
+        const API = window.ZZ_API_BASE || (window.location.origin + '/api');
+        const res = await fetch(`${API}/newsletter`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email, source: 'home' }),
+        });
+        const data = await res.json();
+        btn.textContent = data.message || (res.ok ? 'Inscrito!' : 'Erro. Tente novamente.');
+        if (res.ok) input.value = '';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }, 4000);
+      } catch {
+        btn.textContent = 'Erro de conexão.';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = origText;
+        }, 3000);
+      }
+    });
+  })();
+  </script>
+
   <!-- Coleção dinâmica: substitui os cards estáticos pelos produtos publicados na API -->
   <script>
   ;(function () {

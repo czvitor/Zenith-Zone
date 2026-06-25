@@ -1,0 +1,25 @@
+Pronto. Agora digita rs no terminal do nodemon para recarregar com as mudanças. Aqui está o resumo completo do que foi feito:
+
+Backend — o que mudou:
+
+Arquivo	O que fez
+models/SiteSettings.js	Novo: singleton que guarda dropTitle, dropDate, dropActive
+models/Newsletter.js	Adicionou alertsSent: { confirmation, week, day, hour }
+routes/settings.js	Novo: GET /api/settings (público) e PUT /api/settings (admin)
+routes/newsletter.js	Ao inscrever, envia e-mail de confirmação se o drop estiver ativo
+utils/dropCron.js	Novo: cron a cada 30min — verifica limiares 7d/1d/1h e envia alertas
+utils/mailer.js	Adicionou sendDropConfirmation e sendDropAlert
+server.js	Montou /api/settings e iniciou o cron no boot
+Frontend — o que mudou:
+
+index.html — formulário "Entrar na Lista" agora faz POST /api/newsletter de verdade
+produto.html — já estava correto: usa /api/waitlist com o productId
+Para ativar o drop e testar os e-mails, você precisa configurar no banco via PUT /api/settings (pode fazer pelo admin panel depois de criar a UI, ou via Postman/curl):
+
+
+{
+  "dropTitle": "Drop #04 Sakura Season",
+  "dropDate": "2026-07-15T20:00:00.000Z",
+  "dropActive": true
+}
+Os alertas de 1 semana/1 dia/1 hora dispararam automaticamente quando o relógio chegar nesses limiares. Para o SMTP funcionar, o .env precisa ter SMTP_USER, SMTP_PASS e SMTP_HOST configurados.

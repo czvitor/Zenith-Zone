@@ -16,6 +16,8 @@ const productRoutes    = require('./routes/products');
 const orderRoutes      = require('./routes/orders');
 const newsletterRoutes = require('./routes/newsletter');
 const waitlistRoutes   = require('./routes/waitlist');
+const settingsRoutes   = require('./routes/settings');
+const { startDropCron } = require('./utils/dropCron');
 
 const app = express();
 
@@ -63,6 +65,7 @@ app.use('/api/products',   productRoutes);
 app.use('/api/orders',     orderRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/waitlist',   waitlistRoutes);
+app.use('/api/settings',   settingsRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
@@ -79,6 +82,7 @@ app.use((err, req, res, _next) => {
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✔ MongoDB conectado.');
+    startDropCron();
     const port = process.env.PORT || 3001;
     app.listen(port, () => {
       console.log(`✔ API Zenith Zone rodando em http://localhost:${port}`);
