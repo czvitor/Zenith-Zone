@@ -7313,6 +7313,8 @@
             dropArea?.addEventListener('drop', e => { e.preventDefault(); dropArea.classList.remove('drag-over'); if(e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
             urlBtn?.addEventListener('click', () => addByUrl(urlInput?.value));
             urlInput?.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();addByUrl(urlInput.value);} });
+            /* Renderiza thumbs existentes ao montar o bloco */
+            renderThumbs(); updateCount();
           });
 
           cont.appendChild(block);
