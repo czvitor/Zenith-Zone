@@ -25,4 +25,7 @@
 adicionar ao menu "Configurações do Site":
 - no campo "Próximo Drop Exclusivo" adicione um campo onde eu posso escolher um dos anuncios criados para exibir ao final da contagem regressiva... esse anuncio sera exibido no lugar do logo principal da pagina main page (o maior logo que fica no topo da main page) com um botão chamativo de "Compre agora" ou "Seja Exclusivo" algo assim... ele ficará sendo exibido até alguem desativar o "Próximo Drop Exclusivo" nas configurações do site e quando desativar, volta a ser apenas o logo novamente
 
+ao desativar o drop eclusivo, faça sumir o botão "Ver proximo drop" da main page
+
 adicionar um dashboard no painel admin
+

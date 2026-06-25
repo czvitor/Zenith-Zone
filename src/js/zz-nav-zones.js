@@ -119,15 +119,16 @@
 
       var colsHtml = zoneCats.map(function(cat) {
         var catSubs = subs.filter(function(s) { return s.catId === cat.id; });
+        var catHref = catalogHref('zona=' + encodeURIComponent(zone.slug) + '&categoria=' + encodeURIComponent(cat.id));
         var links = catSubs.length
           ? catSubs.map(function(s) {
-              var href = catalogHref('zona=' + encodeURIComponent(zone.slug) + '&categoria=' + encodeURIComponent(cat.id) + '&sub=' + encodeURIComponent(s.id));
+              var href = catalogHref('zona=' + encodeURIComponent(zone.slug) + '&categoria=' + encodeURIComponent(cat.id) + '&subcategoria=' + encodeURIComponent(s.id));
               return '<li><a href="' + href + '" class="zz-mega-link">' + _esc(s.nome) + '</a></li>';
             }).join('')
-          : '<li><a href="' + catalogHref('zona=' + encodeURIComponent(zone.slug)) + '" class="zz-mega-link">Ver tudo</a></li>';
-        return '<div class="zz-mega-col"><p class="zz-mega-col-title">' + _esc(cat.nome) + '</p><ul>' + links + '</ul></div>';
+          : '<li><a href="' + catHref + '" class="zz-mega-link">Ver tudo</a></li>';
+        return '<div class="zz-mega-col"><a class="zz-mega-col-title" href="' + catHref + '">' + _esc(cat.nome) + '</a><ul>' + links + '</ul></div>';
       }).join('') ||
-        '<div class="zz-mega-col"><p class="zz-mega-col-title">' + _esc(zone.nome) + '</p>' +
+        '<div class="zz-mega-col"><a class="zz-mega-col-title" href="' + catalogHref('zona=' + encodeURIComponent(zone.slug)) + '">' + _esc(zone.nome) + '</a>' +
         '<ul><li><a href="' + catalogHref('zona=' + encodeURIComponent(zone.slug)) + '" class="zz-mega-link">Ver tudo</a></li></ul></div>';
 
       var panel = document.createElement('div');
@@ -145,18 +146,16 @@
     });
   }
 
-  /* Executa imediatamente (script carregado no fim do body — DOM já parseado) */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inject);
-  } else {
-    inject();
-  }
+  /* Executa sempre imediatamente — script no fim do body, DOM já parseado */
+  inject();
+  document.dispatchEvent(new CustomEvent('zz:nav-zones-injected'));
 
-  /* ── Sincronização cross-tab em tempo real ──
-     localStorage.setItem() dispara 'storage' em todas as abas menos a que salvou.
-     Quando o admin-panel salva zonas, as outras abas abertas atualizam a navbar. */
+  /* ── Sincronização cross-tab em tempo real ── */
   window.addEventListener('storage', function(e) {
-    if (e.key === CATALOG_KEY) inject();
+    if (e.key === CATALOG_KEY) {
+      inject();
+      document.dispatchEvent(new CustomEvent('zz:nav-zones-injected'));
+    }
   });
 
 })();

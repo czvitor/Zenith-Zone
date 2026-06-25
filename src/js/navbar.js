@@ -14,9 +14,6 @@
   /* ══════════════════════════════════════════════════════════
      1. MEGA MENU
   ══════════════════════════════════════════════════════════ */
-  const megaTriggers = header.querySelectorAll('.zz-nav-trigger[data-mega]');
-  const megaPanels   = header.querySelectorAll('.zz-mega-panel[data-panel]');
-
   let activeMegaId  = null;
   let megaCloseTimer = null;
   const MEGA_CLOSE_DELAY = 160;
@@ -50,11 +47,11 @@
   }
 
   function _megaCloseAll() {
-    megaPanels.forEach(p => {
+    header.querySelectorAll('.zz-mega-panel[data-panel]').forEach(p => {
       p.classList.remove('is-active');
       p.setAttribute('aria-hidden', 'true');
     });
-    megaTriggers.forEach(t => {
+    header.querySelectorAll('.zz-nav-trigger[data-mega]').forEach(t => {
       t.setAttribute('aria-expanded', 'false');
       t.closest('.zz-nav-item')?.classList.remove('is-active');
     });
@@ -72,21 +69,35 @@
     trigger?.closest('.zz-nav-item')?.classList.remove('is-active');
   }
 
-  /* Eventos: hover + click */
-  megaTriggers.forEach(trigger => {
-    const li = trigger.closest('.zz-nav-item');
-    li.addEventListener('mouseenter', () => megaOpen(trigger.dataset.mega));
-    li.addEventListener('mouseleave', () => megaClose(false));
-    trigger.addEventListener('click', e => {
-      e.stopPropagation();
-      activeMegaId === trigger.dataset.mega ? megaClose(true) : megaOpen(trigger.dataset.mega);
-    });
-  });
+  /* Eventos: hover + click — delegado para suportar zonas injetadas dinamicamente */
+  function _catalogUrl(params) {
+    const p    = location.pathname;
+    const base = p.includes('/src/pages/') ? 'catalogo.html' : 'src/pages/catalogo.html';
+    return base + (params ? '?' + params : '');
+  }
 
-  megaPanels.forEach(panel => {
-    panel.addEventListener('mouseenter', () => clearTimeout(megaCloseTimer));
-    panel.addEventListener('mouseleave', () => megaClose(false));
-  });
+  function _bindMegaEvents() {
+    header.querySelectorAll('.zz-nav-trigger[data-mega]').forEach(trigger => {
+      const li = trigger.closest('.zz-nav-item');
+      if (li._megaBound) return;
+      li._megaBound = true;
+      li.addEventListener('mouseenter', () => megaOpen(trigger.dataset.mega));
+      li.addEventListener('mouseleave', () => megaClose(false));
+      trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        window.location.href = _catalogUrl('zona=' + encodeURIComponent(trigger.dataset.mega));
+      });
+    });
+    header.querySelectorAll('.zz-mega-panel[data-panel]').forEach(panel => {
+      if (panel._megaBound) return;
+      panel._megaBound = true;
+      panel.addEventListener('mouseenter', () => clearTimeout(megaCloseTimer));
+      panel.addEventListener('mouseleave', () => megaClose(false));
+    });
+  }
+
+  _bindMegaEvents();
+  document.addEventListener('zz:nav-zones-injected', _bindMegaEvents);
 
   /* ══════════════════════════════════════════════════════════
      2. PESQUISA INTELIGENTE
