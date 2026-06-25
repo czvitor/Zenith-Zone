@@ -4424,7 +4424,11 @@
       modList.innerHTML = `<tr class="empty"><td colspan="6">Erro ao carregar. Verifique se o servidor está rodando.</td></tr>`;
     }
   }
-  loadMods();
+  /* loadMods() é lazy — só dispara quando a view "moderadores" é aberta */
+  let _modsLoaded = false;
+  document.querySelectorAll('[data-view="moderadores"]').forEach(el =>
+    el.addEventListener('click', () => { if (!_modsLoaded) { _modsLoaded = true; loadMods(); } })
+  );
 
   modFilter.addEventListener('input', () => {
     const q = modFilter.value.toLowerCase();
@@ -4612,9 +4616,11 @@
   dropDateInp.value  = CFG.get('zz_drop_date',  '') || '';
   dropTitleInp.value = CFG.get('zz_drop_title', '') || '';
 
-  /* Popula select de produtos e restaura seleção salva */
-  (function loadDropProducts() {
-    if (!dropProductSel) return;
+  /* Popula select de produtos — lazy, só ao abrir a view "site" */
+  let _dropProductsLoaded = false;
+  function loadDropProducts() {
+    if (!dropProductSel || _dropProductsLoaded) return;
+    _dropProductsLoaded = true;
     const _api = window.ZZ_API_BASE || 'http://localhost:3001/api';
     const _tok = (typeof ZZAuth !== 'undefined') ? ZZAuth.getToken() : '';
     fetch(`${_api}/products?status=publicado,pausado,ativo&limit=300`, {
@@ -4632,7 +4638,10 @@
         if (saved) dropProductSel.value = saved;
       })
       .catch(err => console.warn('[ZZ Drop] produtos:', err));
-  })();
+  }
+  document.querySelectorAll('[data-view="site"]').forEach(el =>
+    el.addEventListener('click', loadDropProducts)
+  );
 
   dropToggle.addEventListener('change', () => {
     CFG.set('zz_drop_active', dropToggle.checked);
