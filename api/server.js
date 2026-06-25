@@ -19,6 +19,9 @@ const waitlistRoutes   = require('./routes/waitlist');
 
 const app = express();
 
+// Necessário para o express-rate-limit funcionar corretamente atrás do proxy do Render
+app.set('trust proxy', 1);
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
