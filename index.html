@@ -222,18 +222,19 @@
     /* Abertura no hover — leque em 4 direções com rotação 3D */
     .dpb-visual:hover .dpb-fan-card { opacity:1; }
 
-    /* Leque abre para a esquerda — cartas próximas, arco vertical */
+    /* Leque abre para a esquerda — arco vertical com gap ≥ 250px entre centros
+       (necessário pois cards rotacionados têm altura visual ~240px no máximo) */
     .dpb-visual:hover .dpb-fan-card:nth-child(1) {
-      transform: translate(-170%, -90%) rotate(-30deg) rotateY(-14deg) scale(1.02);
+      transform: translate(-168%, -200%) rotate(-22deg) rotateY(-12deg) scale(1.02);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(2) {
-      transform: translate(-195%, -5%) rotate(-8deg) rotateY(-10deg) scale(1.02);
+      transform: translate(-210%, -65%) rotate(-8deg) rotateY(-8deg) scale(1.02);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(3) {
-      transform: translate(-202%, 68%) rotate(12deg) rotateY(-6deg) scale(1.02);
+      transform: translate(-204%, 65%) rotate(7deg) rotateY(-5deg) scale(1.02);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(4) {
-      transform: translate(-148%, 180%) rotate(36deg) rotateY(-3deg) scale(1.02);
+      transform: translate(-162%, 194%) rotate(24deg) rotateY(-2deg) scale(1.02);
     }
 
     .dpb-fan-card:hover {
@@ -350,10 +351,10 @@
 
     @media (max-width:700px) {
       .dpb-arena { flex-direction:column; gap:1.8rem; }
-      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-115%,-70%) rotate(-26deg) scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-135%, -5%) rotate(-8deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate(-132%, 56%) rotate(12deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate(-96%, 163%) rotate(32deg)  scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-155%,-185%) rotate(-20deg) scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-185%, -60%) rotate(-7deg)  scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate(-178%,  60%) rotate( 6deg)  scale(.9);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate(-140%, 182%) rotate(22deg)  scale(.9);}
     }
   </style>
 </head>
