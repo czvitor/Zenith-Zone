@@ -192,21 +192,27 @@
     .dpb-main-img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.3s ease; }
 
     /* ══ SECONDARY PANELS — colagem digital assimétrica ═══════════════════
-       Painéis revelados por JS ao hover no card principal (stagger + flicker).
+       Fan-wrap cobre o .dpb-arena inteiro (position:absolute; inset:0).
+       z-index:2 = painéis ficam atrás do card principal (z:5) e do texto (z:5),
+       visíveis apenas nas "zonas mortas" às laterais.
 
-       Calibração rápida:
-         left / top por nth-child → coordenadas relativas ao .dpb-visual
-         left negativo  = move para a ESQUERDA do card
-         Regra de zona: left + var(--pw) ≤ -20px (não cobre o card principal)
-         --rot por nth-child → rotação individual de cada painel
+       Calibração por nth-child:
+         left  → % da largura total da arena (viewport)
+         top   → px a partir do topo da arena (inclui o padding superior)
+         --rot → rotação individual do painel
+         --pw / --ph → tamanho do painel (sobrescreve o default)
+
+       ZONAS MORTAS (1920px de referência):
+         Esquerda: 0 – ~28% (antes do card)
+         Direita:  ~73% – 100% (após a coluna de texto)
     ═══════════════════════════════════════════════════════════════════════ */
 
     .dpb-fan-wrap {
       position: absolute;
-      inset: 0;               /* mesma dimensão que .dpb-visual */
-      overflow: visible;      /* painéis transbordam para a esquerda */
+      inset: 0;               /* cobre toda a .dpb-arena */
+      overflow: visible;
       pointer-events: none;
-      z-index: 4;
+      z-index: 2;             /* atrás do card (z:5) e do texto (z:5) */
     }
 
     .dpb-holo-panel {
@@ -233,40 +239,46 @@
       will-change: transform, opacity;
     }
 
-    /* ── 10 posições assimétrias em 3 colunas + patch central ──────────────
-       Todas as coordenadas são relativas ao .dpb-visual (= borda do card principal).
-       REGRA DE ZONA: left + var(--pw) ≤ -20px (painel não cobre o card).
-       COLUNAS DE REFERÊNCIA:
-         Distante  → X ≈ -255px  (visível em viewports ≥ 1381px)
-         Média     → X ≈ -195px  (visível em viewports ≥ 1101px)
-         Próxima   → X ≈ -145px  (visível em viewports ≥  701px)
-       LINHAS DE REFERÊNCIA:
-         Topo   → top ≈   8–55px
-         Centro → top ≈ 172–242px
-         Baixo  → top ≈ 325–368px
-       STAGGER: painéis revelados na ordem nth-child 1→10 (varredura topo→baixo, distante→próximo)
+    /* ── 10 posições em colagem assimétrica — esquerda E direita ────────────
+       Coordenadas relativas ao .dpb-arena (cobre todo o viewport).
+       left em % da arena = % do viewport.
+       top em px a partir do topo da arena (com padding ~56px).
+
+       ZONA ESQUERDA  (0% – ~27%): antes do card principal
+       ZONA DIREITA   (~73% – 100%): após a coluna de texto
+
+       Referência de calibração (viewport 1920px):
+         Card principal ≈ 28%–44% da largura
+         Texto (info)   ≈ 49%–74% da largura
+         Dead zone esq  ≈  0%–27%  (516px disponíveis)
+         Dead zone dir  ≈ 74%–100% (499px disponíveis)
     ──────────────────────────────────────────────────────────────────────── */
 
-    /* P1 — Coluna DISTANTE, Topo */
-    .dpb-holo-panel:nth-child(1)  { --rot: -2.5deg; left: -258px; top:  28px; }
-    /* P2 — Coluna MÉDIA, Topo */
-    .dpb-holo-panel:nth-child(2)  { --rot:  2.5deg; left: -200px; top:  58px; }
-    /* P3 — Coluna PRÓXIMA, Topo */
-    .dpb-holo-panel:nth-child(3)  { --rot: -3.0deg; left: -145px; top:   8px; }
-    /* P4 — Coluna DISTANTE, Centro */
-    .dpb-holo-panel:nth-child(4)  { --rot:  1.5deg; left: -256px; top: 205px; }
-    /* P5 — Coluna MÉDIA, Centro */
-    .dpb-holo-panel:nth-child(5)  { --rot: -1.5deg; left: -195px; top: 242px; }
-    /* P6 — Coluna PRÓXIMA, Centro */
-    .dpb-holo-panel:nth-child(6)  { --rot:  4.0deg; left: -148px; top: 172px; }
-    /* P7 — Coluna DISTANTE, Baixo */
-    .dpb-holo-panel:nth-child(7)  { --rot: -3.0deg; left: -253px; top: 355px; }
-    /* P8 — Coluna MÉDIA, Baixo */
-    .dpb-holo-panel:nth-child(8)  { --rot:  3.0deg; left: -202px; top: 368px; }
-    /* P9 — Coluna PRÓXIMA, Baixo */
-    .dpb-holo-panel:nth-child(9)  { --rot: -2.5deg; left: -142px; top: 325px; }
-    /* P10 — PATCH: posição central entre colunas, quadrado */
-    .dpb-holo-panel:nth-child(10) { --rot:  2.0deg; left: -224px; top: 132px; --pw: 108px; --ph: 108px; }
+    /* ── LADO ESQUERDO ── */
+
+    /* P1 — esq. distante, topo */
+    .dpb-holo-panel:nth-child(1)  { --rot: -2.5deg; left:  2%;  top: 110px; }
+    /* P2 — esq. média, topo (mais à direita, mais alto) */
+    .dpb-holo-panel:nth-child(2)  { --rot:  3.0deg; left: 13%;  top:  95px; }
+    /* P3 — esq. distante, baixo */
+    .dpb-holo-panel:nth-child(3)  { --rot: -1.5deg; left:  2%;  top: 350px; }
+    /* P4 — esq. média, baixo */
+    .dpb-holo-panel:nth-child(4)  { --rot:  4.0deg; left: 18%;  top: 338px; }
+    /* P5 — esq. próxima, centro (mais perto do card) */
+    .dpb-holo-panel:nth-child(5)  { --rot: -3.0deg; left: 10%;  top: 460px; }
+
+    /* ── LADO DIREITO ── */
+
+    /* P6 — dir. próxima, topo (logo após o texto) */
+    .dpb-holo-panel:nth-child(6)  { --rot:  2.0deg; left: 74%;  top:  80px; }
+    /* P7 — dir. distante, topo-médio */
+    .dpb-holo-panel:nth-child(7)  { --rot: -1.5deg; left: 82%;  top: 195px; }
+    /* P8 — dir. próxima, baixo */
+    .dpb-holo-panel:nth-child(8)  { --rot:  3.5deg; left: 68%;  top: 418px; }
+    /* P9 — dir. distante, baixo */
+    .dpb-holo-panel:nth-child(9)  { --rot: -2.5deg; left: 75%;  top: 408px; }
+    /* P10 — dir. extrema, topo — patch (quadrado) */
+    .dpb-holo-panel:nth-child(10) { --rot:  2.0deg; left: 87%;  top: 108px; --pw: 108px; --ph: 108px; }
 
     /* ── Estado ATIVO: revelado por JS com stagger delay ── */
     .dpb-holo-panel.is-active {
@@ -456,21 +468,20 @@
       .dpb-arena { flex-direction:column; gap:1.8rem; }
       .dpb-holo-panel { display: none; }
     }
-    /* Tablet / desktop pequeno: só coluna PRÓXIMA (P3, P6, P9) */
-    @media (min-width:701px) and (max-width:1100px) {
-      .dpb-holo-panel:nth-child(1), .dpb-holo-panel:nth-child(2),
-      .dpb-holo-panel:nth-child(4), .dpb-holo-panel:nth-child(5),
-      .dpb-holo-panel:nth-child(7), .dpb-holo-panel:nth-child(8),
-      .dpb-holo-panel:nth-child(10) { display: none; }
-      .dpb-holo-panel:nth-child(3) { left: -128px; top:   8px; }
-      .dpb-holo-panel:nth-child(6) { left: -128px; top: 172px; }
-      .dpb-holo-panel:nth-child(9) { left: -128px; top: 325px; }
-    }
-    /* Desktop médio: coluna PRÓXIMA + MÉDIA (P2,P3, P5,P6, P8,P9 + P10) */
-    @media (min-width:1101px) and (max-width:1380px) {
-      .dpb-holo-panel:nth-child(1),
-      .dpb-holo-panel:nth-child(4),
-      .dpb-holo-panel:nth-child(7) { display: none; }
+    /* Desktop pequeno: ocultar painéis extremos (distantes esq. e dir. direita) */
+    @media (min-width:701px) and (max-width:1200px) {
+      .dpb-holo-panel:nth-child(1),  /* esq. distante topo  */
+      .dpb-holo-panel:nth-child(3),  /* esq. distante baixo */
+      .dpb-holo-panel:nth-child(5),  /* esq. próxima centro */
+      .dpb-holo-panel:nth-child(7),  /* dir. distante       */
+      .dpb-holo-panel:nth-child(9),  /* dir. distante baixo */
+      .dpb-holo-panel:nth-child(10)  /* patch extremo       */
+        { display: none; }
+      /* Painéis restantes com ajuste de posição para menor tela */
+      .dpb-holo-panel:nth-child(2) { left: 5%;  top:  90px; }
+      .dpb-holo-panel:nth-child(4) { left: 10%; top: 320px; }
+      .dpb-holo-panel:nth-child(6) { left: 72%; top:  80px; }
+      .dpb-holo-panel:nth-child(8) { left: 70%; top: 390px; }
     }
   </style>
 </head>

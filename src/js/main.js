@@ -373,13 +373,15 @@ async function showDropProduct(productId) {
     /* Render principal */
     bannerWrap.innerHTML = `
       <div class="dpb-arena">
-        <!-- Pétalas sakura — posicionadas pelo JS para cobrir o viewport -->
+        <!-- Pétalas sakura -->
         <canvas id="sakura-canvas"></canvas>
 
-        <!-- Visual: anel + leque + card principal -->
+        <!-- Painéis holográficos — cobre a arena inteira (posicionamento absoluto) -->
+        <div class="dpb-fan-wrap" aria-hidden="true">${fanHTML}</div>
+
+        <!-- Visual: anel + card principal -->
         <div class="dpb-visual">
           <div class="dpb-ring"></div>
-          <div class="dpb-fan-wrap">${fanHTML}</div>
           <div class="dpb-main-card" id="dpb-main-card">
             ${mainImg
               ? `<img class="dpb-main-img" id="dpb-main-img"
@@ -411,27 +413,39 @@ async function showDropProduct(productId) {
     /* Inicia pétalas após render */
     _startSakura();
 
-    /* Hover stagger: revela painéis sequencialmente ao passar no card principal */
+    /* Hover stagger: revela painéis sequencialmente ao passar no card principal.
+       BUG FIX: showTimers guarda todos os setTimeout pendentes — ao sair do mouse,
+       todos são cancelados ANTES do hide timer, evitando painéis "fantasmas" que
+       ficavam na tela porque o timeout disparava depois do hide. */
     (function _bindPanelHover() {
       const visual = bannerWrap.querySelector('.dpb-visual');
       const panels = [...bannerWrap.querySelectorAll('.dpb-holo-panel')];
       if (!visual || !panels.length) return;
+
       let hideTimer;
+      let showTimers = [];
 
       function showPanels() {
         clearTimeout(hideTimer);
-        if (panels[0].classList.contains('is-active')) return; // já visíveis
+        showTimers.forEach(t => clearTimeout(t));
+        showTimers = [];
         panels.forEach((p, i) => {
-          setTimeout(() => {
-            p.classList.add('is-active', 'is-flickering');
-            setTimeout(() => p.classList.remove('is-flickering'), 450);
+          const t = setTimeout(() => {
+            if (!p.classList.contains('is-active')) {
+              p.classList.add('is-active', 'is-flickering');
+              setTimeout(() => p.classList.remove('is-flickering'), 450);
+            }
           }, i * 70);
+          showTimers.push(t);
         });
       }
+
       function hidePanels() {
+        showTimers.forEach(t => clearTimeout(t)); // cancela stagger pendente
+        showTimers = [];
         hideTimer = setTimeout(() => {
           panels.forEach(p => p.classList.remove('is-active', 'is-flickering'));
-        }, 280); // grace period p/ mover mouse até o painel sem sumir
+        }, 280);
       }
 
       visual.addEventListener('mouseenter', showPanels);
