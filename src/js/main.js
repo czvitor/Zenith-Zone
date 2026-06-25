@@ -327,30 +327,46 @@ async function showDropProduct(productId) {
     const p    = data.product || data;
 
     /* Fotos por categoria */
-    const mainImg   = p.fotos?.frente?.[0] || p.fotos?.costas?.[0]
-                   || p.fotos?.detalhe?.[0] || '';
+    const mainImg = p.fotos?.frente?.[0] || p.fotos?.costas?.[0]
+                 || p.fotos?.detalhe?.[0] || '';
+
+    /* 10 slots de painéis secundários — stagger nth-child(1→10):
+       P1-P3 (topo), P4-P6 (centro), P7-P9 (baixo), P10 (patch especial)
+       A filtragem remove slots vazios ou duplicados do mainImg. */
     const allPhotos = [
-      { src: p.fotos?.frente?.[0]  || '', label: 'Frente'  },
-      { src: p.fotos?.costas?.[0]  || '', label: 'Costas'  },
-      { src: p.fotos?.detalhe?.[0] || '', label: 'Detalhe' },
-      { src: p.fotos?.patch?.[0]   || '', label: 'Patch'   },
-    ].filter(f => f.src && f.src !== mainImg).slice(0, 4);
+      /* Frente 2 e 3 (frente[0] já é o card principal) */
+      { src: p.fotos?.frente?.[1]  || '', label: 'Frente 2',  group: 'FR' },
+      { src: p.fotos?.frente?.[2]  || '', label: 'Frente 3',  group: 'FR' },
+      /* Costas — até 3 ângulos */
+      { src: p.fotos?.costas?.[0]  || '', label: 'Costas',    group: 'CO' },
+      { src: p.fotos?.costas?.[1]  || '', label: 'Costas 2',  group: 'CO' },
+      { src: p.fotos?.costas?.[2]  || '', label: 'Costas 3',  group: 'CO' },
+      /* Detalhe — até 3 closes */
+      { src: p.fotos?.detalhe?.[0] || '', label: 'Detalhe',   group: 'DT' },
+      { src: p.fotos?.detalhe?.[1] || '', label: 'Detalhe 2', group: 'DT' },
+      { src: p.fotos?.detalhe?.[2] || '', label: 'Detalhe 3', group: 'DT' },
+      /* Patch — posição P10 (quadrada no CSS) */
+      { src: p.fotos?.patch?.[0]   || '', label: 'Patch',     group: 'PA' },
+      /* Frente 4 como décima opção de preenchimento */
+      { src: p.fotos?.frente?.[3]  || '', label: 'Frente 4',  group: 'FR' },
+    ].filter(f => f.src && f.src !== mainImg).slice(0, 10);
 
     const price = Number(p.preco || 0).toLocaleString('pt-BR',
       { style: 'currency', currency: 'BRL' });
     const href  = `src/pages/produto.html?id=${encodeURIComponent(p.slug || p._id)}`;
     const title = (p.titulo || '').toUpperCase();
 
-    /* HTML dos painéis holográficos */
-    const _FILE_IDS = ['001','002','003','004'];
+    /* HTML dos painéis holográficos (índice 0–9 → nth-child 1–10 no CSS) */
     const fanHTML = allPhotos.map((f, i) => `
-      <div class="dpb-holo-panel" role="button" tabindex="0" aria-label="Ver foto: ${f.label}">
+      <div class="dpb-holo-panel" data-group="${f.group}"
+           role="button" tabindex="0" aria-label="Ver foto: ${f.label}">
         <img src="${f.src}" alt="${f.label}" loading="lazy" draggable="false">
         <div class="dpb-holo-scan" aria-hidden="true"></div>
         <i class="dpb-corner dpb-corner-tr" aria-hidden="true"></i>
         <i class="dpb-corner dpb-corner-bl" aria-hidden="true"></i>
         <div class="dpb-holo-meta" aria-hidden="true">
-          <span>F:${_FILE_IDS[i]}</span><span>${f.label.toUpperCase()}</span>
+          <span>${f.group}:${String(i + 1).padStart(3,'0')}</span>
+          <span>${f.label.toUpperCase()}</span>
         </div>
       </div>`).join('');
 
@@ -409,7 +425,7 @@ async function showDropProduct(productId) {
           setTimeout(() => {
             p.classList.add('is-active', 'is-flickering');
             setTimeout(() => p.classList.remove('is-flickering'), 450);
-          }, i * 130);
+          }, i * 70);
         });
       }
       function hidePanels() {

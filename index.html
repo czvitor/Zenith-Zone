@@ -233,13 +233,40 @@
       will-change: transform, opacity;
     }
 
-    /* ── Posições + rotações individuais (colagem assimétrica) ──
-       Calibrar: left (negativo = à esquerda), top (relativo ao card)
-       P1 e P3 = coluna distante  |  P2 e P4 = coluna próxima          */
-    .dpb-holo-panel:nth-child(1) { --rot: -2.5deg; left: -232px; top:  12px; }
-    .dpb-holo-panel:nth-child(2) { --rot:  3.0deg; left: -148px; top: 150px; }
-    .dpb-holo-panel:nth-child(3) { --rot: -1.5deg; left: -260px; top: 216px; }
-    .dpb-holo-panel:nth-child(4) { --rot:  4.0deg; left: -148px; top: 312px; }
+    /* ── 10 posições assimétrias em 3 colunas + patch central ──────────────
+       Todas as coordenadas são relativas ao .dpb-visual (= borda do card principal).
+       REGRA DE ZONA: left + var(--pw) ≤ -20px (painel não cobre o card).
+       COLUNAS DE REFERÊNCIA:
+         Distante  → X ≈ -255px  (visível em viewports ≥ 1381px)
+         Média     → X ≈ -195px  (visível em viewports ≥ 1101px)
+         Próxima   → X ≈ -145px  (visível em viewports ≥  701px)
+       LINHAS DE REFERÊNCIA:
+         Topo   → top ≈   8–55px
+         Centro → top ≈ 172–242px
+         Baixo  → top ≈ 325–368px
+       STAGGER: painéis revelados na ordem nth-child 1→10 (varredura topo→baixo, distante→próximo)
+    ──────────────────────────────────────────────────────────────────────── */
+
+    /* P1 — Coluna DISTANTE, Topo */
+    .dpb-holo-panel:nth-child(1)  { --rot: -2.5deg; left: -258px; top:  28px; }
+    /* P2 — Coluna MÉDIA, Topo */
+    .dpb-holo-panel:nth-child(2)  { --rot:  2.5deg; left: -200px; top:  58px; }
+    /* P3 — Coluna PRÓXIMA, Topo */
+    .dpb-holo-panel:nth-child(3)  { --rot: -3.0deg; left: -145px; top:   8px; }
+    /* P4 — Coluna DISTANTE, Centro */
+    .dpb-holo-panel:nth-child(4)  { --rot:  1.5deg; left: -256px; top: 205px; }
+    /* P5 — Coluna MÉDIA, Centro */
+    .dpb-holo-panel:nth-child(5)  { --rot: -1.5deg; left: -195px; top: 242px; }
+    /* P6 — Coluna PRÓXIMA, Centro */
+    .dpb-holo-panel:nth-child(6)  { --rot:  4.0deg; left: -148px; top: 172px; }
+    /* P7 — Coluna DISTANTE, Baixo */
+    .dpb-holo-panel:nth-child(7)  { --rot: -3.0deg; left: -253px; top: 355px; }
+    /* P8 — Coluna MÉDIA, Baixo */
+    .dpb-holo-panel:nth-child(8)  { --rot:  3.0deg; left: -202px; top: 368px; }
+    /* P9 — Coluna PRÓXIMA, Baixo */
+    .dpb-holo-panel:nth-child(9)  { --rot: -2.5deg; left: -142px; top: 325px; }
+    /* P10 — PATCH: posição central entre colunas, quadrado */
+    .dpb-holo-panel:nth-child(10) { --rot:  2.0deg; left: -224px; top: 132px; --pw: 108px; --ph: 108px; }
 
     /* ── Estado ATIVO: revelado por JS com stagger delay ── */
     .dpb-holo-panel.is-active {
@@ -429,13 +456,21 @@
       .dpb-arena { flex-direction:column; gap:1.8rem; }
       .dpb-holo-panel { display: none; }
     }
-    @media (min-width:701px) and (max-width:1300px) {
-      /* Telas menores: P1 e P3 (distantes) ficam off-screen — ocultos */
+    /* Tablet / desktop pequeno: só coluna PRÓXIMA (P3, P6, P9) */
+    @media (min-width:701px) and (max-width:1100px) {
+      .dpb-holo-panel:nth-child(1), .dpb-holo-panel:nth-child(2),
+      .dpb-holo-panel:nth-child(4), .dpb-holo-panel:nth-child(5),
+      .dpb-holo-panel:nth-child(7), .dpb-holo-panel:nth-child(8),
+      .dpb-holo-panel:nth-child(10) { display: none; }
+      .dpb-holo-panel:nth-child(3) { left: -128px; top:   8px; }
+      .dpb-holo-panel:nth-child(6) { left: -128px; top: 172px; }
+      .dpb-holo-panel:nth-child(9) { left: -128px; top: 325px; }
+    }
+    /* Desktop médio: coluna PRÓXIMA + MÉDIA (P2,P3, P5,P6, P8,P9 + P10) */
+    @media (min-width:1101px) and (max-width:1380px) {
       .dpb-holo-panel:nth-child(1),
-      .dpb-holo-panel:nth-child(3) { display: none; }
-      /* P2 e P4 com offset conservador */
-      .dpb-holo-panel:nth-child(2) { left: -130px; top: 118px; }
-      .dpb-holo-panel:nth-child(4) { left: -130px; top: 258px; }
+      .dpb-holo-panel:nth-child(4),
+      .dpb-holo-panel:nth-child(7) { display: none; }
     }
   </style>
 </head>
