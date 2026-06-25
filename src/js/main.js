@@ -35,8 +35,10 @@ applyAdminConfig();
    SAKURA CANVAS — pétalas em queda diagonal (vento lateral)
 ══════════════════════════════════════════════════════════ */
 let _sakuraRAF    = null;
-let _sakuraCanvas = null;
+let _sakuraCanvas = null;   /* canvas interno (arena) */
 let _sakuraCtx    = null;
+let _sakuraBgCvs  = null;   /* canvas fixo no body (resto da página) */
+let _sakuraBgCtx  = null;
 const _PETALS = [];
 const _PINKS  = ['#FF1B6B','#FF4D8D','#FF69A0','#E8206E','#C91560'];
 
@@ -58,27 +60,40 @@ function _createPetal(w, h, scatter = true) {
 }
 
 function _initSakura() {
+  const w = window.innerWidth, h = window.innerHeight;
+
+  /* Canvas 1 — dentro do .dpb-arena: aparece sobre o fundo do mostruário */
   _sakuraCanvas = document.getElementById('sakura-canvas');
-  if (!_sakuraCanvas) return;
-  _sakuraCtx = _sakuraCanvas.getContext('2d');
-
-  /* Posiciona o canvas para cobrir o viewport inteiro,
-     compensando o offset do elemento pai dentro da página */
-  const rect = _sakuraCanvas.parentElement.getBoundingClientRect();
-  _sakuraCanvas.style.top    = `${-rect.top}px`;
-  _sakuraCanvas.style.left   = `${-rect.left}px`;
-  _sakuraCanvas.style.width  = `${window.innerWidth}px`;
-  _sakuraCanvas.style.height = `${window.innerHeight}px`;
-  _sakuraCanvas.width  = window.innerWidth;
-  _sakuraCanvas.height = window.innerHeight;
-
-  _PETALS.length = 0;
-  const count = Math.min(55, Math.floor(window.innerWidth / 22));
-  for (let i = 0; i < count; i++) {
-    _PETALS.push(_createPetal(window.innerWidth, window.innerHeight, true));
+  if (_sakuraCanvas) {
+    _sakuraCtx = _sakuraCanvas.getContext('2d');
+    const rect = _sakuraCanvas.parentElement.getBoundingClientRect();
+    _sakuraCanvas.style.top    = `${-rect.top}px`;
+    _sakuraCanvas.style.left   = `${-rect.left}px`;
+    _sakuraCanvas.style.width  = `${w}px`;
+    _sakuraCanvas.style.height = `${h}px`;
+    _sakuraCanvas.width  = w;
+    _sakuraCanvas.height = h;
+    requestAnimationFrame(() => _sakuraCanvas.classList.add('visible'));
   }
 
-  requestAnimationFrame(() => _sakuraCanvas.classList.add('visible'));
+  /* Canvas 2 — fixo no body: cobre o resto da página */
+  if (!document.getElementById('sakura-bg')) {
+    _sakuraBgCvs = document.createElement('canvas');
+    _sakuraBgCvs.id = 'sakura-bg';
+    document.body.insertBefore(_sakuraBgCvs, document.body.firstChild);
+  } else {
+    _sakuraBgCvs = document.getElementById('sakura-bg');
+  }
+  _sakuraBgCtx = _sakuraBgCvs.getContext('2d');
+  _sakuraBgCvs.width  = w;
+  _sakuraBgCvs.height = h;
+  requestAnimationFrame(() => _sakuraBgCvs.classList.add('visible'));
+
+  _PETALS.length = 0;
+  const count = Math.min(55, Math.floor(w / 22));
+  for (let i = 0; i < count; i++) {
+    _PETALS.push(_createPetal(w, h, true));
+  }
 }
 
 function _drawPetal(ctx, p) {
@@ -106,12 +121,12 @@ function _drawPetal(ctx, p) {
 }
 
 function _sakuraLoop() {
-  if (!_sakuraCtx || !_sakuraCanvas) return;
+  if (!_sakuraCtx && !_sakuraBgCtx) return;
 
-  const w = _sakuraCanvas.width;
-  const h = _sakuraCanvas.height;
+  const w = window.innerWidth, h = window.innerHeight;
 
-  _sakuraCtx.clearRect(0, 0, w, h);
+  if (_sakuraCtx)   _sakuraCtx.clearRect(0, 0, w, h);
+  if (_sakuraBgCtx) _sakuraBgCtx.clearRect(0, 0, w, h);
 
   for (const p of _PETALS) {
     p.sway += p.swaySpd;
@@ -123,7 +138,8 @@ function _sakuraLoop() {
       Object.assign(p, _createPetal(w, h, false));
     }
 
-    _drawPetal(_sakuraCtx, p);
+    if (_sakuraCtx)   _drawPetal(_sakuraCtx,   p);
+    if (_sakuraBgCtx) _drawPetal(_sakuraBgCtx, p);
   }
 
   _sakuraRAF = requestAnimationFrame(_sakuraLoop);
@@ -138,21 +154,32 @@ function _startSakura() {
 function _stopSakura() {
   if (_sakuraRAF) { cancelAnimationFrame(_sakuraRAF); _sakuraRAF = null; }
   if (_sakuraCanvas) { _sakuraCanvas.classList.remove('visible'); }
-  _sakuraCanvas = null;
-  _sakuraCtx    = null;
+  if (_sakuraBgCvs) {
+    _sakuraBgCvs.classList.remove('visible');
+    const c = _sakuraBgCvs;
+    setTimeout(() => { if (c.parentNode) c.parentNode.removeChild(c); }, 1100);
+  }
+  _sakuraCanvas = null; _sakuraCtx    = null;
+  _sakuraBgCvs  = null; _sakuraBgCtx  = null;
   _PETALS.length = 0;
 }
 
-/* Redimensiona e reposiciona canvas se a janela mudar */
+/* Redimensiona e reposiciona canvases se a janela mudar */
 window.addEventListener('resize', () => {
-  if (!_sakuraCanvas || !_sakuraCanvas.classList.contains('visible')) return;
-  const rect = _sakuraCanvas.parentElement.getBoundingClientRect();
-  _sakuraCanvas.style.top    = `${-rect.top}px`;
-  _sakuraCanvas.style.left   = `${-rect.left}px`;
-  _sakuraCanvas.style.width  = `${window.innerWidth}px`;
-  _sakuraCanvas.style.height = `${window.innerHeight}px`;
-  _sakuraCanvas.width  = window.innerWidth;
-  _sakuraCanvas.height = window.innerHeight;
+  if (!_sakuraCanvas && !_sakuraBgCvs) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  if (_sakuraCanvas) {
+    const rect = _sakuraCanvas.parentElement?.getBoundingClientRect();
+    if (rect) {
+      _sakuraCanvas.style.top    = `${-rect.top}px`;
+      _sakuraCanvas.style.left   = `${-rect.left}px`;
+      _sakuraCanvas.style.width  = `${w}px`;
+      _sakuraCanvas.style.height = `${h}px`;
+    }
+    _sakuraCanvas.width  = w;
+    _sakuraCanvas.height = h;
+  }
+  if (_sakuraBgCvs) { _sakuraBgCvs.width = w; _sakuraBgCvs.height = h; }
 });
 
 
