@@ -1676,6 +1676,7 @@
     outline: none; min-width: 0;
     transition: border-color 0.15s;
     -moz-appearance: textfield;
+    appearance: textfield;
   }
   .stock-inp:focus { border-color: rgba(220,20,60,0.52); }
   .stock-inp::placeholder { color: rgba(245,240,230,0.2); }
@@ -5219,6 +5220,7 @@
     /* Constantes do sistema de mídia — declaradas antes de syncStockSections para evitar TDZ */
     const mediaByColor   = {};
     const peMediaByColor = {};
+    const colorMediaFiles = {}; /* colorMediaFiles[slug][cat] = [{file,name,url,isUrl?}, ...] */
     const MEDIA_LABELS   = ['Frente', 'Costas', 'Detalhe 1', 'Detalhe 2', 'Patch / Assinatura'];
     const _MEDIA_SVG     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
 
@@ -5250,9 +5252,6 @@
       patch:   { label:'Patch',   title:'Patch / Assinatura', badgeCls:'faint' },
     };
     const MAX_CAT = 5;
-
-    /* colorMediaFiles[slug][cat] = [{file,name,url,isUrl?}, ...] */
-    const colorMediaFiles = {};
 
     function _catBadgeStyle(cat) {
       if (cat === 'detalhe') return ' style="background:var(--color-pink)"';
@@ -6063,11 +6062,11 @@
       ];
 
       if (HT) return [
-        p('comment', /<!--[\s\S]*?-->/),
+        p('comment', new RegExp('<!--[\\s\\S]*?-->')),
         p('str',     /"[^"]*"|'[^']*'/),
-        p('kw',      /<\/?\w[\w.-]*/),
+        p('kw',      /\x3c\/?\w[\w.-]*/),
         p('fn',      /[\w:-]+(?=\s*=)/),
-        p('op',      /\/?>|</),
+        p('op',      /\/?>|\x3c/),
       ];
 
       if (CS) return [
@@ -6086,7 +6085,7 @@
         p('kw',      /\b(?:if|then|else|elif|fi|for|in|do|done|while|until|case|esac|function|return|exit|break|continue|local|export|readonly|source|echo|printf|read|shift|set|unset|alias)\b/),
         p('fn',      /\b(?:ls|cd|mkdir|rm|cp|mv|cat|grep|sed|awk|find|chmod|chown|curl|wget|git|npm|yarn|pnpm|node|python|pip|docker|kubectl|ssh|tar|zip|unzip|apt|brew)\b/),
         p('num',     /\b\d+\b/),
-        p('op',      /[|&;><]+/),
+        p('op',      /[|&;>\x3c]+/),
       ];
 
       if (SQ) return [
@@ -6163,7 +6162,7 @@
       out.push(p('fn', /\b[a-zA-Z_$][\w$]*(?=\s*\()/));
 
       /* Operadores e pontuação */
-      out.push(p('op',    /[+\-*/%=!<>&|^~?:]+/));
+      out.push(p('op',    /[+\-*/%=!\x3c>&|^~?:]+/));
       out.push(p('punct', /[{}[\]();,]/));
 
       return out;
