@@ -7494,6 +7494,29 @@
         if (specs.length) specs.forEach(s=>specRows.appendChild(createPeSpecRow(s.label,s.valor)));
         else [['Tecido',''],['Modelagem',''],['Impressão',''],['Gola',''],['Edição',''],['Coleção',''],['Estilo','']].forEach(([l,v])=>specRows.appendChild(createPeSpecRow(l,v)));
       }
+      /* ── Pré-carrega fotos ANTES de syncPeStockSections para que os thumbs
+             apareçam quando as zonas de upload forem criadas ── */
+      const COLOR_CATS = window._ZZ_COLOR_CATS || ['frente','costas','detalhe','patch'];
+      Object.keys(peColorMediaFiles).forEach(s => {
+        COLOR_CATS.forEach(cat => peColorMediaFiles[s]?.[cat]?.forEach(f => {
+          if (!f.isExisting && !f.isUrl && f.src?.startsWith('blob:')) URL.revokeObjectURL(f.src);
+        }));
+        delete peColorMediaFiles[s];
+      });
+      /* Suporta imagensPorCor (chave = slug) e fotosPorCor (chave = nome) */
+      const _srcBySlug = p.imagensPorCor || {};
+      const _srcByNome = p.fotosPorCor   || {};
+      (Array.isArray(p.cores) ? p.cores : []).forEach(c => {
+        const slug     = peColorSlug(c.nome);
+        const corFotos = _srcByNome[c.nome] || _srcBySlug[slug] || p.fotos || {};
+        peColorMediaFiles[slug] = Object.fromEntries(
+          COLOR_CATS.map(cat => [
+            cat,
+            (Array.isArray(corFotos[cat]) ? corFotos[cat] : [])
+              .filter(Boolean).map(src => ({ src, isExisting: true }))
+          ])
+        );
+      });
       const colorRows=document.getElementById('pe-color-rows');
       if (colorRows) {
         colorRows.innerHTML='';
@@ -7507,35 +7530,12 @@
             PE_SIZES.forEach(sz=>{ const d=sizes[sz]; if(!d) return;
               setV(`pe-qty-${slug}-${sz}`,d.qtd); setV(`pe-larg-${slug}-${sz}`,d.largura);
               setV(`pe-comp-${slug}-${sz}`,d.comprimento); setV(`pe-mang-${slug}-${sz}`,d.manga);
-              /* Atualiza badge imediatamente com o valor hidratado */
               const badge=document.getElementById(`pe-badge-${slug}-${sz}`);
               if(badge){ const q=Number(d.qtd)||0; badge.className=`stock-auto-badge ${q===0?'stock-badge-esgotado':'stock-badge-avail'}`; badge.textContent=q===0?'Esgotado':'Disponível'; }
             });
           });
         });
       }
-      /* ── Carrega fotos por cor × categoria ── */
-      const COLOR_CATS = window._ZZ_COLOR_CATS || ['frente','costas','detalhe','patch'];
-      /* Limpa stores anteriores */
-      Object.keys(peColorMediaFiles).forEach(s => {
-        COLOR_CATS.forEach(cat => peColorMediaFiles[s]?.[cat]?.forEach(f => {
-          if (!f.isExisting && !f.isUrl && f.src?.startsWith('blob:')) URL.revokeObjectURL(f.src);
-        }));
-        delete peColorMediaFiles[s];
-      });
-      const _srcData = p.fotosPorCor || {};
-      (Array.isArray(p.cores) ? p.cores : []).forEach(c => {
-        const slug     = peColorSlug(c.nome);
-        const corFotos = _srcData[c.nome] || p.fotos || {};
-        peColorMediaFiles[slug] = Object.fromEntries(
-          COLOR_CATS.map(cat => [
-            cat,
-            (Array.isArray(corFotos[cat]) ? corFotos[cat] : [])
-              .filter(Boolean).map(src => ({ src, isExisting: true }))
-          ])
-        );
-      });
-      /* syncPeColorMediaSections é chamado via syncPeStockSections logo acima */
       const titleEl=document.getElementById('pe-panel-title');
       if (titleEl) titleEl.textContent=p.titulo||'—';
       /* Carrega a hierarquia de categorização com os valores salvos no produto */
