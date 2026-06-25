@@ -6640,38 +6640,49 @@
       prodList.innerHTML = `<tr class="empty"><td colspan="8">Carregando…</td></tr>`;
       let all = [];
       const token = ZZAuth.getToken();
-      console.log('[ZZ Produtos] token presente:', !!token, '| API:', API);
+
+      /* Após 5s sem resposta avisa que o servidor pode estar acordando */
+      const slowTimer = setTimeout(() => {
+        prodList.innerHTML = `<tr class="empty"><td colspan="8" style="line-height:1.8">
+          ⏳ Aguardando o servidor acordar…<br>
+          <small style="color:var(--color-text-ghost)">O servidor gratuito pode levar até 60 s na primeira requisição.</small>
+        </td></tr>`;
+      }, 5000);
+
       try {
+        const controller = new AbortController();
+        const timeoutId  = setTimeout(() => controller.abort(), 65000);
         const res = await fetch(
           `${API}/products?status=ativo,publicado,pausado,inativo,rascunho&limit=200`,
-          { headers: { 'Authorization': `Bearer ${token}` } }
+          { headers: { 'Authorization': `Bearer ${token}` }, signal: controller.signal }
         );
-        console.log('[ZZ Produtos] HTTP status:', res.status);
-        if (res.status === 401) {
-          console.warn('[ZZ Produtos] Token inválido/expirado — redirecionando para login.');
-          ZZAuth.logout();
-          return;
-        }
+        clearTimeout(timeoutId);
+        clearTimeout(slowTimer);
+
+        if (res.status === 401) { ZZAuth.logout(); return; }
         if (res.status === 403) {
           prodList.innerHTML = `<tr class="empty"><td colspan="8">Sem permissão para gerenciar produtos.</td></tr>`;
           return;
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         all = (await res.json()).products || [];
-        /* Normaliza legado rascunho */
         all.forEach(p => { if (p.status === 'rascunho') p.status = 'ativo'; });
         allProducts = all;
         applyFilters();
       } catch (err) {
-        const detail = err?.message || String(err);
+        clearTimeout(slowTimer);
+        const isTimeout = err?.name === 'AbortError';
+        const detail    = isTimeout ? 'Servidor não respondeu em 65 s.' : (err?.message || String(err));
         console.error('[ZZ Produtos] Erro ao carregar:', detail);
-        prodList.innerHTML = `<tr class="empty"><td colspan="8" style="font-family:monospace;font-size:0.8em">
-          Erro ao carregar produtos: <strong>${detail}</strong><br>
-          <small>API: ${API} | token: ${token ? 'presente' : 'AUSENTE'}</small><br>
-          <small>Verifique o console (F12) para mais detalhes.</small>
+        prodList.innerHTML = `<tr class="empty"><td colspan="8" style="line-height:2">
+          ⚠️ ${detail}<br>
+          <button onclick="loadProducts()" style="margin-top:0.5rem;padding:0.35rem 0.9rem;background:var(--color-red);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem">
+            Tentar novamente
+          </button>
         </td></tr>`;
       }
     }
+    window.loadProducts = loadProducts;
 
     function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
