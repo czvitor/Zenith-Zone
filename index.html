@@ -179,68 +179,143 @@
     .dpb-visual:hover .dpb-main-card {
       transform: scale(1.03);
       box-shadow: 0 0 80px rgba(220,20,60,0.5), 0 28px 72px rgba(0,0,0,0.8);
+      animation: zzMainGlitch 5s ease infinite;
+    }
+    /* Glitch periódico no card principal durante o hover */
+    @keyframes zzMainGlitch {
+      0%, 84%, 100% { transform: scale(1.03) translate(0,0);     filter: none; }
+      85%           { transform: scale(1.03) translate(-3px, 0);  filter: brightness(1.35) saturate(1.4) hue-rotate(12deg); }
+      86%           { transform: scale(1.03) translate( 3px,1px); filter: brightness(0.80) saturate(0.6); }
+      87%           { transform: scale(1.03) translate(-1px, 0);  filter: brightness(1.15); }
+      88%           { transform: scale(1.03) translate( 0,   0);  filter: none; }
     }
     .dpb-main-img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.3s ease; }
 
-    /* ── Leque de fotos — área expandida para nada ser cortado ── */
+    /* ══ HOLO PANELS — Painéis holográficos Neo-Tokyo HUD ══════
+       Grade 2×2 à esquerda do card principal. Posições fixas em px
+       relativas ao centro do .dpb-visual (via calc + CSS var).
+
+       Ajustes rápidos:
+         Velocidade de entrada/saída → transition 0.45s / 0.38s abaixo
+         Posição das colunas         → valores -285px / -145px em nth-child
+         Posição das linhas          → valores -180px / -100px / +100px / +180px
+         Intensidade do glow         → rgba(220,20,60, X) em box-shadow
+    ══════════════════════════════════════════════════════════════ */
+
+    /* Wrapper — mesmo inset de antes, sem perspectiva 3D */
     .dpb-fan-wrap {
-      position:absolute;
-      /* Extende 300px além de cada borda do card principal */
+      position: absolute;
       inset: -300px;
-      z-index:2; pointer-events:none;
-      perspective:600px; transform-style:preserve-3d;
+      z-index: 2;
+      pointer-events: none;
     }
-    .dpb-fan-card {
-      position:absolute;
-      width: clamp(110px,14vw,155px);
-      height: clamp(138px,17.5vw,194px);
-      border-radius:8px; overflow:hidden;
-      border:2px solid rgba(220,20,60,0.75);
-      box-shadow: 0 8px 28px rgba(0,0,0,0.75), 0 0 18px rgba(220,20,60,0.4);
-      background:#0c1030;
-      cursor:pointer; pointer-events:auto;
-      top:50%; left:50%;
-      transform: translate(-50%,-50%) rotateY(0deg) scale(0.6);
-      opacity:0.22;
+
+    /* Base: painel oculto, 30px mais à esquerda da posição final */
+    .dpb-holo-panel {
+      --pw: clamp(100px, 12vw, 130px);   /* largura do painel */
+      --ph: clamp(125px, 15vw, 163px);   /* altura  do painel */
+      position: absolute;
+      width:  var(--pw);
+      height: var(--ph);
+      top: 50%; left: 50%;
+      border-radius: 3px;
+      overflow: hidden;
+      background: #0a0d22;
+      cursor: pointer;
+      pointer-events: auto;
+      opacity: 0;
+      border: 1px solid rgba(220,20,60,0);
+      box-shadow: none;
       transition:
-        transform  0.46s cubic-bezier(0.175,0.885,0.32,1.275),
-        opacity    0.28s ease,
-        box-shadow 0.22s ease;
+        transform    0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity      0.38s ease,
+        border-color 0.30s ease,
+        box-shadow   0.30s ease;
       will-change: transform, opacity;
     }
-    .dpb-fan-card img { width:100%; height:100%; object-fit:cover; display:block; }
 
-    .dpb-fan-label {
-      position:absolute; bottom:0; left:0; right:0; text-align:center;
-      font-family:'Barlow Condensed',sans-serif; font-weight:900;
-      font-size:0.54rem; letter-spacing:0.14em; text-transform:uppercase;
-      color:rgba(245,240,230,0.95);
-      background:linear-gradient(transparent,rgba(4,6,16,0.92));
-      padding:10px 4px 4px;
+    /* ── Posições de SAÍDA (default) — deslizado 30px a mais para a esquerda
+       Centros alvo (rel. ao centro do .dpb-visual):
+         P1 (-285px, -180px)  P2 (-145px, -100px)
+         P3 (-145px, +100px)  P4 (-285px, +180px)   */
+    .dpb-holo-panel:nth-child(1) { transform: translate(calc(-285px - var(--pw)/2 - 30px), calc(-180px - var(--ph)/2)); transition-delay: 0.12s; }
+    .dpb-holo-panel:nth-child(2) { transform: translate(calc(-145px - var(--pw)/2 - 30px), calc(-100px - var(--ph)/2)); transition-delay: 0.08s; }
+    .dpb-holo-panel:nth-child(3) { transform: translate(calc(-145px - var(--pw)/2 - 30px), calc( 100px - var(--ph)/2)); transition-delay: 0.04s; }
+    .dpb-holo-panel:nth-child(4) { transform: translate(calc(-285px - var(--pw)/2 - 30px), calc( 180px - var(--ph)/2)); transition-delay: 0s;    }
+
+    /* ── Entrada: painéis materializam em cascata ── */
+    .dpb-visual:hover .dpb-holo-panel {
+      opacity: 1;
+      border-color: rgba(220,20,60,0.75);
+      box-shadow:
+        0 0 0 1px rgba(220,20,60,0.12),
+        0 0 22px rgba(220,20,60,0.40),
+        0 8px 32px rgba(0,0,0,0.70),
+        inset 0 0 12px rgba(0,0,0,0.60);
+    }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(1) { transform: translate(calc(-285px - var(--pw)/2), calc(-180px - var(--ph)/2)); transition-delay: 0s;    }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(2) { transform: translate(calc(-145px - var(--pw)/2), calc(-100px - var(--ph)/2)); transition-delay: 0.08s; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(3) { transform: translate(calc(-145px - var(--pw)/2), calc( 100px - var(--ph)/2)); transition-delay: 0.16s; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(4) { transform: translate(calc(-285px - var(--pw)/2), calc( 180px - var(--ph)/2)); transition-delay: 0.24s; }
+
+    /* ── Imagem ── */
+    .dpb-holo-panel img { width:100%; height:100%; object-fit:cover; display:block; }
+    .dpb-holo-panel:hover img { filter: brightness(1.1) saturate(1.15); }
+
+    /* ── Cantos HUD: ::before → ↖   ::after → ↘ ── */
+    .dpb-holo-panel::before,
+    .dpb-holo-panel::after {
+      content: ''; position: absolute;
+      width: 9px; height: 9px;
+      border-color: rgba(220,20,60,0.95); border-style: solid;
+      z-index: 4; pointer-events: none;
+    }
+    .dpb-holo-panel::before { top: 4px;    left: 4px;   border-width: 2px 0 0 2px; }
+    .dpb-holo-panel::after  { bottom: 4px; right: 4px;  border-width: 0 2px 2px 0; }
+
+    /* Cantos ↗ e ↙ via <i> injetados no HTML */
+    .dpb-corner { position:absolute; width:9px; height:9px; border-color:rgba(220,20,60,0.95); border-style:solid; z-index:4; pointer-events:none; }
+    .dpb-corner-tr { top:4px;    right:4px;  border-width: 2px 2px 0 0; }
+    .dpb-corner-bl { bottom:4px; left:4px;   border-width: 0 0 2px 2px; }
+
+    /* ── Linha de varredura (scanline) — dispara na entrada de cada painel ── */
+    .dpb-holo-scan {
+      position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, transparent 0%, rgba(220,20,60,0.55) 25%, rgba(255,27,107,1) 50%, rgba(220,20,60,0.55) 75%, transparent 100%);
+      z-index:5; pointer-events:none; opacity:0;
+    }
+    .dpb-visual:hover .dpb-holo-panel .dpb-holo-scan { animation: zzScanDown 0.9s ease-out forwards; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(1) .dpb-holo-scan { animation-delay: 0.08s; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(2) .dpb-holo-scan { animation-delay: 0.16s; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(3) .dpb-holo-scan { animation-delay: 0.24s; }
+    .dpb-visual:hover .dpb-holo-panel:nth-child(4) .dpb-holo-scan { animation-delay: 0.32s; }
+    @keyframes zzScanDown {
+      0%   { top:  0%;  opacity: 1;   }
+      85%  { top: 88%;  opacity: 0.7; }
+      100% { top: 100%; opacity: 0;   }
     }
 
-    /* Abertura no hover — leque em 4 direções com rotação 3D */
-    .dpb-visual:hover .dpb-fan-card { opacity:1; }
+    /* ── Metadados HUD na base de cada painel ── */
+    .dpb-holo-meta {
+      position:absolute; bottom:0; left:0; right:0;
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 14px 5px 4px;
+      background: linear-gradient(transparent, rgba(7,9,26,0.96) 45%);
+      font-family:'Barlow Condensed',sans-serif; font-weight:700;
+      font-size:0.50rem; letter-spacing:0.20em; text-transform:uppercase;
+      color: rgba(220,20,60,0.90); z-index:4; pointer-events:none;
+    }
+    .dpb-holo-meta span:last-child { color: rgba(245,240,230,0.55); }
 
-    /* Leque abre para a esquerda — arco vertical com gap ≥ 250px entre centros
-       (necessário pois cards rotacionados têm altura visual ~240px no máximo) */
-    .dpb-visual:hover .dpb-fan-card:nth-child(1) {
-      transform: translate(-168%, -200%) rotate(-22deg) rotateY(-12deg) scale(1.02);
-    }
-    .dpb-visual:hover .dpb-fan-card:nth-child(2) {
-      transform: translate(-210%, -65%) rotate(-8deg) rotateY(-8deg) scale(1.02);
-    }
-    .dpb-visual:hover .dpb-fan-card:nth-child(3) {
-      transform: translate(-204%, 65%) rotate(7deg) rotateY(-5deg) scale(1.02);
-    }
-    .dpb-visual:hover .dpb-fan-card:nth-child(4) {
-      transform: translate(-162%, 194%) rotate(24deg) rotateY(-2deg) scale(1.02);
-    }
-
-    .dpb-fan-card:hover {
-      box-shadow:0 16px 40px rgba(0,0,0,0.9), 0 0 32px rgba(220,20,60,0.65) !important;
-      filter:brightness(1.12) saturate(1.1);
-      z-index:10;
+    /* ── Hover individual do painel ── */
+    .dpb-holo-panel:hover {
+      border-color: rgba(220,20,60,1) !important;
+      box-shadow:
+        0 0 0 1px rgba(220,20,60,0.25),
+        0 0 34px rgba(220,20,60,0.65),
+        0 12px 42px rgba(0,0,0,0.85),
+        inset 0 0 16px rgba(220,20,60,0.08) !important;
+      z-index: 10;
     }
 
     /* ── Lado direito: info ── */
@@ -351,10 +426,19 @@
 
     @media (max-width:700px) {
       .dpb-arena { flex-direction:column; gap:1.8rem; }
-      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-155%,-185%) rotate(-20deg) scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-185%, -60%) rotate(-7deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate(-178%,  60%) rotate( 6deg)  scale(.9);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate(-140%, 182%) rotate(22deg)  scale(.9);}
+      /* Holo panels ocultos no mobile — sem espaço lateral suficiente */
+      .dpb-holo-panel { display: none; }
+    }
+    @media (min-width:701px) and (max-width:1100px) {
+      /* Tablet: painéis menores, coluna única mais próxima */
+      .dpb-holo-panel:nth-child(1)                { transform: translate(calc(-210px - var(--pw)/2 - 24px), calc(-135px - var(--ph)/2)); }
+      .dpb-holo-panel:nth-child(2)                { transform: translate(calc(-100px - var(--pw)/2 - 24px), calc( -70px - var(--ph)/2)); }
+      .dpb-holo-panel:nth-child(3)                { transform: translate(calc(-100px - var(--pw)/2 - 24px), calc(  70px - var(--ph)/2)); }
+      .dpb-holo-panel:nth-child(4)                { transform: translate(calc(-210px - var(--pw)/2 - 24px), calc( 135px - var(--ph)/2)); }
+      .dpb-visual:hover .dpb-holo-panel:nth-child(1) { transform: translate(calc(-210px - var(--pw)/2), calc(-135px - var(--ph)/2)); }
+      .dpb-visual:hover .dpb-holo-panel:nth-child(2) { transform: translate(calc(-100px - var(--pw)/2), calc( -70px - var(--ph)/2)); }
+      .dpb-visual:hover .dpb-holo-panel:nth-child(3) { transform: translate(calc(-100px - var(--pw)/2), calc(  70px - var(--ph)/2)); }
+      .dpb-visual:hover .dpb-holo-panel:nth-child(4) { transform: translate(calc(-210px - var(--pw)/2), calc( 135px - var(--ph)/2)); }
     }
   </style>
 </head>

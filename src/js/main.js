@@ -341,11 +341,17 @@ async function showDropProduct(productId) {
     const href  = `src/pages/produto.html?id=${encodeURIComponent(p.slug || p._id)}`;
     const title = (p.titulo || '').toUpperCase();
 
-    /* HTML do leque */
-    const fanHTML = allPhotos.map(f => `
-      <div class="dpb-fan-card" role="button" tabindex="0" aria-label="Ver foto: ${f.label}">
+    /* HTML dos painéis holográficos */
+    const _FILE_IDS = ['001','002','003','004'];
+    const fanHTML = allPhotos.map((f, i) => `
+      <div class="dpb-holo-panel" role="button" tabindex="0" aria-label="Ver foto: ${f.label}">
         <img src="${f.src}" alt="${f.label}" loading="lazy" draggable="false">
-        <span class="dpb-fan-label">${f.label}</span>
+        <div class="dpb-holo-scan" aria-hidden="true"></div>
+        <i class="dpb-corner dpb-corner-tr" aria-hidden="true"></i>
+        <i class="dpb-corner dpb-corner-bl" aria-hidden="true"></i>
+        <div class="dpb-holo-meta" aria-hidden="true">
+          <span>F:${_FILE_IDS[i]}</span><span>${f.label.toUpperCase()}</span>
+        </div>
       </div>`).join('');
 
     /* Render principal */
@@ -390,7 +396,7 @@ async function showDropProduct(productId) {
     _startSakura();
 
     /* Leque: clique troca imagem principal com fade */
-    bannerWrap.querySelectorAll('.dpb-fan-card').forEach(card => {
+    bannerWrap.querySelectorAll('.dpb-holo-panel').forEach(card => {
       const activate = () => {
         const fanImg = card.querySelector('img');
         const mainI  = document.getElementById('dpb-main-img');
