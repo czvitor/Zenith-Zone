@@ -58,24 +58,27 @@ function _createPetal(w, h, scatter = true) {
 }
 
 function _initSakura() {
-  let canvas = document.getElementById('sakura-canvas');
-  if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.id = 'sakura-canvas';
-    document.body.appendChild(canvas);
-  }
-  _sakuraCanvas = canvas;
-  _sakuraCtx    = canvas.getContext('2d');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  _sakuraCanvas = document.getElementById('sakura-canvas');
+  if (!_sakuraCanvas) return;
+  _sakuraCtx = _sakuraCanvas.getContext('2d');
+
+  /* Posiciona o canvas para cobrir o viewport inteiro,
+     compensando o offset do elemento pai dentro da página */
+  const rect = _sakuraCanvas.parentElement.getBoundingClientRect();
+  _sakuraCanvas.style.top    = `${-rect.top}px`;
+  _sakuraCanvas.style.left   = `${-rect.left}px`;
+  _sakuraCanvas.style.width  = `${window.innerWidth}px`;
+  _sakuraCanvas.style.height = `${window.innerHeight}px`;
+  _sakuraCanvas.width  = window.innerWidth;
+  _sakuraCanvas.height = window.innerHeight;
 
   _PETALS.length = 0;
   const count = Math.min(55, Math.floor(window.innerWidth / 22));
   for (let i = 0; i < count; i++) {
-    _PETALS.push(_createPetal(canvas.width, canvas.height, true));
+    _PETALS.push(_createPetal(window.innerWidth, window.innerHeight, true));
   }
 
-  requestAnimationFrame(() => canvas.classList.add('visible'));
+  requestAnimationFrame(() => _sakuraCanvas.classList.add('visible'));
 }
 
 function _drawPetal(ctx, p) {
@@ -134,19 +137,20 @@ function _startSakura() {
 
 function _stopSakura() {
   if (_sakuraRAF) { cancelAnimationFrame(_sakuraRAF); _sakuraRAF = null; }
-  if (_sakuraCanvas) {
-    _sakuraCanvas.classList.remove('visible');
-    const c = _sakuraCanvas;
-    setTimeout(() => { if (c.parentNode) c.parentNode.removeChild(c); }, 1100);
-    _sakuraCanvas = null;
-    _sakuraCtx    = null;
-  }
+  if (_sakuraCanvas) { _sakuraCanvas.classList.remove('visible'); }
+  _sakuraCanvas = null;
+  _sakuraCtx    = null;
   _PETALS.length = 0;
 }
 
-/* Redimensiona canvas se a janela mudar */
+/* Redimensiona e reposiciona canvas se a janela mudar */
 window.addEventListener('resize', () => {
   if (!_sakuraCanvas || !_sakuraCanvas.classList.contains('visible')) return;
+  const rect = _sakuraCanvas.parentElement.getBoundingClientRect();
+  _sakuraCanvas.style.top    = `${-rect.top}px`;
+  _sakuraCanvas.style.left   = `${-rect.left}px`;
+  _sakuraCanvas.style.width  = `${window.innerWidth}px`;
+  _sakuraCanvas.style.height = `${window.innerHeight}px`;
   _sakuraCanvas.width  = window.innerWidth;
   _sakuraCanvas.height = window.innerHeight;
 });
@@ -320,6 +324,9 @@ async function showDropProduct(productId) {
     /* Render principal */
     bannerWrap.innerHTML = `
       <div class="dpb-arena">
+        <!-- Pétalas sakura — posicionadas pelo JS para cobrir o viewport -->
+        <canvas id="sakura-canvas"></canvas>
+
         <!-- Visual: anel + leque + card principal -->
         <div class="dpb-visual">
           <div class="dpb-ring"></div>

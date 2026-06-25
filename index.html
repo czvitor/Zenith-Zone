@@ -62,9 +62,9 @@
       100%{ opacity:0; filter:blur(18px) brightness(3); transform:scale(0.85) translateY(-20px); }
     }
 
-    /* Canvas das pétalas sakura — cobre toda a tela, atrás do conteúdo */
+    /* Canvas das pétalas sakura — posicionado por JS para cobrir o viewport */
     #sakura-canvas {
-      position:fixed; inset:0; pointer-events:none; z-index:-1;
+      position:absolute; pointer-events:none; z-index:1;
       opacity:0; transition:opacity 1s ease;
     }
     #sakura-canvas.visible { opacity:1; }
@@ -126,13 +126,13 @@
     }
 
     /* ── Lado esquerdo: imagem principal + leque ── */
-    .dpb-visual { position:relative; flex-shrink:0; z-index:2; overflow:visible; }
+    .dpb-visual { position:relative; flex-shrink:0; z-index:5; overflow:visible; }
 
     /* Shuriken giratória neon atrás da imagem */
     .dpb-ring {
       position:absolute; pointer-events:none; z-index:1;
-      width: clamp(270px,34vw,400px);
-      height: clamp(270px,34vw,400px);
+      width: clamp(450px,55vw,640px);
+      height: clamp(450px,55vw,640px);
       top:50%; left:50%;
       background: linear-gradient(
         135deg,
@@ -215,17 +215,18 @@
     /* Abertura no hover — leque em 4 direções com rotação 3D */
     .dpb-visual:hover .dpb-fan-card { opacity:1; }
 
+    /* Leque abre apenas para a esquerda, em arco de cima a baixo */
     .dpb-visual:hover .dpb-fan-card:nth-child(1) {
-      transform: translate(-220%,-105%) rotate(-26deg) rotateY(-14deg) scale(1.05);
+      transform: translate(-245%,-105%) rotate(-32deg) rotateY(-16deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(2) {
-      transform: translate(-240%, 18%) rotate(-14deg) rotateY(-10deg) scale(1.05);
+      transform: translate(-285%, -8%) rotate(-12deg) rotateY(-12deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(3) {
-      transform: translate(110%,-108%) rotate(24deg) rotateY(14deg) scale(1.05);
+      transform: translate(-270%, 70%) rotate(10deg) rotateY(-8deg) scale(1.05);
     }
     .dpb-visual:hover .dpb-fan-card:nth-child(4) {
-      transform: translate(120%, 16%) rotate(14deg) rotateY(10deg) scale(1.05);
+      transform: translate(-235%, 148%) rotate(30deg) rotateY(-5deg) scale(1.05);
     }
 
     .dpb-fan-card:hover {
@@ -237,7 +238,7 @@
     /* ── Lado direito: info ── */
     .dpb-info {
       display:flex; flex-direction:column; gap:0.85rem;
-      position:relative; z-index:2; max-width:480px;
+      position:relative; z-index:5; max-width:480px;
     }
 
     /* "DISPONÍVEL AGORA" badge piscante */
@@ -342,10 +343,10 @@
 
     @media (max-width:700px) {
       .dpb-arena { flex-direction:column; gap:1.8rem; }
-      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-130%,-90%) rotate(-20deg) scale(.95);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-150%, 22%) rotate(-10deg) scale(.95);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate( 22%,-108%) rotate(18deg) scale(.95);}
-      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate( 28%, 28%) rotate(10deg)  scale(.95);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(1){transform:translate(-155%,-80%) rotate(-28deg) scale(.92);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(2){transform:translate(-175%, -5%) rotate(-10deg) scale(.92);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(3){transform:translate(-165%, 65%) rotate(10deg)  scale(.92);}
+      .dpb-visual:hover .dpb-fan-card:nth-child(4){transform:translate(-140%,140%) rotate(28deg)  scale(.92);}
     }
   </style>
 </head>
