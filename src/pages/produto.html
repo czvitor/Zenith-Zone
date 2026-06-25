@@ -856,13 +856,16 @@
   <!-- ── ESTADOS ──────────────────────────────────────────────── -->
   <div id="state-loading">
     <div class="spinner"></div>
-    <p class="loading-text">Carregando produto…</p>
+    <p class="loading-text" id="loading-msg">Carregando produto…</p>
   </div>
 
   <div id="state-error">
-    <h2>Produto não encontrado</h2>
-    <p>Este produto não existe ou foi removido.</p>
-    <a href="../../index.html">← Voltar à loja</a>
+    <h2 id="error-title">Produto não encontrado</h2>
+    <p id="error-desc">Este produto não existe ou foi removido.</p>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem">
+      <button id="error-retry-btn" style="display:none;padding:.5rem 1.25rem;background:var(--color-red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.85rem" onclick="loadProduct()">Tentar novamente</button>
+      <a href="../../index.html">← Voltar à loja</a>
+    </div>
   </div>
 
   <!-- ── PRODUTO ───────────────────────────────────────────────── -->
@@ -1801,27 +1804,64 @@
     setState('product');
   }
 
+  /* Ping de pré-aquecimento — evita cold start do Render na primeira requisição */
+  fetch(API + '/health').catch(() => {});
+
   /* ── Carrega produto (inclui token para acesso admin) ── */
   async function loadProduct() {
     const params = new URLSearchParams(location.search);
     const ref    = params.get('id') || params.get('slug');
-    if (!ref) { setState('error'); return; }
+    if (!ref) { showError('Produto não encontrado', 'Nenhum produto foi especificado.', false); return; }
 
     setState('loading');
+    const loadingMsg = document.getElementById('loading-msg');
+    if (loadingMsg) loadingMsg.textContent = 'Carregando produto…';
+
+    const slowTimer = setTimeout(() => {
+      if (loadingMsg) loadingMsg.innerHTML =
+        '⏳ Aguardando o servidor acordar…<br><small style="opacity:.6">O servidor gratuito pode levar até 60 s na primeira requisição.</small>';
+    }, 5000);
+
     try {
       const headers = {};
       const token = (typeof ZZAuth !== 'undefined') ? ZZAuth.getToken() : null;
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res  = await fetch(`${API}/products/${encodeURIComponent(ref)}`, { headers });
+      const controller = new AbortController();
+      const abortTimer = setTimeout(() => controller.abort(), 65000);
+
+      const res = await fetch(`${API}/products/${encodeURIComponent(ref)}`,
+        { headers, signal: controller.signal });
+      clearTimeout(abortTimer);
+      clearTimeout(slowTimer);
+
+      if (res.status === 404) {
+        showError('Produto não encontrado', 'Este produto não existe ou foi removido.', false);
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (!data.product) throw new Error('Produto não retornado');
       renderProduct(data.product);
     } catch (err) {
+      clearTimeout(slowTimer);
       console.error('[ZZ Produto] Erro ao carregar:', err);
-      setState('error');
+      const isTimeout = err?.name === 'AbortError';
+      showError(
+        isTimeout ? 'Servidor não respondeu' : 'Erro ao carregar produto',
+        isTimeout
+          ? 'O servidor demorou mais de 60 s. Clique em "Tentar novamente" após alguns instantes.'
+          : 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+        true
+      );
     }
+  }
+
+  function showError(title, desc, showRetry) {
+    document.getElementById('error-title').textContent  = title;
+    document.getElementById('error-desc').textContent   = desc;
+    document.getElementById('error-retry-btn').style.display = showRetry ? 'inline-block' : 'none';
+    setState('error');
   }
 
   /* ── Handler: Comprar Agora (bypass carrinho → checkout) */
