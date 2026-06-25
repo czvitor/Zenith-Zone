@@ -21,10 +21,14 @@ const ZZAuth = (() => {
      Funciona se o projeto está em / ou em subdiretório (ex: /app/).
      Exemplo: pathname = "/app/src/pages/admin.html" → root = "/app/"          */
   function _projectRoot() {
-    const idx = window.location.pathname.indexOf('/src/');
-    return idx !== -1
-      ? window.location.origin + window.location.pathname.substring(0, idx + 1)
-      : window.location.origin + '/';
+    const path = window.location.pathname;
+    const srcIdx = path.indexOf('/src/');
+    if (srcIdx !== -1) {
+      return window.location.origin + path.substring(0, srcIdx + 1);
+    }
+    // Sem /src/ no caminho (ex: index.html na raiz) — sobe até o último '/'
+    const dir = path.substring(0, path.lastIndexOf('/') + 1);
+    return window.location.origin + dir;
   }
 
   /* ── Decodifica o payload de um JWT sem verificar assinatura ────────────────
