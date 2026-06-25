@@ -4307,6 +4307,10 @@
   /* ── GUARD ──────────────────────────────────────────────── */
   ZZAuth.requireMod();
 
+  /* Pinga o servidor imediatamente para iniciar o cold start do Render
+     antes do usuário navegar para qualquer seção que precise de dados. */
+  fetch((window.ZZ_API_BASE || 'http://localhost:3001/api') + '/health').catch(() => {});
+
   /* ── USUÁRIO LOGADO ─────────────────────────────────────── */
   const user = ZZAuth.getUser();
   if (user) {
