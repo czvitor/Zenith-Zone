@@ -320,7 +320,7 @@ async function showDropProduct(productId) {
   bannerWrap.style.display = 'flex';
 
   try {
-    const API = window.ZZ_API_BASE || 'http://localhost:3001/api';
+    const API = window.ZZ_API_BASE || (window.location.origin + '/api');
     const res  = await fetch(`${API}/products/${encodeURIComponent(productId)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -395,6 +395,37 @@ async function showDropProduct(productId) {
     /* Inicia pétalas após render */
     _startSakura();
 
+    /* Hover stagger: revela painéis sequencialmente ao passar no card principal */
+    (function _bindPanelHover() {
+      const visual = bannerWrap.querySelector('.dpb-visual');
+      const panels = [...bannerWrap.querySelectorAll('.dpb-holo-panel')];
+      if (!visual || !panels.length) return;
+      let hideTimer;
+
+      function showPanels() {
+        clearTimeout(hideTimer);
+        if (panels[0].classList.contains('is-active')) return; // já visíveis
+        panels.forEach((p, i) => {
+          setTimeout(() => {
+            p.classList.add('is-active', 'is-flickering');
+            setTimeout(() => p.classList.remove('is-flickering'), 450);
+          }, i * 130);
+        });
+      }
+      function hidePanels() {
+        hideTimer = setTimeout(() => {
+          panels.forEach(p => p.classList.remove('is-active', 'is-flickering'));
+        }, 280); // grace period p/ mover mouse até o painel sem sumir
+      }
+
+      visual.addEventListener('mouseenter', showPanels);
+      visual.addEventListener('mouseleave', hidePanels);
+      panels.forEach(p => {
+        p.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+        p.addEventListener('mouseleave', hidePanels);
+      });
+    })();
+
     /* Leque: clique troca imagem principal com fade */
     bannerWrap.querySelectorAll('.dpb-holo-panel').forEach(card => {
       const activate = () => {
@@ -466,7 +497,7 @@ document.querySelector('.nl-form')?.addEventListener('submit', async e => {
   btn.textContent = 'Enviando…';
 
   try {
-    const API = window.ZZ_API_BASE || 'http://localhost:3001/api';
+    const API = window.ZZ_API_BASE || (window.location.origin + '/api');
     const res  = await fetch(`${API}/newsletter`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
