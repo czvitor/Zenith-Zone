@@ -7596,20 +7596,24 @@
           reader.readAsDataURL(file);
         });
       }
-      const fotosPorCor = {};
+      const fotosPorCor   = {};
+      const imagensPorCor = {};
       for (const [slug, cats] of Object.entries(peColorMediaFiles)) {
         const corObj = cores.find(c => peColorSlug(c.nome) === slug);
         const nome   = corObj ? corObj.nome : slug;
-        fotosPorCor[nome] = {};
+        fotosPorCor[nome]   = {};
+        imagensPorCor[slug] = {};
         for (const cat of COLOR_CATS) {
-          fotosPorCor[nome][cat] = await Promise.all(cats[cat].map(item => {
+          const resolved = await Promise.all(cats[cat].map(item => {
             if (item.isExisting || item.isUrl) return Promise.resolve(item.src);
             return _fileToB64(item.file);
           }));
+          fotosPorCor[nome][cat]   = resolved;
+          imagensPorCor[slug][cat] = resolved;
         }
       }
       /* fotos = 1ª cor (compatibilidade com produto.html) */
-      const _firstPeCor = cores.length ? peColorSlug(cores[0].nome) : null;
+      const _firstPeCor  = cores.length ? peColorSlug(cores[0].nome) : null;
       const _firstPeNome = _firstPeCor ? (cores.find(c => peColorSlug(c.nome) === _firstPeCor)?.nome || _firstPeCor) : null;
       const fotos = _firstPeNome && fotosPorCor[_firstPeNome]
         ? fotosPorCor[_firstPeNome]
@@ -7630,7 +7634,7 @@
       const modelo         = document.getElementById('pe-modelo')?.value.trim()       || '';
       const colecao        = document.getElementById('pe-colecao')?.value.trim()      || '';
       const dropExclusivo  = document.getElementById('pe-drop-exclusivo')?.checked    ?? false;
-      return { titulo, tituloJP, preco, parcelas, status, descricao, especificacoes, cores, fotos, fotosPorCor, estoque, logistica, zonaId, categoriaId, subcategoriaId, modelo, colecao, dropExclusivo };
+      return { titulo, tituloJP, preco, parcelas, status, descricao, especificacoes, cores, fotos, fotosPorCor, imagensPorCor, estoque, logistica, zonaId, categoriaId, subcategoriaId, modelo, colecao, dropExclusivo };
     }
 
     async function openEditView(id) {
