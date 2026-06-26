@@ -1916,38 +1916,22 @@
   });
 
   /* ── Handler: Lista de Espera ────────────────────────── */
-  el('btn-waitlist')?.addEventListener('click', () => {
-    const form = el('waitlist-form');
-    if (form) form.style.display = form.style.display === 'none' ? 'flex' : 'none';
-    if (form?.style.display !== 'none') el('wl-email')?.focus();
-  });
 
-  el('wl-submit')?.addEventListener('click', async () => {
-    const emailEl = el('wl-email');
-    const msgEl   = el('wl-msg');
-    const btn     = el('wl-submit');
-    const email   = emailEl?.value.trim();
+  /* Função central de envio — reutilizada pelo botão logado e pelo form */
+  async function submitWaitlist(email) {
+    if (!produto?._id) return;
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      if (msgEl) { msgEl.textContent = 'Digite um e-mail válido.'; msgEl.className = 'wl-msg error'; }
-      return;
-    }
+    const btn   = el('btn-waitlist');
+    const msgEl = el('wl-msg');
+    const origLabel = btn?.innerHTML;
 
-    /* Garante que o produto foi carregado antes de enviar */
-    if (!produto?._id) {
-      if (msgEl) { msgEl.textContent = 'Erro: produto não carregado. Recarregue a página.'; msgEl.className = 'wl-msg error'; }
-      return;
-    }
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
 
-    btn.disabled    = true;
-    btn.textContent = 'Enviando…';
-
-    /* AbortController com timeout de 10s */
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 10000);
 
     try {
-      const res = await fetch(`${API}/waitlist`, {
+      const res  = await fetch(`${API}/waitlist`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         signal:  controller.signal,
@@ -1960,11 +1944,23 @@
       });
       clearTimeout(tid);
       const data = await res.json();
-      if (msgEl) {
-        msgEl.textContent = data.message || (res.ok ? 'Você entrou na lista!' : data.error);
-        msgEl.className   = `wl-msg ${res.ok ? 'success' : 'error'}`;
+      const msg  = data.message || (res.ok ? 'Você entrou na lista!' : data.error);
+
+      /* Oculta o formulário inline (se estiver aberto) e mostra feedback */
+      const form = el('waitlist-form');
+      if (form) form.style.display = 'none';
+      if (msgEl) { msgEl.textContent = msg; msgEl.className = `wl-msg ${res.ok ? 'success' : 'error'}`; }
+
+      /* Atualiza o botão com ícone de sucesso se OK */
+      if (res.ok && btn) {
+        btn.disabled  = false;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px">
+          <polyline points="20 6 9 17 4 12"/></svg> Na lista!`;
+        btn.style.borderColor = 'rgba(93,199,140,.5)';
+        btn.style.color       = '#5dc78c';
+        return;
       }
-      if (res.ok && emailEl) emailEl.value = '';
     } catch (err) {
       clearTimeout(tid);
       if (msgEl) {
@@ -1973,10 +1969,47 @@
           : 'Erro ao conectar. Tente novamente.';
         msgEl.className = 'wl-msg error';
       }
-    } finally {
-      btn.disabled    = false;
-      btn.textContent = 'Confirmar meu interesse';
     }
+
+    if (btn) { btn.disabled = false; btn.innerHTML = origLabel; }
+  }
+
+  el('btn-waitlist')?.addEventListener('click', async () => {
+    /* Usuário não logado → leva para o login */
+    if (typeof ZZAuth === 'undefined' || !ZZAuth.isLoggedIn()) {
+      const root = window.location.origin;
+      const back = encodeURIComponent(window.location.href);
+      window.location.href = `${root}/src/pages/login.html?redirect=${back}`;
+      return;
+    }
+
+    /* Usuário logado → pega e-mail do perfil e envia direto */
+    const user  = ZZAuth.getUser();
+    const email = user?.email;
+    if (!email) {
+      /* Fallback improvável: sem e-mail no token → abre formulário */
+      const form = el('waitlist-form');
+      if (form) { form.style.display = form.style.display === 'none' ? 'flex' : 'none'; }
+      if (form?.style.display !== 'none') el('wl-email')?.focus();
+      return;
+    }
+
+    await submitWaitlist(email);
+  });
+
+  /* Form manual (fallback para usuário não logado que veio via formulário) */
+  el('wl-submit')?.addEventListener('click', async () => {
+    const emailEl = el('wl-email');
+    const msgEl   = el('wl-msg');
+    const email   = emailEl?.value.trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      if (msgEl) { msgEl.textContent = 'Digite um e-mail válido.'; msgEl.className = 'wl-msg error'; }
+      return;
+    }
+
+    await submitWaitlist(email);
+    if (emailEl) emailEl.value = '';
   });
 
   /* ── Acordeão ─────────────────────────────────────── */

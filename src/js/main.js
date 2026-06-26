@@ -10,9 +10,11 @@ function getCfg(key, def) {
 
 /* ── CONTROLE DE SEÇÕES PELA CONFIGURAÇÃO DO ADMIN ────────── */
 function applyAdminConfig() {
-  const dropActive = getCfg('zz_drop_active', true);
-  const dropEl     = document.getElementById('drop');
-  if (dropEl) dropEl.style.display = dropActive ? '' : 'none';
+  const dropActive  = getCfg('zz_drop_active', true);
+  const dropEl      = document.getElementById('drop');
+  const btnVerDrop  = document.getElementById('btn-ver-drop');
+  if (dropEl)     dropEl.style.display    = dropActive ? '' : 'none';
+  if (btnVerDrop) btnVerDrop.style.display = dropActive ? '' : 'none';
 
   const dropTitle = getCfg('zz_drop_title', '');
   if (dropTitle) {
@@ -238,6 +240,138 @@ function getDropDate() {
 let _dropRevealActive = false;
 let _dropRevealId     = '';
 let _wasEnded         = false;   /* detecta a transição running→ended */
+let _slideshowTimer   = null;    /* intervalo do slideshow da imagem principal */
+let _petalRAF         = null;    /* RAF da transição de pétalas */
+
+/* ══════════════════════════════════════════════════════════
+   TRANSIÇÃO DE PÉTALAS DE SAKURA — canvas sobre o card
+══════════════════════════════════════════════════════════ */
+function _sakuraPetalTransition(card, onSwap, onDone) {
+  /* Para qualquer transição anterior */
+  if (_petalRAF) { cancelAnimationFrame(_petalRAF); _petalRAF = null; }
+  card.querySelectorAll('.dpb-petal-canvas').forEach(c => c.remove());
+
+  const cvs = document.createElement('canvas');
+  cvs.className = 'dpb-petal-canvas';
+  cvs.style.cssText = [
+    'position:absolute','inset:0','z-index:10',
+    'pointer-events:none','border-radius:10px',
+  ].join(';');
+  const W = card.offsetWidth  || 310;
+  const H = card.offsetHeight || 388;
+  cvs.width = W; cvs.height = H;
+  card.appendChild(cvs);
+
+  const ctx = cvs.getContext('2d');
+
+  /* Paleta de pétalas: rosa sakura + crimson + branco suave */
+  const COLORS   = ['#FF1B6B','#FF4D8D','#E8206E','#FF69A0','#C91560','#FFB7D1','#dc143c','#ff8cb3'];
+  const COUNT    = 140;
+  const DURATION = 1300;
+
+  /* Cada pétala começa fora do lado direito e voa para a esquerda em diagonal */
+  const petals = Array.from({ length: COUNT }, (_, i) => {
+    const delay = (i / COUNT) * 0.6 + Math.random() * 0.2;
+    return {
+      x:      W + 20 + Math.random() * W * 0.7,
+      y:      -30  + Math.random() * (H + 60),
+      vx:     -(3.5 + Math.random() * 5.5),
+      vy:      0.5  + Math.random() * 1.4,
+      size:    4   + Math.random() * 8,
+      rot:     Math.random() * Math.PI * 2,
+      rotV:   (Math.random() - 0.5) * 0.11,
+      sway:    Math.random() * Math.PI * 2,
+      swayA:   0.4 + Math.random() * 0.8,
+      swayS:   0.03 + Math.random() * 0.04,
+      alpha:   0,
+      color:   COLORS[Math.floor(Math.random() * COLORS.length)],
+      delay,
+    };
+  });
+
+  let swapped   = false;
+  const t0      = performance.now();
+
+  function drawPetal(p) {
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+
+    const s = p.size, h = s * 2.6;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo( s * 0.6, -h * 0.12,  s * 0.55, h * 0.85, 0, h);
+    ctx.bezierCurveTo(-s * 0.55, h * 0.85, -s * 0.6, -h * 0.12, 0, 0);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+
+    /* Shimmer central */
+    ctx.globalAlpha = p.alpha * 0.32;
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.08, h * 0.3, s * 0.14, h * 0.38, -0.25, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function tick(now) {
+    const elapsed  = now - t0;
+    const progress = Math.min(elapsed / DURATION, 1);
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* Fade da imagem por baixo: sai rápido, entra suave depois das pétalas */
+    const mainI = card.querySelector('.dpb-main-img');
+    if (mainI) {
+      if (!swapped) {
+        /* Fade out agressivo: chega a 0 já em ~20% da animação */
+        const imgFadeOut = Math.max(0, 1 - progress * 9);
+        mainI.style.opacity = imgFadeOut.toFixed(3);
+      } else {
+        /* Fade in suave: começa aos 45%, termina aos 85% */
+        const imgFadeIn = Math.min(1, (progress - 0.45) / 0.2);
+        mainI.style.opacity = Math.max(0, imgFadeIn).toFixed(3);
+      }
+    }
+
+    petals.forEach(p => {
+      const lp = Math.max(0, (progress - p.delay) / (1 - Math.max(p.delay, 0.01)));
+      if (lp <= 0) return;
+
+      /* Fade in rápido na entrada, sem fade out — saem apenas por sair de cena */
+      const fadeIn = Math.min(lp * 6, 1);
+      p.alpha = fadeIn * 0.95;
+
+      p.sway += p.swayS;
+      p.x    += p.vx;
+      p.y    += p.vy + Math.sin(p.sway) * p.swayA;
+      p.rot  += p.rotV;
+
+      drawPetal(p);
+    });
+
+    /* Troca a imagem quando a maioria das pétalas já cobriu o card (~45%) */
+    if (!swapped && progress >= 0.45) {
+      swapped = true;
+      onSwap?.();
+    }
+
+    if (progress < 1) {
+      _petalRAF = requestAnimationFrame(tick);
+    } else {
+      _petalRAF = null;
+      cvs.remove();
+      /* Garante que a imagem termina totalmente visível */
+      const mainI = card.querySelector('.dpb-main-img');
+      if (mainI) mainI.style.opacity = '1';
+      onDone?.();
+    }
+  }
+
+  _petalRAF = requestAnimationFrame(tick);
+}
 
 function updateCountdown() {
   const diff  = getDropDate() - new Date();
@@ -456,21 +590,63 @@ async function showDropProduct(productId) {
       });
     })();
 
-    /* Leque: clique troca imagem principal com fade */
-    bannerWrap.querySelectorAll('.dpb-holo-panel').forEach(card => {
+    /* Função central de troca: pétalas de sakura + reinício Ken Burns */
+    function _switchMainImg(nextSrc) {
+      const mainI = document.getElementById('dpb-main-img');
+      const mainC = document.getElementById('dpb-main-card');
+      if (!mainI || !mainC || !nextSrc) return;
+
+      _sakuraPetalTransition(
+        mainC,
+        /* onSwap — pétalas já cobrem o card: troca src invisível */
+        () => {
+          mainI.classList.remove('ken-burns');
+          mainI.src = nextSrc;
+          void mainI.offsetWidth;
+          mainI.classList.add('ken-burns');
+        },
+        /* onDone — pétalas sumiram, nova foto revelada */
+        null
+      );
+    }
+
+    /* Leque: clique nos painéis holográficos troca com onda */
+    bannerWrap.querySelectorAll('.dpb-holo-panel').forEach(panel => {
       const activate = () => {
-        const fanImg = card.querySelector('img');
+        const fanImg = panel.querySelector('img');
         const mainI  = document.getElementById('dpb-main-img');
-        if (!fanImg || !mainI || fanImg.src === mainI.src) return;
-        mainI.style.opacity = '0';
-        setTimeout(() => {
-          mainI.src = fanImg.src;
-          mainI.style.opacity = '1';
-        }, 200);
+        if (!fanImg || !mainI) return;
+        const next = fanImg.getAttribute('src') || fanImg.src;
+        if (!next || mainI.src.endsWith(next.replace(/^.*\//, ''))) return;
+        _switchMainImg(next);
       };
-      card.addEventListener('click',   activate);
-      card.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+      panel.addEventListener('click',   activate);
+      panel.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
     });
+
+    /* ── Slideshow automático: troca aleatória a cada 5s ── */
+    const slidePool = [mainImg, ...allPhotos.map(f => f.src)].filter(Boolean);
+
+    /* Ken Burns inicial + primeiros slashes */
+    const firstImg = document.getElementById('dpb-main-img');
+    if (firstImg) {
+      void firstImg.offsetWidth;
+      firstImg.classList.add('ken-burns');
+    }
+    if (slidePool.length > 1) {
+      _slideshowTimer = setInterval(() => {
+        const mainI = document.getElementById('dpb-main-img');
+        if (!mainI) { clearInterval(_slideshowTimer); return; }
+
+        const cur  = mainI.src;
+        const pool = slidePool.filter(s => !cur.endsWith(s.replace(/^.*\//, '')) && s !== cur);
+        const next = (pool.length ? pool : slidePool)[Math.floor(Math.random() * (pool.length || slidePool.length))];
+        if (!next) return;
+
+        _switchMainImg(next);
+
+      }, 6000);
+    }
 
   } catch (err) {
     console.error('[ZZ Drop Reveal]', err);
@@ -480,6 +656,8 @@ async function showDropProduct(productId) {
 
 function hideDropProduct() {
   _stopSakura();
+  if (_slideshowTimer) { clearInterval(_slideshowTimer); _slideshowTimer = null; }
+  if (_petalRAF)      { cancelAnimationFrame(_petalRAF); _petalRAF = null; }
   const logoWrap   = document.getElementById('hero-logo-wrap');
   const bannerWrap = document.getElementById('drop-product-reveal');
   if (logoWrap)   logoWrap.style.display   = '';

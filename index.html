@@ -15,6 +15,21 @@
   <link rel="stylesheet" href="src/css/auth-v2.css">
 
   <style>
+    /* ── Ken Burns — zoom suave na imagem principal do drop ── */
+    @keyframes dpbKenBurns {
+      0%   { transform: scale(1);    }
+      100% { transform: scale(1.08); }
+    }
+    .dpb-main-img {
+      transition: opacity 0.45s ease !important;
+      will-change: transform, opacity;
+    }
+    .dpb-main-img.ken-burns {
+      animation: dpbKenBurns 6s ease-in-out forwards;
+      transform-origin: center center;
+    }
+
+
     /* ══════════════════════════════════════════════════════
        EXPLOSÃO NO 00:00 — efeitos globais de disparo
     ══════════════════════════════════════════════════════ */
@@ -132,8 +147,24 @@
       100% { transform:translate(var(--tx,0px), var(--ty,-120px)) scale(0); opacity:0; }
     }
 
+    /* ── Tilt 3D flutuante ───────────────────────────────────── */
+    @keyframes dpbTilt {
+      0%   { transform: perspective(900px) rotateX( 2.5deg) rotateY(-3deg)   rotateZ(-0.4deg); }
+      20%  { transform: perspective(900px) rotateX(-1.2deg) rotateY( 2.5deg) rotateZ( 0.3deg); }
+      45%  { transform: perspective(900px) rotateX( 1.8deg) rotateY(-1.5deg) rotateZ(-0.2deg); }
+      70%  { transform: perspective(900px) rotateX(-2deg)   rotateY( 3deg)   rotateZ( 0.5deg); }
+      100% { transform: perspective(900px) rotateX( 2.5deg) rotateY(-3deg)   rotateZ(-0.4deg); }
+    }
+
     /* ── Lado esquerdo: imagem principal + leque ── */
-    .dpb-visual { position:relative; flex-shrink:0; z-index:5; overflow:visible; }
+    .dpb-visual {
+      position:relative; flex-shrink:0; z-index:5; overflow:visible;
+      animation: dpbTilt 7s ease-in-out infinite;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    /* Pausa o tilt no hover para não brigar com o scale do card */
+    .dpb-visual:hover { animation-play-state: paused; }
 
     /* Shuriken giratória neon atrás da imagem */
     .dpb-ring {
@@ -949,7 +980,7 @@
           class="hero-logo-img"
         >
         <div class="hero-actions">
-          <a href="#drop"       class="btn-primary">Ver Próximo Drop</a>
+          <a href="#drop" id="btn-ver-drop" class="btn-primary">Ver Próximo Drop</a>
           <a href="#collection" class="btn-outline">Coleção Atual</a>
         </div>
       </div>
