@@ -29,20 +29,23 @@ router.post('/', subLimiter, [
       { upsert: true, new: true },
     );
 
-    /* Envia e-mail de confirmação apenas na primeira inscrição */
-    if (!doc.alertsSent?.confirmation) {
-      const cfg = await SiteSettings.findById('global').lean();
-      if (cfg?.dropActive && cfg?.dropTitle) {
-        sendDropConfirmation(email, cfg.dropTitle, cfg.dropDate).catch(err =>
-          console.error('[Newsletter] Falha no e-mail de confirmação (drop):', err.message),
-        );
-      } else {
-        sendNewsletterWelcome(email).catch(err =>
-          console.error('[Newsletter] Falha no e-mail de confirmação (genérico):', err.message),
-        );
-      }
-      await Newsletter.updateOne({ _id: doc._id }, { $set: { 'alertsSent.confirmation': true } });
+    /* Usuário já confirmado neste drop — retorna sem reenviar e-mail */
+    if (doc.alertsSent?.confirmation) {
+      return res.json({ alreadySubscribed: true, message: 'Você já está na lista! Fique de olho no e-mail.' });
     }
+
+    /* Envia e-mail de confirmação na primeira inscrição */
+    const cfg = await SiteSettings.findById('global').lean();
+    if (cfg?.dropActive && cfg?.dropTitle) {
+      sendDropConfirmation(email, cfg.dropTitle, cfg.dropDate).catch(err =>
+        console.error('[Newsletter] Falha no e-mail de confirmação (drop):', err.message),
+      );
+    } else {
+      sendNewsletterWelcome(email).catch(err =>
+        console.error('[Newsletter] Falha no e-mail de confirmação (genérico):', err.message),
+      );
+    }
+    await Newsletter.updateOne({ _id: doc._id }, { $set: { 'alertsSent.confirmation': true } });
 
     res.json({ message: 'Inscrição confirmada! Você será avisado em primeira mão.' });
   } catch (err) {

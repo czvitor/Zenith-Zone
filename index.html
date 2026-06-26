@@ -1705,16 +1705,23 @@
         btn.textContent = 'Entrando…';
         try {
           const res = await subscribe(user.email);
+          const d   = await res.json();
           if (res.ok) {
-            openModal(
-              'Você Está<br>na Lista',
-              dropActive
-                ? 'Você receberá alertas de 1 semana, 1 dia e 1 hora antes do drop. Fique de olho na caixa de entrada.'
-                : 'Assim que o próximo drop for anunciado, você será o primeiro a saber.'
-            );
+            if (d.alreadySubscribed) {
+              openModal(
+                'Você Já Está<br>na Lista',
+                'Você já está inscrito neste drop! Fique de olho na caixa de entrada para os alertas.'
+              );
+            } else {
+              openModal(
+                'Você Está<br>na Lista',
+                dropActive
+                  ? 'Você receberá alertas de 1 semana, 1 dia e 1 hora antes do drop. Fique de olho na caixa de entrada.'
+                  : 'Assim que o próximo drop for anunciado, você será o primeiro a saber.'
+              );
+            }
           } else {
-            const d = await res.json();
-            openModal('Já na Lista', d.message || 'Você já está inscrito na lista.');
+            openModal('Erro', d.message || 'Não foi possível processar a inscrição.');
           }
         } catch {
           openModal('Erro', 'Não foi possível conectar ao servidor. Tente novamente.');
