@@ -1,16 +1,14 @@
 const { Resend } = require('resend');
 
-const configured   = !!process.env.RESEND_API_KEY;
-const resend       = configured ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM_ADDR    = process.env.SMTP_FROM || 'Zenith Zone <onboarding@resend.dev>';
-/* URL base das imagens hospedadas no GitHub Pages */
-const IMG_BASE     = (process.env.FRONTEND_URL || 'https://czvitor.github.io').replace(/\/$/, '') + '/src/images';
+const configured  = !!process.env.RESEND_API_KEY;
+const resend      = configured ? new Resend(process.env.RESEND_API_KEY) : null;
+const FROM_ADDR   = process.env.SMTP_FROM || 'Zenith Zone <onboarding@resend.dev>';
+const IMG_BASE    = process.env.EMAIL_IMG_BASE || 'https://czvitor.github.io/Zenith-Zone/src/images';
+
+function img(file) { return `${IMG_BASE}/${encodeURIComponent(file)}`; }
 
 async function _send({ to, subject, html }) {
-  if (!resend) {
-    console.warn('[Mailer] RESEND_API_KEY não configurado. Destinatário:', to);
-    return;
-  }
+  if (!resend) { console.warn('[Mailer] RESEND_API_KEY não configurado. Destinatário:', to); return; }
   const { error } = await resend.emails.send({ from: FROM_ADDR, to, subject, html });
   if (error) throw new Error(error.message || JSON.stringify(error));
 }
@@ -22,25 +20,41 @@ function base(content) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; background-color:#04060f !important; }
+  .zz-outer { background-color:#04060f !important; }
+  .zz-card  { background-color:#07091A !important; }
+  .zz-head  { background-color:#0c0f24 !important; }
+</style>
+<!--[if gte mso 9]><style>
+  body    { background-color:#04060f !important; }
+  .zz-outer td { background-color:#04060f !important; }
+  .zz-head  { background-color:#0c0f24 !important; }
+  .zz-body-td, .zz-foot-td { background-color:#07091A !important; }
+</style><![endif]-->
 </head>
-<body style="margin:0;padding:0;background-color:#04060f">
-<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem">
-  <tr><td align="center">
-  <table width="520" cellpadding="0" cellspacing="0" bgcolor="#07091A" style="max-width:520px;width:100%;background-color:#07091A;border-radius:8px;border:1px solid #1a0a10">
+<body bgcolor="#04060f" style="margin:0;padding:0;background-color:#04060f">
+<table class="zz-outer" width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem">
+  <tr><td align="center" bgcolor="#04060f" style="background-color:#04060f">
+  <!--[if (gte mso 9)|(IE)]><table width="520" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
+  <table class="zz-card" width="520" cellpadding="0" cellspacing="0" bgcolor="#07091A" style="max-width:520px;width:100%;background-color:#07091A;border-radius:8px;border:1px solid #1a0a10">
     <tr>
-      <td bgcolor="#0c0f24" style="background-color:#0c0f24;padding:1.8rem 2rem 1.5rem">
-        <p style="margin:0 0 .4rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#DC143C">ゼニス・ゾーン</p>
-        <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.7rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#F5F0E6;line-height:1">ZENITH ZONE</p>
+      <td class="zz-head" bgcolor="#0c0f24" data-ogsb="#0c0f24" style="background-color:#0c0f24;padding:1.8rem 2rem 1.5rem">
+        <p style="margin:0 0 .4rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#DC143C" data-ogsc="#DC143C">ゼニス・ゾーン</p>
+        <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.7rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#F5F0E6;line-height:1" data-ogsc="#F5F0E6">ZENITH ZONE</p>
       </td>
     </tr>
     <tr>
-      <td bgcolor="#07091A" style="background-color:#07091A;padding:2rem">
+      <td class="zz-body-td" bgcolor="#07091A" data-ogsb="#07091A" style="background-color:#07091A;padding:2rem">
         ${content}
       </td>
     </tr>
     <tr>
-      <td bgcolor="#07091A" style="background-color:#07091A;padding:1rem 2rem 1.5rem">
+      <td class="zz-foot-td" bgcolor="#07091A" data-ogsb="#07091A" style="background-color:#07091A;padding:1rem 2rem 1.5rem">
         <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.7rem;color:#4a4a5a;letter-spacing:.05em">
           Zenith Zone · wear.zenith.z@gmail.com<br>
           Shibuya Streetwear × Brooklyn Basketball
@@ -48,6 +62,7 @@ function base(content) {
       </td>
     </tr>
   </table>
+  <!--[if (gte mso 9)|(IE)]></td></tr></table><![endif]-->
   </td></tr>
 </table>
 </body>
@@ -60,7 +75,7 @@ function label(text) {
 function heading(text) {
   return `<h2 style="margin:0 0 1.2rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.6rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#F5F0E6;line-height:1.1">${text}</h2>`;
 }
-function bodyText(text) {
+function body(text) {
   return `<p style="margin:0 0 1.2rem;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.9rem;line-height:1.75;color:rgba(245,240,230,.75)">${text}</p>`;
 }
 function btn(text, href) {
@@ -78,37 +93,40 @@ function fmtCountdown(ms) {
   return `${h} hora(s)`;
 }
 
-function imgBanner(file, alt) {
-  return `<div style="margin:-2rem -2rem 1.5rem -2rem"><img src="${IMG_BASE}/${encodeURIComponent(file)}" alt="${alt}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto"></div>`;
-}
-function imgSection(file, alt) {
-  return `<div style="margin:1.5rem -2rem;text-align:center"><img src="${IMG_BASE}/${encodeURIComponent(file)}" alt="${alt}" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0"></div>`;
-}
-function imgFooter() {
-  return `<div style="margin:1.5rem -2rem -2rem -2rem;border-top:1px solid rgba(245,240,230,0.07)"><img src="${IMG_BASE}/email-rodape.png" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto"></div>`;
-}
-function imgTags() {
-  return imgSection('tags-email transp.png', 'Tags Zenith Zone');
-}
-
 /* ── 1. Reset de senha ───────────────────────────────────── */
 async function sendPasswordResetEmail(to, resetLink) {
   await _send({
+    from:    FROM_ADDR,
     to,
     subject: 'Redefinir sua senha — Zenith Zone',
     html: base(`
-      ${imgBanner('banner-password-reset.png', 'Segurança Zenith Zone')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-password-reset.png')}" alt="Segurança Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
       ${label('Segurança da conta')}
       ${heading('Redefinir Senha')}
-      ${bodyText('Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha.')}
-      ${bodyText('Este link expira em <strong style="color:#F5F0E6">1 hora</strong>.')}
-      <div style="text-align:center;margin:1.5rem 0">${btn('Redefinir Senha', resetLink)}</div>
-      ${imgTags()}
+
+      ${body('Recebemos uma solicitação para redefinir a senha associada à sua conta na nossa plataforma. Clique no botão abaixo para escolher uma nova credencial de acesso de forma segura.')}
+      ${body('Importante: Por motivos de segurança, este link de redefinição expirará em exatamente <strong style="color:#F5F0E6">1 hora</strong>.')}
+
+      <div style="text-align: center; margin: 1.5rem 0;">
+        ${btn('Redefinir Senha', resetLink)}
+      </div>
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="Protocolo de Segurança" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center">
-        Se você não solicitou essa alteração, ignore este e-mail.
+
+      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center;">
+        Se você não solicitou essa alteração, nenhuma ação é necessária. Seu acesso atual continuará seguro e você pode ignorar este e-mail.
       </p>
-      ${imgFooter()}
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
@@ -117,7 +135,7 @@ async function sendPasswordResetEmail(to, resetLink) {
 async function sendOrderConfirmationEmail(to, order) {
   const fmt     = n => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   const shortId = String(order._id).slice(-6).toUpperCase();
-  const col     = "font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.04em";
+  const col     = 'font-family:\'Barlow Condensed\',Arial Narrow,sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.04em';
   const sep     = 'border-bottom:1px solid rgba(245,240,230,.07);padding:.65rem .4rem';
 
   const itemsHtml = Array.isArray(order.items)
@@ -133,10 +151,14 @@ async function sendOrderConfirmationEmail(to, order) {
     to,
     subject: `Pedido #${shortId} confirmado — Zenith Zone`,
     html: base(`
-      ${imgBanner('banner-order.png', 'Pedido Confirmado Zenith Zone')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-order.png')}" alt="Pedido Confirmado Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
       ${label('Confirmação de pedido')}
       ${heading(`Pedido #${shortId} Recebido!`)}
-      ${bodyText('Seu pedido foi efetuado com sucesso. Em breve você receberá o código de rastreamento.')}
+      ${body('Seu pedido foi efetuado com sucesso e nossa equipe já iniciou os processos de separação e preparação para o envio. Em breve você receberá novas atualizações com o seu código de rastreamento.')}
+
       ${itemsHtml ? `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:1.5rem 0;border-collapse:collapse">
           <thead>
@@ -156,10 +178,20 @@ async function sendOrderConfirmationEmail(to, order) {
           </tfoot>
         </table>
       ` : ''}
-      ${imgTags()}
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="Garantia de Qualidade" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center">Obrigado por comprar na Zenith Zone.</p>
-      ${imgFooter()}
+
+      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center;">
+        Obrigado por comprar na Zenith Zone.
+      </p>
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
@@ -171,15 +203,23 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
     to,
     subject: `Você está na lista — ${dropTitle} | Zenith Zone`,
     html: base(`
-      ${imgBanner('banner-drop-assign.png', dropTitle)}
+      <div style="margin:-2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-drop-assign.png')}" alt="${dropTitle}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
       ${label('Lista exclusiva do drop')}
       ${heading('Inscrição Confirmada')}
-      ${bodyText(`Você entrou na lista do drop <strong style="color:#DC143C">${dropTitle}</strong>.<br>Faltam aproximadamente <strong style="color:#F5F0E6">${remaining}</strong> para o lançamento.`)}
-      ${imgSection('mockup camiseta.png', 'Preview do Drop')}
-      ${imgTags()}
-      ${bodyText('Você receberá alertas automáticos faltando <strong style="color:#F5F0E6">1 semana</strong>, <strong style="color:#F5F0E6">1 dia</strong> e <strong style="color:#F5F0E6">1 hora</strong> para o drop.')}
+      ${body(`Você entrou na lista do drop <strong style="color:#DC143C">${dropTitle}</strong>.<br>Faltam aproximadamente <strong style="color:#F5F0E6">${remaining}</strong> para o lançamento.`)}
+      <div style="margin:1.5rem -2rem;">
+        <img src="${img('mockup camiseta.png')}" alt="Preview do Drop" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+      <div style="margin:1.5rem -2rem;">
+        <img src="${img('tags-email transp.png')}" alt="Tags" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+      ${body('Você receberá alertas automáticos faltando <strong style="color:#F5F0E6">1 semana</strong>, <strong style="color:#F5F0E6">1 dia</strong> e <strong style="color:#F5F0E6">1 hora</strong> para o drop. Fique de olho na caixa de entrada.')}
       ${divider()}
-      ${imgFooter()}
+      <div style="margin:1.5rem -2rem -2rem -2rem;">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
@@ -188,39 +228,61 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
 async function sendDropAlert(to, dropTitle, label_) {
   const configs = {
     week: {
-      subject: `Falta 1 semana — ${dropTitle} | Zenith Zone`,
-      title:   'Falta 1 Semana',
-      msg:     `Em <strong style="color:#F5F0E6">7 dias</strong> as peças do drop <strong style="color:#DC143C">${dropTitle}</strong> estarão disponíveis.`,
-      banner:  'banner-drop-assign-1week.png',
+      subject:    `Falta 1 semana — ${dropTitle} | Zenith Zone`,
+      labelTxt:   'Contagem regressiva',
+      title:      'Falta 1 Semana',
+      msg:        `O grande momento está chegando. Em <strong style="color:#F5F0E6">7 dias</strong> as peças do drop <strong style="color:#DC143C">${dropTitle}</strong> estarão oficialmente disponíveis no site. Fique atento à sua caixa de entrada.`,
+      bannerFile: 'banner-drop-assign-1week.png',
     },
     day: {
-      subject: `Falta 1 dia — ${dropTitle} | Zenith Zone`,
-      title:   'Falta 1 Dia',
-      msg:     `É amanhã. Faltam <strong style="color:#F5F0E6">24 horas</strong> para o lançamento de <strong style="color:#DC143C">${dropTitle}</strong>.`,
-      banner:  'banner-drop-assign-1day.png',
+      subject:    `Falta 1 dia — ${dropTitle} | Zenith Zone`,
+      labelTxt:   'Alerta de drop',
+      title:      'Falta 1 Dia',
+      msg:        `É amanhã. Faltam apenas <strong style="color:#F5F0E6">24 horas</strong> para o lançamento oficial de <strong style="color:#DC143C">${dropTitle}</strong>. Prepare seu setup.`,
+      bannerFile: 'banner-drop-assign-1day.png',
     },
     hour: {
-      subject: `Falta 1 hora! — ${dropTitle} | Zenith Zone`,
-      title:   'Falta 1 Hora!',
-      msg:     `Em <strong style="color:#F5F0E6">60 minutos</strong> o drop <strong style="color:#DC143C">${dropTitle}</strong> estará liberado!`,
-      banner:  'banner-drop-assign-1hour.png',
+      subject:    `Falta 1 hora! — ${dropTitle} | Zenith Zone`,
+      labelTxt:   '⚡ Último aviso',
+      title:      'Falta 1 Hora!',
+      msg:        `Chegou a hora. Em exatamente <strong style="color:#F5F0E6">60 minutos</strong> o drop de <strong style="color:#DC143C">${dropTitle}</strong> estará liberado. Acesse o site e garanta os seus itens favoritos!`,
+      bannerFile: 'banner-drop-assign-1hour.png',
     },
   };
   const cfg = configs[label_] || configs.week;
+
   await _send({
     to,
     subject: cfg.subject,
     html: base(`
-      ${imgBanner(cfg.banner, cfg.title)}
-      ${label('Contagem regressiva')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img(cfg.bannerFile)}" alt="${cfg.title}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
+      ${label(cfg.labelTxt)}
       ${heading(cfg.title)}
+
       <p style="margin:0 0 .5rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,240,230,.5)">${dropTitle}</p>
-      ${bodyText(cfg.msg)}
-      ${imgSection('mockup camiseta.png', 'Preview do Produto')}
-      ${imgTags()}
+
+      ${body(cfg.msg)}
+
+      <div style="margin: 1.5rem -2rem; text-align: center; background: rgba(4,6,15,0.4); padding: 1rem 0; border-top: 1px solid rgba(245,240,230,0.03); border-bottom: 1px solid rgba(245,240,230,0.03);">
+        <img src="${img('mockup camiseta.png')}" alt="Preview do Produto" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="Detalhes do Drop" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,230,.2);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
-      ${imgFooter()}
+
+      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,230,.2);text-align:center;">
+        SHIBUYA STREETWEAR × BROOKLYN BASKETBALL
+      </p>
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
@@ -231,14 +293,25 @@ async function sendWaitlistConfirmation(to, produto) {
     to,
     subject: `Lista de espera confirmada — ${produto.titulo} | Zenith Zone`,
     html: base(`
-      ${imgBanner('banner-no-units.png', 'Zenith Zone Restock')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-no-units.png')}" alt="Zenith Zone Restock" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
       ${label('Lista de espera')}
       ${heading('Inscrição Confirmada')}
-      ${bodyText(`Sua inscrição para a lista de espera de <strong style="color:#DC143C">${produto.titulo}</strong> foi processada.`)}
-      ${bodyText('Assim que as peças retornarem ao estoque, você será notificado com prioridade.')}
-      ${imgTags()}
+
+      ${body(`Sua inscrição para a lista de espera de <strong style="color:#DC143C">${produto.titulo}</strong> foi processada com sucesso.`)}
+      ${body('Não se preocupe: assim que as peças retornarem ao catálogo, você receberá um alerta prioritário diretamente na sua caixa de entrada para garantir os seus itens.')}
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="Especificações Zenith" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      ${imgFooter()}
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
@@ -247,63 +320,104 @@ async function sendWaitlistConfirmation(to, produto) {
 async function sendRestockNotification(to, produto) {
   const frontendUrl = process.env.FRONTEND_URL || 'https://czvitor.github.io';
   const productUrl  = `${frontendUrl}/src/pages/produto.html?id=${encodeURIComponent(produto.slug || produto._id)}`;
+
   await _send({
     to,
     subject: `Voltou ao estoque! ${produto.titulo} — Zenith Zone`,
     html: base(`
-      ${imgBanner('banner-restock.png', 'Restock Zenith Zone')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-restock.png')}" alt="Restock Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
       ${label('Alerta de reposição')}
       ${heading('Voltou ao Estoque')}
+
       <p style="margin:0 0 1rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(245,240,230,.6)">${produto.titulo}</p>
-      ${bodyText('A peça que você estava esperando está <strong style="color:#DC143C">disponível novamente</strong>. Garanta os seus itens antes que esgotem.')}
-      <div style="text-align:center;margin:1.5rem 0">
-        <a href="${productUrl}" style="display:inline-block;border:0;text-decoration:none">
-          <img src="${IMG_BASE}/Botao-exclusivo.png" alt="Garantir Agora" width="260" style="width:100%;max-width:260px;display:block;height:auto;border:0">
+
+      ${body('A peça que você estava esperando está <strong style="color:#DC143C">disponível novamente</strong> no nosso catálogo. Acesse o site oficial pelo botão abaixo para garantir os seus itens favoritos.')}
+
+      <div style="text-align:center;margin:1.5rem 0;">
+        <a href="${productUrl}" style="display:inline-block;border:0;text-decoration:none;">
+          <img src="${img('Botao-exclusivo.png')}" alt="Garantir Agora" width="260" style="width:100%;max-width:260px;display:block;height:auto;border:0;">
         </a>
       </div>
-      ${imgTags()}
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="Detalhes Zenith" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.25);text-align:center">Você recebeu este e-mail porque se inscreveu na lista de espera.</p>
-      ${imgFooter()}
+
+      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.25);text-align:center;">
+        Você recebeu este e-mail porque se inscreveu na lista de espera para este produto.
+      </p>
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
 
-/* ── 7. Boas-vindas ao cadastro ──────────────────────────── */
+/* ── 7. Confirmação de cadastro / Boas-vindas ──────────────── */
 async function sendWelcomeEmail(to, userName) {
   const frontendUrl = process.env.FRONTEND_URL || 'https://czvitor.github.io';
+
   await _send({
     to,
     subject: 'Bem-vindo ao Clã — Zenith Zone',
     html: base(`
-      ${imgBanner('banner-sign-in.png', 'Bem-vindo à Zenith Zone')}
+      <div style="margin: -2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-sign-in.png')}" alt="Bem-vindo à Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
+
       ${label('Conexão estabelecida')}
       ${heading('Cadastro Concluído')}
-      ${bodyText(`Olá, <strong style="color:#F5F0E6">${userName || 'Membro'}</strong>. Seu cadastro foi efetuado com sucesso.`)}
-      ${bodyText('A partir de agora você terá acesso antecipado a drops, histórico de pedidos e listas de espera prioritárias.')}
-      <div style="text-align:center;margin:1.5rem 0">${btn('Explorar o Catálogo', frontendUrl)}</div>
-      ${imgTags()}
+
+      ${body(`Olá, <strong style="color:#F5F0E6">${userName || 'Membro'}</strong>. Seu cadastro foi efetuado com sucesso e o seu perfil já está ativo no nosso sistema.`)}
+      ${body('A partir de agora, você faz parte do nosso clã e terá acesso antecipado aos novos drops de streetwear, histórico de pedidos simplificado e gerenciamento de listas de espera prioritárias.')}
+
+      <div style="text-align: center; margin: 1.5rem 0;">
+        ${btn('Explorar o Catálogo', frontendUrl)}
+      </div>
+
+      <div style="margin: 1.5rem -2rem; text-align: center;">
+        <img src="${img('tags-email transp.png')}" alt="DNA Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
+
       ${divider()}
-      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,240,230,.3);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
-      ${imgFooter()}
+
+      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,240,230,.3);text-align:center;">
+        SHIBUYA STREETWEAR × BROOKLYN BASKETBALL
+      </p>
+
+      <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
 
-/* ── 8. Newsletter genérica (sem drop ativo) ─────────────── */
+/* ── 8. Confirmação de inscrição na newsletter (sem drop ativo) ── */
 async function sendNewsletterWelcome(to) {
   await _send({
     to,
     subject: 'Você está na lista — Zenith Zone',
     html: base(`
-      ${imgBanner('banner-drop-assign.png', 'Zenith Zone')}
+      <div style="margin:-2rem -2rem 1.5rem -2rem;">
+        <img src="${img('banner-drop-assign.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
       ${label('Lista exclusiva')}
       ${heading('Inscrição Confirmada')}
-      ${bodyText('Você entrou na lista da <strong style="color:#DC143C">Zenith Zone</strong>. Assim que o próximo drop for anunciado, você será o <strong style="color:#F5F0E6">primeiro a saber</strong>.')}
-      ${bodyText('Fique de olho na caixa de entrada. Peças limitadas, sem segunda chance.')}
-      ${imgTags()}
+      ${body('Você entrou na lista da <strong style="color:#DC143C">Zenith Zone</strong>. Assim que o próximo drop for anunciado, você será o <strong style="color:#F5F0E6">primeiro a saber</strong> — antes de qualquer um.')}
+      ${body('Fique de olho na caixa de entrada. Peças limitadas, sem segunda chance.')}
+      <div style="margin:1.5rem -2rem;">
+        <img src="${img('tags-email transp.png')}" alt="Tags" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0;">
+      </div>
       ${divider()}
-      ${imgFooter()}
+      <div style="margin:1.5rem -2rem -2rem -2rem;">
+        <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
+      </div>
     `),
   });
 }
