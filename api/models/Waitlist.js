@@ -7,6 +7,7 @@ const waitlistSchema = new mongoose.Schema({
     cor:     { type: String, trim: true, default: '' },
     tamanho: { type: String, trim: true, default: '' },
   },
+  notified:  { type: Boolean, default: false },
 }, { timestamps: true });
 
 /* Impede e-mails duplicados para o mesmo produto */

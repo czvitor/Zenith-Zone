@@ -5,8 +5,10 @@ const jwt         = require('jsonwebtoken');
 const mongoose    = require('mongoose');
 const Product     = require('../models/Product');
 const User        = require('../models/User');
+const Waitlist    = require('../models/Waitlist');
 const authenticate = require('../middleware/authenticate');
 const authorize    = require('../middleware/authorize');
+const { sendRestockNotification } = require('../utils/mailer');
 
 /* Importa a máquina de estados, helpers de stock e de erros de unicidade */
 const { VALID_STATUSES, validateTransition, parseUniqueError, calcTotalStock } = Product;
@@ -410,6 +412,23 @@ router.put('/:id', authenticate, authorize('canEditProducts'), writeLimiter, asy
     /* Re-fetch único após todas as mutações para resposta consistente */
     const finalProduct = await Product.findById(req.params.id);
     if (!finalProduct) return res.status(404).json({ error: 'Produto não encontrado.' });
+
+    /* Notifica waitlist se o produto voltou ao estoque (pausado → publicado) */
+    if (stockActuallyChanged && finalProduct.status === 'publicado') {
+      const prevFinal = await Product.findById(req.params.id).select('status');
+      Waitlist.find({ productId: req.params.id, notified: false })
+        .then(async entries => {
+          for (const entry of entries) {
+            try {
+              await sendRestockNotification(entry.email, finalProduct);
+              await Waitlist.updateOne({ _id: entry._id }, { $set: { notified: true } });
+            } catch (e) {
+              console.error('[Restock] Falha ao notificar', entry.email, e.message);
+            }
+          }
+        })
+        .catch(e => console.error('[Restock] Erro ao buscar waitlist:', e.message));
+    }
 
     res.json({ product: finalProduct.toPublic() });
   } catch (err) {

@@ -267,15 +267,15 @@ function _sakuraPetalTransition(card, onSwap, onDone) {
   /* Paleta de pétalas: rosa sakura + crimson + branco suave */
   const COLORS   = ['#FF1B6B','#FF4D8D','#E8206E','#FF69A0','#C91560','#FFB7D1','#dc143c','#ff8cb3'];
   const COUNT    = 140;
-  const DURATION = 1300;
+  const DURATION = 1700;
 
-  /* Cada pétala começa fora do lado direito e voa para a esquerda em diagonal */
+  /* Cada pétala começa na borda direita do card e voa para a esquerda em diagonal */
   const petals = Array.from({ length: COUNT }, (_, i) => {
-    const delay = (i / COUNT) * 0.6 + Math.random() * 0.2;
+    const delay = (i / COUNT) * 0.35 + Math.random() * 0.1;
     return {
-      x:      W + 20 + Math.random() * W * 0.7,
+      x:      W + Math.random() * W * 0.35,
       y:      -30  + Math.random() * (H + 60),
-      vx:     -(3.5 + Math.random() * 5.5),
+      vx:     -(4.5 + Math.random() * 6.0),
       vy:      0.5  + Math.random() * 1.4,
       size:    4   + Math.random() * 8,
       rot:     Math.random() * Math.PI * 2,
@@ -330,8 +330,8 @@ function _sakuraPetalTransition(card, onSwap, onDone) {
         const imgFadeOut = Math.max(0, 1 - progress * 9);
         mainI.style.opacity = imgFadeOut.toFixed(3);
       } else {
-        /* Fade in suave: começa aos 45%, termina aos 85% */
-        const imgFadeIn = Math.min(1, (progress - 0.45) / 0.2);
+        /* Fade in suave: começa em 45%, termina em 65% (antes do fade-out das pétalas) */
+        const imgFadeIn = Math.min(1, (progress - 0.45) / 0.20);
         mainI.style.opacity = Math.max(0, imgFadeIn).toFixed(3);
       }
     }
@@ -340,9 +340,10 @@ function _sakuraPetalTransition(card, onSwap, onDone) {
       const lp = Math.max(0, (progress - p.delay) / (1 - Math.max(p.delay, 0.01)));
       if (lp <= 0) return;
 
-      /* Fade in rápido na entrada, sem fade out — saem apenas por sair de cena */
-      const fadeIn = Math.min(lp * 6, 1);
-      p.alpha = fadeIn * 0.95;
+      /* Fade in rápido na entrada; fade out suave nos últimos 30% da animação */
+      const fadeIn  = Math.min(lp * 6, 1);
+      const fadeOut = progress > 0.70 ? Math.max(0, 1 - (progress - 0.70) / 0.30) : 1;
+      p.alpha = fadeIn * fadeOut * 0.95;
 
       p.sway += p.swayS;
       p.x    += p.vx;
@@ -511,7 +512,7 @@ async function showDropProduct(productId) {
         <canvas id="sakura-canvas"></canvas>
 
         <!-- Painéis holográficos — cobre a arena inteira (posicionamento absoluto) -->
-        <div class="dpb-fan-wrap" aria-hidden="true">${fanHTML}</div>
+        <div class="dpb-fan-wrap">${fanHTML}</div>
 
         <!-- Visual: anel + card principal -->
         <div class="dpb-visual">
@@ -521,6 +522,7 @@ async function showDropProduct(productId) {
               ? `<img class="dpb-main-img" id="dpb-main-img"
                       src="${mainImg}" alt="${title}" loading="eager">`
               : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#0c1030,#07091a)"></div>'}
+            <a class="dpb-main-link" href="${href}" aria-label="Ver produto: ${title}"></a>
           </div>
         </div>
 
@@ -610,18 +612,11 @@ async function showDropProduct(productId) {
       );
     }
 
-    /* Leque: clique nos painéis holográficos troca com onda */
+    /* Leque: clique nos painéis holográficos navega para a página do produto */
     bannerWrap.querySelectorAll('.dpb-holo-panel').forEach(panel => {
-      const activate = () => {
-        const fanImg = panel.querySelector('img');
-        const mainI  = document.getElementById('dpb-main-img');
-        if (!fanImg || !mainI) return;
-        const next = fanImg.getAttribute('src') || fanImg.src;
-        if (!next || mainI.src.endsWith(next.replace(/^.*\//, ''))) return;
-        _switchMainImg(next);
-      };
-      panel.addEventListener('click',   activate);
-      panel.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+      const goToProduct = () => { window.location.href = href; };
+      panel.addEventListener('click',   goToProduct);
+      panel.addEventListener('keydown', e => { if (e.key === 'Enter') goToProduct(); });
     });
 
     /* ── Slideshow automático: troca aleatória a cada 5s ── */

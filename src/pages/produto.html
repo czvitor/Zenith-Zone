@@ -871,9 +871,8 @@
 
   <!-- ── PRODUTO ───────────────────────────────────────────────── -->
   <div id="state-product">
-    <div class="breadcrumb">
-      <a href="../../index.html">Zenith Zone</a><span class="sep">›</span>
-      <a href="../../index.html#collection">Coleção</a><span class="sep">›</span>
+    <div class="breadcrumb" id="breadcrumb">
+      <a href="../../index.html">Zenith Zone</a>
       <span id="bc-title">—</span>
     </div>
 
@@ -1708,7 +1707,76 @@
   function renderProduct(p) {
     produto = p;
     document.title = `${p.titulo} — Zenith Zone`;
-    el('bc-title').textContent  = p.titulo;
+    /* Breadcrumb dinâmico */
+    (function buildBreadcrumb() {
+      const bc      = el('breadcrumb');
+      const bcTitle = el('bc-title');
+      if (!bc || !bcTitle) return;
+
+      /* Resolve IDs → nomes legíveis usando o mesmo CATALOG do catálogo */
+      const CATALOG_SEED = {
+        zones: [
+          { id:'masculino', nome:'Masculino' },
+          { id:'feminino',  nome:'Feminino'  },
+          { id:'infantil',  nome:'Infantil'  },
+        ],
+        cats: [
+          { id:'c-roup-m', nome:'Roupas',     zonaId:'masculino' },
+          { id:'c-aces-m', nome:'Acessórios', zonaId:'masculino' },
+          { id:'c-roup-f', nome:'Roupas',     zonaId:'feminino'  },
+          { id:'c-aces-f', nome:'Acessórios', zonaId:'feminino'  },
+        ],
+        subs: [
+          { id:'s-cam-m',  nome:'Camisetas', catId:'c-roup-m' },
+          { id:'s-mol-m',  nome:'Moletons',  catId:'c-roup-m' },
+          { id:'s-cal-m',  nome:'Calças',    catId:'c-roup-m' },
+          { id:'s-jak-m',  nome:'Jaquetas',  catId:'c-roup-m' },
+          { id:'s-bon-m',  nome:'Bonés',     catId:'c-aces-m' },
+          { id:'s-bag-m',  nome:'Bags',      catId:'c-aces-m' },
+          { id:'s-mei-m',  nome:'Meias',     catId:'c-aces-m' },
+          { id:'s-cam-f',  nome:'Camisetas', catId:'c-roup-f' },
+          { id:'s-vest-f', nome:'Vestidos',  catId:'c-roup-f' },
+          { id:'s-sho-f',  nome:'Shorts',    catId:'c-roup-f' },
+          { id:'s-mei-f',  nome:'Meias',     catId:'c-aces-f' },
+          { id:'s-bol-f',  nome:'Bolsas',    catId:'c-aces-f' },
+        ],
+      };
+      let CAT;
+      try { const r = localStorage.getItem('ZZ_CATALOG'); CAT = (r && JSON.parse(r)?.zones) ? JSON.parse(r) : CATALOG_SEED; }
+      catch { CAT = CATALOG_SEED; }
+
+      function resolve(arr, id) { return arr.find(x => x.id === id)?.nome || id; }
+
+      /* Guarda o link "Zenith Zone" e reconstrói o container */
+      const zzLink = bc.querySelector('a');
+      bc.innerHTML = '';
+      if (zzLink) bc.appendChild(zzLink);
+
+      function sep() {
+        const s = document.createElement('span');
+        s.className = 'sep';
+        s.textContent = '›';
+        bc.appendChild(s);
+      }
+      function seg(label, href) {
+        sep();
+        const node = document.createElement('a');
+        node.href = href;
+        node.textContent = label;
+        bc.appendChild(node);
+      }
+
+      const base = '../../src/pages/catalogo.html';
+      if (p.colecao)        seg(p.colecao,                          `${base}?colecao=${encodeURIComponent(p.colecao)}`);
+      if (p.zonaId)         seg(resolve(CAT.zones, p.zonaId),       `${base}?zona=${encodeURIComponent(p.zonaId)}`);
+      if (p.categoriaId)    seg(resolve(CAT.cats,  p.categoriaId),  `${base}?zona=${encodeURIComponent(p.zonaId)}&categoria=${encodeURIComponent(p.categoriaId)}`);
+      if (p.subcategoriaId) seg(resolve(CAT.subs,  p.subcategoriaId),`${base}?zona=${encodeURIComponent(p.zonaId)}&categoria=${encodeURIComponent(p.categoriaId)}&subcategoria=${encodeURIComponent(p.subcategoriaId)}`);
+
+      sep();
+      bcTitle.id = 'bc-title';
+      bc.appendChild(bcTitle);
+    })();
+    el('bc-title').textContent = p.titulo;
     el('p-titulo').textContent  = p.titulo;
     el('p-drop').style.display  = p.dropExclusivo ? 'flex' : 'none';
     el('p-jp').textContent      = p.tituloJP || '';
