@@ -1,10 +1,10 @@
 const { Resend } = require('resend');
 
-/* Resend usa HTTPS — não é bloqueado pelo Render como SMTP direto.
-   Configure RESEND_API_KEY nas variáveis de ambiente do Render.        */
-const configured = !!process.env.RESEND_API_KEY;
-const resend     = configured ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM_ADDR  = process.env.SMTP_FROM || 'Zenith Zone <onboarding@resend.dev>';
+const configured   = !!process.env.RESEND_API_KEY;
+const resend       = configured ? new Resend(process.env.RESEND_API_KEY) : null;
+const FROM_ADDR    = process.env.SMTP_FROM || 'Zenith Zone <onboarding@resend.dev>';
+/* URL base das imagens hospedadas no GitHub Pages */
+const IMG_BASE     = (process.env.FRONTEND_URL || 'https://czvitor.github.io').replace(/\/$/, '') + '/src/images';
 
 async function _send({ to, subject, html }) {
   if (!resend) {
@@ -78,21 +78,37 @@ function fmtCountdown(ms) {
   return `${h} hora(s)`;
 }
 
+function imgBanner(file, alt) {
+  return `<div style="margin:-2rem -2rem 1.5rem -2rem"><img src="${IMG_BASE}/${encodeURIComponent(file)}" alt="${alt}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto"></div>`;
+}
+function imgSection(file, alt) {
+  return `<div style="margin:1.5rem -2rem;text-align:center"><img src="${IMG_BASE}/${encodeURIComponent(file)}" alt="${alt}" width="520" style="width:100%;max-width:520px;display:block;height:auto;border:0"></div>`;
+}
+function imgFooter() {
+  return `<div style="margin:1.5rem -2rem -2rem -2rem;border-top:1px solid rgba(245,240,230,0.07)"><img src="${IMG_BASE}/email-rodape.png" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto"></div>`;
+}
+function imgTags() {
+  return imgSection('tags-email transp.png', 'Tags Zenith Zone');
+}
+
 /* ── 1. Reset de senha ───────────────────────────────────── */
 async function sendPasswordResetEmail(to, resetLink) {
   await _send({
     to,
     subject: 'Redefinir sua senha — Zenith Zone',
     html: base(`
+      ${imgBanner('banner-password-reset.png', 'Segurança Zenith Zone')}
       ${label('Segurança da conta')}
       ${heading('Redefinir Senha')}
       ${bodyText('Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha.')}
       ${bodyText('Este link expira em <strong style="color:#F5F0E6">1 hora</strong>.')}
       <div style="text-align:center;margin:1.5rem 0">${btn('Redefinir Senha', resetLink)}</div>
+      ${imgTags()}
       ${divider()}
       <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center">
         Se você não solicitou essa alteração, ignore este e-mail.
       </p>
+      ${imgFooter()}
     `),
   });
 }
@@ -117,6 +133,7 @@ async function sendOrderConfirmationEmail(to, order) {
     to,
     subject: `Pedido #${shortId} confirmado — Zenith Zone`,
     html: base(`
+      ${imgBanner('banner-order.png', 'Pedido Confirmado Zenith Zone')}
       ${label('Confirmação de pedido')}
       ${heading(`Pedido #${shortId} Recebido!`)}
       ${bodyText('Seu pedido foi efetuado com sucesso. Em breve você receberá o código de rastreamento.')}
@@ -139,8 +156,10 @@ async function sendOrderConfirmationEmail(to, order) {
           </tfoot>
         </table>
       ` : ''}
+      ${imgTags()}
       ${divider()}
       <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center">Obrigado por comprar na Zenith Zone.</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -152,12 +171,15 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
     to,
     subject: `Você está na lista — ${dropTitle} | Zenith Zone`,
     html: base(`
+      ${imgBanner('banner-drop-assign.png', dropTitle)}
       ${label('Lista exclusiva do drop')}
       ${heading('Inscrição Confirmada')}
       ${bodyText(`Você entrou na lista do drop <strong style="color:#DC143C">${dropTitle}</strong>.<br>Faltam aproximadamente <strong style="color:#F5F0E6">${remaining}</strong> para o lançamento.`)}
+      ${imgSection('mockup camiseta.png', 'Preview do Drop')}
+      ${imgTags()}
       ${bodyText('Você receberá alertas automáticos faltando <strong style="color:#F5F0E6">1 semana</strong>, <strong style="color:#F5F0E6">1 dia</strong> e <strong style="color:#F5F0E6">1 hora</strong> para o drop.')}
       ${divider()}
-      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,230,.2);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -169,16 +191,19 @@ async function sendDropAlert(to, dropTitle, label_) {
       subject: `Falta 1 semana — ${dropTitle} | Zenith Zone`,
       title:   'Falta 1 Semana',
       msg:     `Em <strong style="color:#F5F0E6">7 dias</strong> as peças do drop <strong style="color:#DC143C">${dropTitle}</strong> estarão disponíveis.`,
+      banner:  'banner-drop-assign-1week.png',
     },
     day: {
       subject: `Falta 1 dia — ${dropTitle} | Zenith Zone`,
       title:   'Falta 1 Dia',
       msg:     `É amanhã. Faltam <strong style="color:#F5F0E6">24 horas</strong> para o lançamento de <strong style="color:#DC143C">${dropTitle}</strong>.`,
+      banner:  'banner-drop-assign-1day.png',
     },
     hour: {
       subject: `Falta 1 hora! — ${dropTitle} | Zenith Zone`,
       title:   'Falta 1 Hora!',
       msg:     `Em <strong style="color:#F5F0E6">60 minutos</strong> o drop <strong style="color:#DC143C">${dropTitle}</strong> estará liberado!`,
+      banner:  'banner-drop-assign-1hour.png',
     },
   };
   const cfg = configs[label_] || configs.week;
@@ -186,12 +211,16 @@ async function sendDropAlert(to, dropTitle, label_) {
     to,
     subject: cfg.subject,
     html: base(`
+      ${imgBanner(cfg.banner, cfg.title)}
       ${label('Contagem regressiva')}
       ${heading(cfg.title)}
       <p style="margin:0 0 .5rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,240,230,.5)">${dropTitle}</p>
       ${bodyText(cfg.msg)}
+      ${imgSection('mockup camiseta.png', 'Preview do Produto')}
+      ${imgTags()}
       ${divider()}
       <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,230,.2);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -202,12 +231,14 @@ async function sendWaitlistConfirmation(to, produto) {
     to,
     subject: `Lista de espera confirmada — ${produto.titulo} | Zenith Zone`,
     html: base(`
+      ${imgBanner('banner-no-units.png', 'Zenith Zone Restock')}
       ${label('Lista de espera')}
       ${heading('Inscrição Confirmada')}
       ${bodyText(`Sua inscrição para a lista de espera de <strong style="color:#DC143C">${produto.titulo}</strong> foi processada.`)}
       ${bodyText('Assim que as peças retornarem ao estoque, você será notificado com prioridade.')}
+      ${imgTags()}
       ${divider()}
-      <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.3);text-align:center">Zenith Zone — Shibuya Streetwear × Brooklyn Basketball</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -220,13 +251,20 @@ async function sendRestockNotification(to, produto) {
     to,
     subject: `Voltou ao estoque! ${produto.titulo} — Zenith Zone`,
     html: base(`
+      ${imgBanner('banner-restock.png', 'Restock Zenith Zone')}
       ${label('Alerta de reposição')}
       ${heading('Voltou ao Estoque')}
       <p style="margin:0 0 1rem;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(245,240,230,.6)">${produto.titulo}</p>
       ${bodyText('A peça que você estava esperando está <strong style="color:#DC143C">disponível novamente</strong>. Garanta os seus itens antes que esgotem.')}
-      <div style="text-align:center;margin:1.5rem 0">${btn('Garantir Agora', productUrl)}</div>
+      <div style="text-align:center;margin:1.5rem 0">
+        <a href="${productUrl}" style="display:inline-block;border:0;text-decoration:none">
+          <img src="${IMG_BASE}/Botao-exclusivo.png" alt="Garantir Agora" width="260" style="width:100%;max-width:260px;display:block;height:auto;border:0">
+        </a>
+      </div>
+      ${imgTags()}
       ${divider()}
       <p style="margin:0;font-family:'Zen Kaku Gothic New',Arial,sans-serif;font-size:.75rem;color:rgba(245,240,230,.25);text-align:center">Você recebeu este e-mail porque se inscreveu na lista de espera.</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -238,13 +276,16 @@ async function sendWelcomeEmail(to, userName) {
     to,
     subject: 'Bem-vindo ao Clã — Zenith Zone',
     html: base(`
+      ${imgBanner('banner-sign-in.png', 'Bem-vindo à Zenith Zone')}
       ${label('Conexão estabelecida')}
       ${heading('Cadastro Concluído')}
       ${bodyText(`Olá, <strong style="color:#F5F0E6">${userName || 'Membro'}</strong>. Seu cadastro foi efetuado com sucesso.`)}
       ${bodyText('A partir de agora você terá acesso antecipado a drops, histórico de pedidos e listas de espera prioritárias.')}
       <div style="text-align:center;margin:1.5rem 0">${btn('Explorar o Catálogo', frontendUrl)}</div>
+      ${imgTags()}
       ${divider()}
       <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,240,230,.3);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
+      ${imgFooter()}
     `),
   });
 }
@@ -255,12 +296,14 @@ async function sendNewsletterWelcome(to) {
     to,
     subject: 'Você está na lista — Zenith Zone',
     html: base(`
+      ${imgBanner('banner-drop-assign.png', 'Zenith Zone')}
       ${label('Lista exclusiva')}
       ${heading('Inscrição Confirmada')}
       ${bodyText('Você entrou na lista da <strong style="color:#DC143C">Zenith Zone</strong>. Assim que o próximo drop for anunciado, você será o <strong style="color:#F5F0E6">primeiro a saber</strong>.')}
       ${bodyText('Fique de olho na caixa de entrada. Peças limitadas, sem segunda chance.')}
+      ${imgTags()}
       ${divider()}
-      <p style="margin:0;font-family:'Barlow Condensed',Arial Narrow,sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(245,240,230,.2);text-align:center">SHIBUYA STREETWEAR × BROOKLYN BASKETBALL</p>
+      ${imgFooter()}
     `),
   });
 }
