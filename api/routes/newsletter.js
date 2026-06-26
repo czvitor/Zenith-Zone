@@ -5,7 +5,7 @@ const Newsletter  = require('../models/Newsletter');
 const SiteSettings = require('../models/SiteSettings');
 const authenticate = require('../middleware/authenticate');
 const authorize    = require('../middleware/authorize');
-const { sendDropConfirmation } = require('../utils/mailer');
+const { sendDropConfirmation, sendNewsletterWelcome } = require('../utils/mailer');
 
 const subLimiter = rateLimit({
   windowMs: 60 * 1000, max: 5,
@@ -34,7 +34,11 @@ router.post('/', subLimiter, [
       const cfg = await SiteSettings.findById('global').lean();
       if (cfg?.dropActive && cfg?.dropTitle) {
         sendDropConfirmation(email, cfg.dropTitle, cfg.dropDate).catch(err =>
-          console.error('[Newsletter] Falha no e-mail de confirmação:', err.message),
+          console.error('[Newsletter] Falha no e-mail de confirmação (drop):', err.message),
+        );
+      } else {
+        sendNewsletterWelcome(email).catch(err =>
+          console.error('[Newsletter] Falha no e-mail de confirmação (genérico):', err.message),
         );
       }
       await Newsletter.updateOne({ _id: doc._id }, { $set: { 'alertsSent.confirmation': true } });

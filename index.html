@@ -1605,13 +1605,128 @@
   <script src="src/js/auth-modal.js"></script>
 
   <!-- Newsletter: inscrição na waitlist do próximo drop -->
+  <style>
+    #nl-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(4,6,15,.85); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    #nl-modal-overlay.open { display: flex; }
+    #nl-modal {
+      background: #07091A; border: 1px solid rgba(220,20,60,.25);
+      border-radius: 8px; max-width: 420px; width: 90%; padding: 2.5rem 2rem 2rem;
+      text-align: center; position: relative;
+    }
+    #nl-modal .nl-m-jp  { font-family:'Barlow Condensed',sans-serif; font-size:.6rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:#DC143C; margin:0 0 .5rem; }
+    #nl-modal .nl-m-h   { font-family:'Barlow Condensed',sans-serif; font-size:1.6rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:#F5F0E6; margin:0 0 1rem; line-height:1.1; }
+    #nl-modal .nl-m-p   { font-family:'Zen Kaku Gothic New',sans-serif; font-size:.88rem; line-height:1.7; color:rgba(245,240,230,.7); margin:0 0 1.5rem; }
+    #nl-modal .nl-m-close { position:absolute; top:.8rem; right:1rem; background:none; border:none; cursor:pointer; font-size:1.2rem; color:rgba(245,240,230,.35); line-height:1; padding:.25rem; }
+    #nl-modal .nl-m-close:hover { color:#F5F0E6; }
+    #nl-modal .nl-m-btn { display:inline-block; padding:.65rem 1.6rem; background:#DC143C; color:#fff; border:none; cursor:pointer; border-radius:3px; font-family:'Barlow Condensed',sans-serif; font-size:.85rem; font-weight:900; letter-spacing:.15em; text-transform:uppercase; }
+  </style>
+
+  <div id="nl-modal-overlay" role="dialog" aria-modal="true">
+    <div id="nl-modal">
+      <button class="nl-m-close" id="nl-modal-close" aria-label="Fechar">✕</button>
+      <p class="nl-m-jp">ゼニス・ゾーン</p>
+      <h2 class="nl-m-h" id="nl-modal-title">Você Está<br>na Lista</h2>
+      <p class="nl-m-p" id="nl-modal-msg">Fique de olho na caixa de entrada. Você será avisado antes de qualquer um.</p>
+      <button class="nl-m-btn" id="nl-modal-close-btn">Entendido</button>
+    </div>
+  </div>
+
   <script>
   ;(function () {
-    const form  = document.querySelector('.nl-form');
-    const input = form?.querySelector('.nl-input');
-    const btn   = form?.querySelector('.nl-btn');
-    if (!form || !input || !btn) return;
+    const form    = document.querySelector('.nl-form');
+    const input   = form?.querySelector('.nl-input');
+    const btn     = form?.querySelector('.nl-btn');
+    const overlay = document.getElementById('nl-modal-overlay');
+    const mTitle  = document.getElementById('nl-modal-title');
+    const mMsg    = document.getElementById('nl-modal-msg');
+    if (!form || !btn || !overlay) return;
 
+    const API = window.ZZ_API_BASE || (window.location.origin + '/api');
+
+    function openModal(title, msg) {
+      mTitle.innerHTML = title;
+      mMsg.textContent = msg;
+      overlay.classList.add('open');
+    }
+    function closeModal() { overlay.classList.remove('open'); }
+
+    document.getElementById('nl-modal-close').addEventListener('click', closeModal);
+    document.getElementById('nl-modal-close-btn').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* ── Verifica login e status do drop ── */
+    const user  = JSON.parse(localStorage.getItem('zz_user') || 'null');
+    const token = localStorage.getItem('zz_token');
+    const loggedIn = !!(user && token);
+
+    let dropActive = false;
+
+    fetch(`${API}/settings`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        dropActive = !!data?.dropActive;
+        const defaultText = dropActive ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
+
+        btn.textContent = defaultText;
+        document.querySelectorAll('.zz-nav-cta, .zz-col-cta').forEach(el => {
+          if (el.textContent.trim() === 'Entrar na Lista') el.textContent = defaultText;
+        });
+
+        /* Se logado: esconde input, remove validação e centraliza botão */
+        if (loggedIn && input) {
+          input.style.display = 'none';
+          input.required = false;
+          btn.style.borderRadius = '4px';
+          form.style.justifyContent = 'center';
+        }
+      })
+      .catch(() => {});
+
+    /* ── Função de submissão compartilhada ── */
+    async function subscribe(email) {
+      const res  = await fetch(`${API}/newsletter`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, source: 'home' }),
+      });
+      return res;
+    }
+
+    /* ── Usuário LOGADO: clique no botão = submit direto + modal ── */
+    if (loggedIn) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = 'Entrando…';
+        try {
+          const res = await subscribe(user.email);
+          if (res.ok) {
+            openModal(
+              'Você Está<br>na Lista',
+              dropActive
+                ? 'Você receberá alertas de 1 semana, 1 dia e 1 hora antes do drop. Fique de olho na caixa de entrada.'
+                : 'Assim que o próximo drop for anunciado, você será o primeiro a saber.'
+            );
+          } else {
+            const d = await res.json();
+            openModal('Já na Lista', d.message || 'Você já está inscrito na lista.');
+          }
+        } catch {
+          openModal('Erro', 'Não foi possível conectar ao servidor. Tente novamente.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = dropActive ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
+        }
+      });
+      return;
+    }
+
+    /* ── Usuário NÃO logado: comportamento original com input de e-mail ── */
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = input.value.trim();
@@ -1622,25 +1737,14 @@
       btn.textContent = 'Enviando…';
 
       try {
-        const API = window.ZZ_API_BASE || (window.location.origin + '/api');
-        const res = await fetch(`${API}/newsletter`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ email, source: 'home' }),
-        });
+        const res  = await subscribe(email);
         const data = await res.json();
         btn.textContent = data.message || (res.ok ? 'Inscrito!' : 'Erro. Tente novamente.');
         if (res.ok) input.value = '';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.textContent = origText;
-        }, 4000);
+        setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 4000);
       } catch {
         btn.textContent = 'Erro de conexão.';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.textContent = origText;
-        }, 3000);
+        setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 3000);
       }
     });
   })();

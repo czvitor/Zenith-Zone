@@ -5,7 +5,7 @@ const crypto    = require('crypto');
 const User      = require('../models/User');
 const authenticate  = require('../middleware/authenticate');
 const authorize     = require('../middleware/authorize');
-const { sendPasswordResetEmail } = require('../utils/mailer');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../utils/mailer');
 
 // ── Regras de senha reutilizáveis ─────────────────────────────────────────────
 const passwordRules = [
@@ -68,6 +68,9 @@ router.post('/register', registerRules, async (req, res) => {
     const user     = await User.create({ firstName, lastName, username, email, password, role: 'client' });
     const token    = signToken(user._id);
     res.status(201).json({ token, user: user.toSafeObject() });
+    sendWelcomeEmail(email, firstName).catch(err =>
+      console.error('[Auth] Falha no e-mail de boas-vindas:', err.message),
+    );
   } catch (err) {
     console.error('register:', err);
     res.status(500).json({ error: 'Erro interno ao criar usuário.' });

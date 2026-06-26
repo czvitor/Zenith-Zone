@@ -415,7 +415,6 @@ router.put('/:id', authenticate, authorize('canEditProducts'), writeLimiter, asy
 
     /* Notifica waitlist se o produto voltou ao estoque (pausado → publicado) */
     if (stockActuallyChanged && finalProduct.status === 'publicado') {
-      const prevFinal = await Product.findById(req.params.id).select('status');
       Waitlist.find({ productId: req.params.id, notified: false })
         .then(async entries => {
           for (const entry of entries) {

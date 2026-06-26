@@ -6,6 +6,7 @@ const {
   sendDropAlert,
   sendOrderConfirmationEmail,
   sendPasswordResetEmail,
+  sendWelcomeEmail,
 } = require('./mailer');
 
 const TO = 'vitord_sousa@hotmail.com';
@@ -14,6 +15,10 @@ const produtoFake = {
   _id:    '665f1a2b3c4d5e6f7a8b9c0d',
   slug:   'quarter-zip-pullover',
   titulo: 'Quarter Zip Pullover',
+  fotos: {
+    frente: ['https://picsum.photos/seed/zz-tee1-f1/800/1000'],
+    costas: ['https://picsum.photos/seed/zz-tee1-c1/800/1000'],
+  },
 };
 
 const pedidoFake = {
@@ -56,6 +61,10 @@ const EMAILS = {
   '8': {
     desc: 'Reset de senha',
     fn:   () => sendPasswordResetEmail(TO, 'http://localhost:5500/src/pages/reset-password.html?token=TESTE123'),
+  },
+  '9': {
+    desc: 'Boas-vindas (cadastro efetuado)',
+    fn:   () => sendWelcomeEmail(TO, 'Vitor'),
   },
 };
 

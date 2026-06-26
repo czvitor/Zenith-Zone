@@ -21,15 +21,21 @@ function startDropCron() {
       /* Para cada limiar, busca os inscritos que ainda não receberam esse alerta
          e estão dentro da janela (já passou o limiar mas o drop ainda não ocorreu) */
       const alerts = [
-        { key: 'alertsSent.week', label: 'week', threshold: WEEK  },
-        { key: 'alertsSent.day',  label: 'day',  threshold: DAY   },
-        { key: 'alertsSent.hour', label: 'hour', threshold: HOUR  },
+        { key: 'alertsSent.week', label: 'week', threshold: WEEK, minSubscribedBefore: WEEK },
+        { key: 'alertsSent.day',  label: 'day',  threshold: DAY,  minSubscribedBefore: DAY  },
+        { key: 'alertsSent.hour', label: 'hour', threshold: HOUR, minSubscribedBefore: null },
       ];
 
-      for (const { key, label, threshold } of alerts) {
+      for (const { key, label, threshold, minSubscribedBefore } of alerts) {
         if (ms > threshold || ms < -HOUR) continue; /* ainda não é hora ou já passou demais */
 
-        const subscribers = await Newsletter.find({ ativo: true, [key]: false });
+        /* Só envia o alerta para quem estava inscrito antes da janela abrir.
+           Ex.: alerta da semana só vai para quem se inscreveu há ≥ 7 dias antes do drop. */
+        const cutoff = minSubscribedBefore ? new Date(dropDate - minSubscribedBefore) : null;
+        const filter = { ativo: true, [key]: false };
+        if (cutoff) filter.createdAt = { $lte: cutoff };
+
+        const subscribers = await Newsletter.find(filter);
         if (!subscribers.length) continue;
 
         console.log(`[DropCron] Enviando alerta "${label}" para ${subscribers.length} inscritos.`);
