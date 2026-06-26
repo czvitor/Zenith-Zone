@@ -4649,15 +4649,34 @@
     el.addEventListener('click', loadDropProducts)
   );
 
+  async function syncDropToAPI() {
+    try {
+      const token = ZZAuth.getToken();
+      await fetch(`${API_BASE_ADMIN}/settings`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          dropActive: dropToggle.checked,
+          dropTitle:  dropTitleInp.value,
+          dropDate:   dropDateInp.value || null,
+        }),
+      });
+    } catch (err) {
+      console.warn('[ZZ Drop] Falha ao sincronizar com API:', err);
+    }
+  }
+
   dropToggle.addEventListener('change', () => {
     CFG.set('zz_drop_active', dropToggle.checked);
     applyDropState(dropToggle.checked);
+    syncDropToAPI();
   });
 
   dropSaveBtn.addEventListener('click', () => {
     CFG.set('zz_drop_date',       dropDateInp.value);
     CFG.set('zz_drop_title',      dropTitleInp.value);
     CFG.set('zz_drop_product_id', dropProductSel?.value || '');
+    syncDropToAPI();
     dropSavedMsg.hidden = false;
     setTimeout(() => { dropSavedMsg.hidden = true; }, 2500);
   });
