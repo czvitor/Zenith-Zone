@@ -4261,12 +4261,20 @@
           </div>
           <div class="fields-row" style="margin-bottom:.75rem">
             <div class="field">
-              <label class="field-label" for="dc-dvalue">Valor do desconto <span class="req">*</span></label>
-              <input class="field-input" id="dc-dvalue" type="number" min="0" step="0.01" placeholder="15">
+              <label class="field-label">Valor do desconto <span class="req">*</span></label>
+              <div class="disc-stepper">
+                <button type="button" class="disc-step-btn" data-target="dc-dvalue" data-dir="-1" data-step="1">−</button>
+                <input class="disc-step-val" id="dc-dvalue" type="number" min="0" step="1" placeholder="15">
+                <button type="button" class="disc-step-btn" data-target="dc-dvalue" data-dir="1" data-step="1">+</button>
+              </div>
             </div>
             <div class="field">
-              <label class="field-label" for="dc-mincart">Carrinho mínimo (R$)</label>
-              <input class="field-input" id="dc-mincart" type="number" min="0" step="0.01" value="0">
+              <label class="field-label">Carrinho mínimo (R$)</label>
+              <div class="disc-stepper">
+                <button type="button" class="disc-step-btn" data-target="dc-mincart" data-dir="-1" data-step="10">−</button>
+                <input class="disc-step-val" id="dc-mincart" type="number" min="0" step="10" value="0">
+                <button type="button" class="disc-step-btn" data-target="dc-mincart" data-dir="1" data-step="10">+</button>
+              </div>
               <span class="form-hint">0 = sem valor mínimo</span>
             </div>
           </div>
@@ -4313,13 +4321,21 @@
           </div>
           <div class="fields-row" style="margin-bottom:.75rem">
             <div class="field">
-              <label class="field-label" for="dc-maxuses">Limite total de usos</label>
-              <input class="field-input" id="dc-maxuses" type="number" min="0" step="1" value="0">
+              <label class="field-label">Limite total de usos</label>
+              <div class="disc-stepper">
+                <button type="button" class="disc-step-btn" data-target="dc-maxuses" data-dir="-1" data-step="10">−</button>
+                <input class="disc-step-val" id="dc-maxuses" type="number" min="0" step="10" value="0">
+                <button type="button" class="disc-step-btn" data-target="dc-maxuses" data-dir="1" data-step="10">+</button>
+              </div>
               <span class="form-hint">0 = ilimitado</span>
             </div>
             <div class="field">
-              <label class="field-label" for="dc-maxuser">Limite por utilizador</label>
-              <input class="field-input" id="dc-maxuser" type="number" min="0" step="1" value="0">
+              <label class="field-label">Limite por utilizador</label>
+              <div class="disc-stepper">
+                <button type="button" class="disc-step-btn" data-target="dc-maxuser" data-dir="-1" data-step="1">−</button>
+                <input class="disc-step-val" id="dc-maxuser" type="number" min="0" step="1" value="0">
+                <button type="button" class="disc-step-btn" data-target="dc-maxuser" data-dir="1" data-step="1">+</button>
+              </div>
               <span class="form-hint">0 = ilimitado</span>
             </div>
           </div>
@@ -4405,7 +4421,7 @@
               <label class="field-label" for="db-buy">Compre (quantidade) <span class="req">*</span></label>
               <div class="disc-stepper">
                 <button type="button" class="disc-step-btn" data-target="db-buy" data-dir="-1">−</button>
-                <input class="disc-step-val" id="db-buy" type="number" min="1" value="2" readonly>
+                <input class="disc-step-val" id="db-buy" type="number" min="1" value="2">
                 <button type="button" class="disc-step-btn" data-target="db-buy" data-dir="1">+</button>
               </div>
             </div>
@@ -4413,7 +4429,7 @@
               <label class="field-label" for="db-get">Leve de graça (quantidade) <span class="req">*</span></label>
               <div class="disc-stepper">
                 <button type="button" class="disc-step-btn" data-target="db-get" data-dir="-1">−</button>
-                <input class="disc-step-val" id="db-get" type="number" min="1" value="1" readonly>
+                <input class="disc-step-val" id="db-get" type="number" min="1" value="1">
                 <button type="button" class="disc-step-btn" data-target="db-get" data-dir="1">+</button>
               </div>
             </div>
@@ -4427,8 +4443,12 @@
               </select>
             </div>
             <div class="field">
-              <label class="field-label" for="db-mincart">Carrinho mínimo (R$)</label>
-              <input class="field-input" id="db-mincart" type="number" min="0" step="0.01" value="0">
+              <label class="field-label">Carrinho mínimo (R$)</label>
+              <div class="disc-stepper">
+                <button type="button" class="disc-step-btn" data-target="db-mincart" data-dir="-1" data-step="10">−</button>
+                <input class="disc-step-val" id="db-mincart" type="number" min="0" step="10" value="0">
+                <button type="button" class="disc-step-btn" data-target="db-mincart" data-dir="1" data-step="10">+</button>
+              </div>
             </div>
           </div>
           <div class="card-section-divider"><span>Validade</span></div>
@@ -4529,10 +4549,11 @@
 
         <div class="fields-row" style="margin-bottom:1rem">
           <div class="field">
-            <label class="field-label" for="bd-pct">Percentagem de desconto</label>
-            <div class="field-suffix-wrap">
-              <input class="field-input" id="bd-pct" type="number" min="1" max="99" step="1" placeholder="20">
-              <span class="field-suffix">%</span>
+            <label class="field-label">Percentagem de desconto</label>
+            <div class="disc-stepper">
+              <button type="button" class="disc-step-btn" data-target="bd-pct" data-dir="-1" data-step="5">−</button>
+              <input class="disc-step-val" id="bd-pct" type="number" min="1" max="99" step="5" placeholder="20">
+              <button type="button" class="disc-step-btn" data-target="bd-pct" data-dir="1" data-step="5">+</button>
             </div>
             <span class="form-hint">Preço final = preço original × (1 − %/100)</span>
           </div>
@@ -8949,74 +8970,77 @@
       return new Date(d).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
     }
 
-    /* ── Steppers +/− ─────────────────────────────────────── */
+    /* ── Steppers +/− (suporta data-step e inputs editáveis) ── */
     document.addEventListener('click', e => {
       const btn = e.target.closest('.disc-step-btn');
       if (!btn) return;
       const inp = document.getElementById(btn.dataset.target);
       if (!inp) return;
-      const dir = parseInt(btn.dataset.dir);
-      const min = parseInt(inp.min) || 1;
-      const newVal = Math.max(min, (parseInt(inp.value) || 1) + dir);
-      inp.value = newVal;
+      const dir  = parseInt(btn.dataset.dir);
+      const step = parseFloat(btn.dataset.step) || 1;
+      const min  = parseFloat(inp.min) ?? 0;
+      const max  = inp.max ? parseFloat(inp.max) : Infinity;
+      const cur  = parseFloat(inp.value) || 0;
+      inp.value  = Math.min(max, Math.max(min, cur + dir * step));
+      inp.dispatchEvent(new Event('input', { bubbles: true })); // dispara preview se houver
     });
 
-    /* ── Date-Time Picker reutilizável ────────────────────── */
+    /* ── Date-Time Picker — portal ao body (evita overflow:hidden) ── */
     const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
     function makeDiscDtp(cfg) {
-      /* cfg: { wrapId, btnId, displayId, hiddenId, label, emptyText, alignRight } */
-      const wrap    = document.getElementById(cfg.wrapId);
       const btn     = document.getElementById(cfg.btnId);
       const display = document.getElementById(cfg.displayId);
       const hidden  = document.getElementById(cfg.hiddenId);
-      if (!wrap || !btn || !display || !hidden) return;
+      if (!btn || !display || !hidden) return null;
 
-      /* Injeta o popover dentro do wrap */
       const uid = cfg.hiddenId;
-      wrap.insertAdjacentHTML('beforeend', `
-        <div class="disc-dtp-popover${cfg.alignRight ? ' align-right' : ''}" id="dtp-pop-${uid}">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem .35rem;border-bottom:1px solid rgba(245,240,230,0.07)">
-            <span style="font-family:var(--font-head);font-weight:var(--fw-black);font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.06em;color:var(--color-offwhite)">${cfg.label}</span>
-            <button type="button" id="dtp-cls-${uid}" style="background:none;border:none;cursor:pointer;color:var(--color-text-faint);line-height:0;padding:.2rem;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
-            </button>
-          </div>
-          <div class="zz-dtp-cal">
-            <div class="zz-cal-head">
-              <button type="button" class="zz-cal-nav" id="dtp-prev-${uid}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <span class="zz-cal-label" id="dtp-lbl-${uid}"></span>
-              <button type="button" class="zz-cal-nav" id="dtp-next-${uid}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            </div>
-            <div class="zz-cal-dow"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
-            <div class="zz-cal-grid" id="dtp-grid-${uid}"></div>
-          </div>
-          <div class="zz-dtp-sep"><div class="zz-dtp-sep-line"></div><span>Horário</span><div class="zz-dtp-sep-line"></div></div>
-          <div class="zz-time">
-            <div class="zz-time-unit">
-              <span class="zz-time-unit-label">Hora</span>
-              <div class="zz-time-col" id="dtp-hrs-${uid}"></div>
-            </div>
-            <div class="zz-time-colon">:</div>
-            <div class="zz-time-unit">
-              <span class="zz-time-unit-label">Min</span>
-              <div class="zz-time-col" id="dtp-min-${uid}"></div>
-            </div>
-          </div>
-          <div class="zz-dtp-footer">
-            <button type="button" class="zz-dtp-confirm" id="dtp-ok-${uid}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg>
-              Confirmar
-            </button>
-            <button type="button" class="zz-dtp-clear" id="dtp-clr-${uid}">Limpar</button>
-          </div>
-        </div>`);
 
-      const pop   = document.getElementById(`dtp-pop-${uid}`);
+      /* Injeta o popover no BODY (portal) para escapar de overflow:hidden */
+      const pop = document.createElement('div');
+      pop.id = `dtp-pop-${uid}`;
+      pop.style.cssText = [
+        'display:none',
+        'position:fixed',
+        'z-index:9000',
+        'background:var(--color-bg-card)',
+        'border:1px solid var(--color-red-border)',
+        'border-radius:var(--radius-md)',
+        'box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 0 1px rgba(220,20,60,.12)',
+        'min-width:270px',
+        'animation:fadeIn .18s ease both',
+      ].join(';');
+      pop.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem .35rem;border-bottom:1px solid rgba(245,240,230,0.07)">
+          <span style="font-family:var(--font-head);font-weight:var(--fw-black);font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.06em;color:var(--color-offwhite)">${cfg.label}</span>
+          <button type="button" id="dtp-cls-${uid}" style="background:none;border:none;cursor:pointer;color:var(--color-text-faint);line-height:0;padding:.2rem" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+          </button>
+        </div>
+        <div class="zz-dtp-cal">
+          <div class="zz-cal-head">
+            <button type="button" class="zz-cal-nav" id="dtp-prev-${uid}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span class="zz-cal-label" id="dtp-lbl-${uid}"></span>
+            <button type="button" class="zz-cal-nav" id="dtp-next-${uid}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+          <div class="zz-cal-dow"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+          <div class="zz-cal-grid" id="dtp-grid-${uid}"></div>
+        </div>
+        <div class="zz-dtp-sep"><div class="zz-dtp-sep-line"></div><span>Horário</span><div class="zz-dtp-sep-line"></div></div>
+        <div class="zz-time">
+          <div class="zz-time-unit"><span class="zz-time-unit-label">Hora</span><div class="zz-time-col" id="dtp-hrs-${uid}"></div></div>
+          <div class="zz-time-colon">:</div>
+          <div class="zz-time-unit"><span class="zz-time-unit-label">Min</span><div class="zz-time-col" id="dtp-min-${uid}"></div></div>
+        </div>
+        <div class="zz-dtp-footer">
+          <button type="button" class="zz-dtp-confirm" id="dtp-ok-${uid}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirmar
+          </button>
+          <button type="button" class="zz-dtp-clear" id="dtp-clr-${uid}">Limpar</button>
+        </div>`;
+      document.body.appendChild(pop);
+
       const lbl   = document.getElementById(`dtp-lbl-${uid}`);
       const grid  = document.getElementById(`dtp-grid-${uid}`);
       const hrsEl = document.getElementById(`dtp-hrs-${uid}`);
@@ -9024,12 +9048,20 @@
 
       let curYear, curMonth, selDate = null, selH = 0, selM = 0;
 
+      function positionPop() {
+        const r = btn.getBoundingClientRect();
+        const pw = 274;
+        let left = r.left;
+        if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+        pop.style.top  = (r.bottom + 6) + 'px';
+        pop.style.left = left + 'px';
+      }
+
       function renderCal() {
         const now = new Date();
         lbl.textContent = `${MONTHS_PT[curMonth]} ${curYear}`;
         const first = new Date(curYear, curMonth, 1);
-        let dow = first.getDay(); // 0=Sun
-        dow = dow === 0 ? 6 : dow - 1; // Mon=0
+        let dow = first.getDay(); dow = dow === 0 ? 6 : dow - 1;
         const days = new Date(curYear, curMonth + 1, 0).getDate();
         const prevDays = new Date(curYear, curMonth, 0).getDate();
         let html = '';
@@ -9039,48 +9071,42 @@
           const isSel   = selDate && d === selDate.getDate() && curMonth === selDate.getMonth() && curYear === selDate.getFullYear();
           html += `<button class="zz-day${isToday?' zz-day-today':''}${isSel?' zz-day-selected':''}" data-d="${d}">${d}</button>`;
         }
-        const remaining = (7 - (dow + days) % 7) % 7;
-        for (let i = 1; i <= remaining; i++) html += `<button class="zz-day zz-day-adj" disabled>${i}</button>`;
+        const rem = (7 - (dow + days) % 7) % 7;
+        for (let i = 1; i <= rem; i++) html += `<button class="zz-day zz-day-adj" disabled>${i}</button>`;
         grid.innerHTML = html;
-        grid.querySelectorAll('[data-d]').forEach(b => {
-          b.addEventListener('click', () => {
-            selDate = new Date(curYear, curMonth, parseInt(b.dataset.d));
-            renderCal();
-          });
-        });
+        grid.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => { selDate = new Date(curYear, curMonth, +b.dataset.d); renderCal(); }));
       }
 
       function renderTime() {
-        let hHtml = '', mHtml = '';
-        for (let h = 0; h < 24; h++) {
-          const s = String(h).padStart(2,'0');
-          hHtml += `<div class="zz-time-item${h===selH?' zz-time-sel':''}" data-h="${h}">${s}</div>`;
-        }
-        for (let m = 0; m < 60; m += 5) {
-          const s = String(m).padStart(2,'0');
-          mHtml += `<div class="zz-time-item${m===selM?' zz-time-sel':''}" data-m="${m}">${s}</div>`;
-        }
-        hrsEl.innerHTML = hHtml;
-        minEl.innerHTML = mHtml;
-        hrsEl.querySelectorAll('[data-h]').forEach(el => el.addEventListener('click', () => { selH = parseInt(el.dataset.h); renderTime(); }));
-        minEl.querySelectorAll('[data-m]').forEach(el => el.addEventListener('click', () => { selM = parseInt(el.dataset.m); renderTime(); }));
-        const selHEl = hrsEl.querySelector('.zz-time-sel');
-        const selMEl = minEl.querySelector('.zz-time-sel');
-        if (selHEl) hrsEl.scrollTop = selHEl.offsetTop - 30;
-        if (selMEl) minEl.scrollTop = selMEl.offsetTop - 30;
+        let hH = '', mH = '';
+        for (let h = 0; h < 24; h++) { const s = String(h).padStart(2,'0'); hH += `<div class="zz-time-item${h===selH?' zz-time-sel':''}" data-h="${h}">${s}</div>`; }
+        for (let m = 0; m < 60; m += 5) { const s = String(m).padStart(2,'0'); mH += `<div class="zz-time-item${m===selM?' zz-time-sel':''}" data-m="${m}">${s}</div>`; }
+        hrsEl.innerHTML = hH; minEl.innerHTML = mH;
+        hrsEl.querySelectorAll('[data-h]').forEach(el => el.addEventListener('click', () => { selH = +el.dataset.h; renderTime(); }));
+        minEl.querySelectorAll('[data-m]').forEach(el => el.addEventListener('click', () => { selM = +el.dataset.m; renderTime(); }));
+        const sH = hrsEl.querySelector('.zz-time-sel'), sM = minEl.querySelector('.zz-time-sel');
+        if (sH) hrsEl.scrollTop = sH.offsetTop - 30;
+        if (sM) minEl.scrollTop = sM.offsetTop - 30;
       }
 
+      let isOpen = false;
       function openPop() {
         const now = selDate || new Date();
         curYear = now.getFullYear(); curMonth = now.getMonth();
         renderCal(); renderTime();
-        pop.classList.add('open');
-        document.addEventListener('click', outsideClose, { capture: true });
+        positionPop();
+        pop.style.display = 'block';
+        isOpen = true;
+        setTimeout(() => document.addEventListener('click', outsideClose), 0);
       }
-      function closePop() { pop.classList.remove('open'); document.removeEventListener('click', outsideClose, { capture: true }); }
+      function closePop() {
+        pop.style.display = 'none';
+        isOpen = false;
+        document.removeEventListener('click', outsideClose);
+      }
       function outsideClose(e) { if (!pop.contains(e.target) && e.target !== btn) closePop(); }
 
-      btn.addEventListener('click', e => { e.stopPropagation(); pop.classList.contains('open') ? closePop() : openPop(); });
+      btn.addEventListener('click', () => { isOpen ? closePop() : openPop(); });
       document.getElementById(`dtp-cls-${uid}`)?.addEventListener('click', closePop);
       document.getElementById(`dtp-prev-${uid}`)?.addEventListener('click', () => { curMonth--; if(curMonth<0){curMonth=11;curYear--;} renderCal(); });
       document.getElementById(`dtp-next-${uid}`)?.addEventListener('click', () => { curMonth++; if(curMonth>11){curMonth=0;curYear++;} renderCal(); });
@@ -9090,30 +9116,27 @@
         const d = new Date(selDate);
         d.setHours(selH, selM, 0, 0);
         hidden.value = d.toISOString();
-        const fmt = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
-                  + ' às ' + String(selH).padStart(2,'0') + ':' + String(selM).padStart(2,'0');
-        display.textContent = fmt;
+        display.textContent = d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' às ' + String(selH).padStart(2,'0') + ':' + String(selM).padStart(2,'0');
         btn.classList.add('has-val');
         closePop();
       });
 
-      document.getElementById(`dtp-clr-${uid}`)?.addEventListener('click', () => {
-        hidden.value = '';
-        selDate = null; selH = 0; selM = 0;
+      function clearPicker() {
+        hidden.value = ''; selDate = null; selH = 0; selM = 0;
         display.textContent = cfg.emptyText || 'Sem data';
         btn.classList.remove('has-val');
-        closePop();
-      });
+        if (isOpen) closePop();
+      }
+      document.getElementById(`dtp-clr-${uid}`)?.addEventListener('click', clearPicker);
 
-      /* API pública */
-      return { clear() { document.getElementById(`dtp-clr-${uid}`)?.click(); } };
+      return { clear: clearPicker };
     }
 
     /* Instancia os 4 pickers */
-    const dtpDcStarts  = makeDiscDtp({ wrapId:'dtp-dc-starts-wrap',  btnId:'dtp-dc-starts-btn',  displayId:'dtp-dc-starts-display',  hiddenId:'dc-starts',  label:'Início do Cupom',      emptyText:'Sem data de início' });
-    const dtpDcExpires = makeDiscDtp({ wrapId:'dtp-dc-expires-wrap', btnId:'dtp-dc-expires-btn', displayId:'dtp-dc-expires-display', hiddenId:'dc-expires', label:'Expiração do Cupom',   emptyText:'Sem data de expiração', alignRight:true });
-    const dtpDbStarts  = makeDiscDtp({ wrapId:'dtp-db-starts-wrap',  btnId:'dtp-db-starts-btn',  displayId:'dtp-db-starts-display',  hiddenId:'db-starts',  label:'Início da Oferta',     emptyText:'Sem data de início' });
-    const dtpDbExpires = makeDiscDtp({ wrapId:'dtp-db-expires-wrap', btnId:'dtp-db-expires-btn', displayId:'dtp-db-expires-display', hiddenId:'db-expires', label:'Expiração da Oferta',  emptyText:'Sem data de expiração', alignRight:true });
+    const dtpDcStarts  = makeDiscDtp({ btnId:'dtp-dc-starts-btn',  displayId:'dtp-dc-starts-display',  hiddenId:'dc-starts',  label:'Início do Cupom',     emptyText:'Sem data de início' });
+    const dtpDcExpires = makeDiscDtp({ btnId:'dtp-dc-expires-btn', displayId:'dtp-dc-expires-display', hiddenId:'dc-expires', label:'Expiração do Cupom',  emptyText:'Sem data de expiração' });
+    const dtpDbStarts  = makeDiscDtp({ btnId:'dtp-db-starts-btn',  displayId:'dtp-db-starts-display',  hiddenId:'db-starts',  label:'Início da Oferta',    emptyText:'Sem data de início' });
+    const dtpDbExpires = makeDiscDtp({ btnId:'dtp-db-expires-btn', displayId:'dtp-db-expires-display', hiddenId:'db-expires', label:'Expiração da Oferta', emptyText:'Sem data de expiração' });
     function showDiscAlert(msg, type = 'error') {
       const el = document.getElementById('disc-global-alert');
       if (!el) return;
