@@ -1664,27 +1664,43 @@
     const token    = localStorage.getItem('zz_token');
     const loggedIn = !!(user && token);
 
-    /* Aplica estado de login IMEDIATAMENTE (sem esperar fetch)
-       para evitar flash de input visível quando o utilizador está logado */
+    /* ── Aplica estado imediatamente, SEM esperar qualquer fetch ── */
+
+    /* 1. Input: esconde síncronamente se logado */
     if (loggedIn && input) {
-      input.style.display   = 'none';
-      input.required        = false;
+      input.style.display    = 'none';
+      input.required         = false;
       btn.style.borderRadius = '4px';
       form.style.justifyContent = 'center';
     }
 
-    /* Fetch às settings apenas para o texto do botão (drop activo ou não) */
-    let dropActive = false;
+    /* 2. Texto do botão: usa o cache do localStorage (escrito pelo admin panel)
+          para evitar flash enquanto o Render acorda do cold-start */
+    function _cfgBool(key, def) {
+      try { const v = localStorage.getItem(key); return v === null ? def : JSON.parse(v); }
+      catch { return def; }
+    }
+    let dropActive = _cfgBool('zz_drop_active', true);
 
+    function _applyDropText(active) {
+      const text = active ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
+      btn.textContent = text;
+      document.querySelectorAll('.zz-nav-cta').forEach(el => {
+        if (el.href && el.href.endsWith('#newsletter')) el.textContent = text;
+      });
+    }
+    _applyDropText(dropActive); /* aplica síncronamente */
+
+    /* 3. Confirma com a API em background — actualiza se diferir do cache */
     fetch(`${API}/settings`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        dropActive = !!data?.dropActive;
-        const defaultText = dropActive ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
-        btn.textContent = defaultText;
-        document.querySelectorAll('.zz-nav-cta, .zz-col-cta').forEach(el => {
-          if (el.textContent.trim() === 'Entrar na Lista') el.textContent = defaultText;
-        });
+        if (!data) return;
+        const apiActive = !!data.dropActive;
+        if (apiActive !== dropActive) {
+          dropActive = apiActive;
+          _applyDropText(dropActive);
+        }
       })
       .catch(() => {});
 
