@@ -427,19 +427,33 @@
   .disc-date-trigger:hover { border-color: rgba(220,20,60,0.4); }
 
   .disc-dtp-wrap { position: relative; }
-  .disc-dtp-popover {
+
+  /* Backdrop do calendário — modal centralizado */
+  .disc-dtp-backdrop {
     display: none;
-    position: absolute; top: calc(100% + 6px); left: 0; z-index: 400;
+    position: fixed; inset: 0; z-index: 8999;
+    background: rgba(4,6,15,.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: fadeIn .18s ease both;
+  }
+  .disc-dtp-backdrop.open { display: block; }
+
+  /* Modal centralizado */
+  .disc-dtp-modal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9000;
     background: var(--color-bg-card);
     border: 1px solid var(--color-red-border);
     border-radius: var(--radius-md);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(220,20,60,0.12);
-    min-width: 270px;
-    animation: fadeIn 0.18s ease both;
+    box-shadow: 0 24px 64px rgba(0,0,0,.7), 0 0 0 1px rgba(220,20,60,.15);
+    width: 290px;
+    animation: fadeIn .2s ease both;
   }
-  .disc-dtp-popover.open { display: block; }
-  /* Garantir que não sai do ecrã à direita */
-  .disc-dtp-popover.align-right { left: auto; right: 0; }
+  .disc-dtp-modal.open { display: block; }
 
   /* ── FORM ELEMENTS ──────────────────────────────────────── */
   .field { margin-bottom: 1rem; }
@@ -4292,8 +4306,10 @@
               </select>
             </div>
             <div class="field" id="dc-scope-val-wrap" style="display:none">
-              <label class="field-label" id="dc-scope-val-label" for="dc-scope-val">Identificador</label>
-              <input class="field-input" id="dc-scope-val" type="text" placeholder="">
+              <label class="field-label" id="dc-scope-val-label">Seleccionar</label>
+              <select class="field-input" id="dc-scope-val">
+                <option value="">— Escolha —</option>
+              </select>
             </div>
           </div>
           <div class="card-section-divider"><span>Validade & Limites</span></div>
@@ -4410,8 +4426,10 @@
           </div>
           <div class="fields-row" id="db-scope-val-wrap" style="display:none;margin-bottom:.75rem">
             <div class="field">
-              <label class="field-label" id="db-scope-val-label" for="db-scope-val">Identificador</label>
-              <input class="field-input" id="db-scope-val" type="text" placeholder="">
+              <label class="field-label" id="db-scope-val-label">Seleccionar</label>
+              <select class="field-input" id="db-scope-val">
+                <option value="">— Escolha —</option>
+              </select>
             </div>
             <div></div>
           </div>
@@ -4530,8 +4548,10 @@
             </select>
           </div>
           <div class="field" id="bd-scope-val-wrap" style="display:none">
-            <label class="field-label" id="bd-scope-val-label" for="bd-scope-val">Identificador</label>
-            <input class="field-input" id="bd-scope-val" type="text" placeholder="">
+            <label class="field-label" id="bd-scope-val-label">Seleccionar</label>
+            <select class="field-input" id="bd-scope-val">
+              <option value="">— Escolha —</option>
+            </select>
           </div>
         </div>
 
@@ -8996,20 +9016,14 @@
 
       const uid = cfg.hiddenId;
 
-      /* Injeta o popover no BODY (portal) para escapar de overflow:hidden */
+      /* Backdrop + modal centrado no BODY (portal) */
+      const backdrop = document.createElement('div');
+      backdrop.className = 'disc-dtp-backdrop';
+      document.body.appendChild(backdrop);
+
       const pop = document.createElement('div');
       pop.id = `dtp-pop-${uid}`;
-      pop.style.cssText = [
-        'display:none',
-        'position:fixed',
-        'z-index:9000',
-        'background:var(--color-bg-card)',
-        'border:1px solid var(--color-red-border)',
-        'border-radius:var(--radius-md)',
-        'box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 0 1px rgba(220,20,60,.12)',
-        'min-width:270px',
-        'animation:fadeIn .18s ease both',
-      ].join(';');
+      pop.className = 'disc-dtp-modal';
       pop.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem .35rem;border-bottom:1px solid rgba(245,240,230,0.07)">
           <span style="font-family:var(--font-head);font-weight:var(--fw-black);font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.06em;color:var(--color-offwhite)">${cfg.label}</span>
@@ -9048,15 +9062,6 @@
 
       let curYear, curMonth, selDate = null, selH = 0, selM = 0;
 
-      function positionPop() {
-        const r = btn.getBoundingClientRect();
-        const pw = 274;
-        let left = r.left;
-        if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
-        pop.style.top  = (r.bottom + 6) + 'px';
-        pop.style.left = left + 'px';
-      }
-
       function renderCal() {
         const now = new Date();
         lbl.textContent = `${MONTHS_PT[curMonth]} ${curYear}`;
@@ -9094,17 +9099,17 @@
         const now = selDate || new Date();
         curYear = now.getFullYear(); curMonth = now.getMonth();
         renderCal(); renderTime();
-        positionPop();
-        pop.style.display = 'block';
+        backdrop.classList.add('open');
+        pop.classList.add('open');
         isOpen = true;
-        setTimeout(() => document.addEventListener('click', outsideClose), 0);
+        setTimeout(() => backdrop.addEventListener('click', closePop), 0);
       }
       function closePop() {
-        pop.style.display = 'none';
+        backdrop.classList.remove('open');
+        pop.classList.remove('open');
         isOpen = false;
-        document.removeEventListener('click', outsideClose);
+        backdrop.removeEventListener('click', closePop);
       }
-      function outsideClose(e) { if (!pop.contains(e.target) && e.target !== btn) closePop(); }
 
       btn.addEventListener('click', () => { isOpen ? closePop() : openPop(); });
       document.getElementById(`dtp-cls-${uid}`)?.addEventListener('click', closePop);
@@ -9178,13 +9183,66 @@
     });
 
     /* Scope change */
+    /* ── Scope select helpers ─────────────────────────────── */
+    const _SCOPE_LABELS = {
+      colecao:'Coleção', categoria:'Categoria', subcategoria:'Subcategoria', zona:'Zona / Segmento', produto:'Produto'
+    };
+    let _colecoesCached = null;
+
+    async function _getColecoes() {
+      if (_colecoesCached) return _colecoesCached;
+      try {
+        const res  = await fetch(`${API}/products?limit=500`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
+        const data = await res.json();
+        const set  = new Set((data.products||[]).map(p => p.colecao).filter(Boolean));
+        _colecoesCached = [...set].sort();
+      } catch { _colecoesCached = []; }
+      return _colecoesCached;
+    }
+
+    async function populateScopeSelect(selectEl, labelEl, scope) {
+      if (!selectEl) return;
+      const cat = window.ZZCatalogo;
+      let opts  = [];
+      let label = _SCOPE_LABELS[scope] || 'Valor';
+
+      if (scope === 'zona' && cat) {
+        label = 'Zona'; opts = cat.zones.map(z => ({ value: z.id, text: z.nome }));
+      } else if (scope === 'categoria' && cat) {
+        label = 'Categoria'; opts = cat.cats.map(c => {
+          const zona = cat.zones.find(z => z.id === c.zonaId);
+          return { value: c.id, text: `${c.nome}${zona ? ' — '+zona.nome : ''}` };
+        });
+      } else if (scope === 'subcategoria' && cat) {
+        label = 'Subcategoria'; opts = cat.subs.map(s => {
+          const cat2 = cat.cats.find(c => c.id === s.catId);
+          return { value: s.id, text: `${s.nome}${cat2 ? ' — '+cat2.nome : ''}` };
+        });
+      } else if (scope === 'colecao') {
+        label = 'Coleção';
+        const cols = await _getColecoes();
+        opts = cols.map(c => ({ value: c, text: c }));
+      } else if (scope === 'produto') {
+        label = 'Produto';
+        try {
+          const res  = await fetch(`${API}/products?limit=200&status=publicado`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
+          const data = await res.json();
+          opts = (data.products||[]).map(p => ({ value: p._id, text: p.titulo }));
+        } catch { opts = []; }
+      }
+
+      if (labelEl) labelEl.textContent = label;
+      selectEl.innerHTML = `<option value="">— Escolha —</option>` +
+        opts.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
+    }
+
     const dcScope = document.getElementById('dc-scope');
     const dcScopeWrap = document.getElementById('dc-scope-val-wrap');
     const dcScopeLabel = document.getElementById('dc-scope-val-label');
     dcScope?.addEventListener('change', () => {
       const v = dcScope.value;
       dcScopeWrap.style.display = v === 'global' ? 'none' : 'block';
-      if (dcScopeLabel) dcScopeLabel.textContent = scopeValueLabels[v] || 'Valor';
+      populateScopeSelect(document.getElementById('dc-scope-val'), dcScopeLabel, v);
     });
 
     function resetCouponForm() {
@@ -9259,7 +9317,7 @@
     dbScope?.addEventListener('change', () => {
       const v = dbScope.value;
       dbScopeWrap.style.display = v === 'global' ? 'none' : 'block';
-      if (dbScopeLabel) dbScopeLabel.textContent = scopeValueLabels[v] || 'Valor';
+      populateScopeSelect(document.getElementById('db-scope-val'), dbScopeLabel, v);
     });
 
     document.getElementById('db-save-btn')?.addEventListener('click', async () => {
@@ -9398,7 +9456,8 @@
       const isProduto = v === 'produto';
       bdScopeWrap.style.display    = isGlobal || isProduto ? 'none' : 'block';
       bdProductsWrap.style.display = isProduto ? 'block' : 'none';
-      if (bdScopeLabel) bdScopeLabel.textContent = scopeValueLabels[v] || 'Valor';
+      if (!isGlobal && !isProduto)
+        populateScopeSelect(document.getElementById('bd-scope-val'), bdScopeLabel, v);
     });
 
     /* Preview de desconto */
