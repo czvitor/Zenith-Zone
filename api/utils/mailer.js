@@ -53,14 +53,13 @@ function ph(text) {
 }
 
 /* ── Base visual de todos os e-mails ─────────────────────── */
-function base(content) {
-  /* Extrai o div de preheader (gerado por ph()) de onde quer que esteja no
-     content e coloca-o como 1º elemento do <body> — antes de qualquer conteúdo
-     visível — para que clientes de email o captem como texto de pré-visualização */
-  const phRe = /<div style="display:none;font-size:1px[\s\S]*?<\/div>/;
-  const phMatch = content.match(phRe);
-  const preheaderHtml = phMatch ? phMatch[0] : '';
-  const cleanContent  = phMatch ? content.replace(phRe, '') : content;
+function base(content, preheader) {
+  /* Preheader: 1º elemento do <body>, invisível, captado pelos clientes
+     de email como texto de pré-visualização abaixo do assunto */
+  const preheaderHtml = preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
+    : '';
+  const cleanContent = content;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -151,7 +150,6 @@ async function sendPasswordResetEmail(to, resetLink) {
     to,
     subject: 'Redefinir sua senha — Zenith Zone',
     html: base(`
-      ${ph('ゼニス・ゾーン · ZENITH ZONE — Redefina sua senha, o link expira em 1 hora.')}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-password-reset.png')}" alt="Segurança Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -179,7 +177,7 @@ async function sendPasswordResetEmail(to, resetLink) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, 'ゼニス・ゾーン · ZENITH ZONE — Redefina sua senha, o link expira em 1 hora.'),
   });
 }
 
@@ -203,7 +201,6 @@ async function sendOrderConfirmationEmail(to, order) {
     to,
     subject: `Pedido #${shortId} confirmado — Zenith Zone`,
     html: base(`
-      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Pedido #${shortId} confirmado, a preparar o envio.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-order.png')}" alt="Pedido Confirmado Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -245,7 +242,7 @@ async function sendOrderConfirmationEmail(to, order) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, `ゼニス・ゾーン · ZENITH ZONE — Pedido #${shortId} confirmado, a preparar o envio.`),
   });
 }
 
@@ -256,7 +253,6 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
     to,
     subject: `Você está na lista — ${dropTitle} | Zenith Zone`,
     html: base(`
-      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Você está dentro, faltam ${remaining} para o drop.`)}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="${dropTitle}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -274,7 +270,7 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
       <div style="margin:1.5rem -2rem -2rem -2rem;">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, `ゼニス・ゾーン · ZENITH ZONE — Você está dentro, faltam ${remaining} para o drop.`),
   });
 }
 
@@ -309,7 +305,6 @@ async function sendDropAlert(to, dropTitle, label_) {
     to,
     subject: cfg.subject,
     html: base(`
-      ${ph('ゼニス・ゾーン · ZENITH ZONE — ' + cfg.msg.replace(/<[^>]*>/g, ''))}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img(cfg.bannerFile)}" alt="${cfg.title}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -338,7 +333,7 @@ async function sendDropAlert(to, dropTitle, label_) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, 'ゼニス・ゾーン · ZENITH ZONE — ' + cfg.msg.replace(/<[^>]*>/g, '')),
   });
 }
 
@@ -348,7 +343,6 @@ async function sendWaitlistConfirmation(to, produto) {
     to,
     subject: `Lista de espera confirmada — ${produto.titulo} | Zenith Zone`,
     html: base(`
-      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Lista de espera confirmada para ${produto.titulo}.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-no-units.png')}" alt="Zenith Zone Restock" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -368,7 +362,7 @@ async function sendWaitlistConfirmation(to, produto) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, `ゼニス・ゾーン · ZENITH ZONE — Lista de espera confirmada para ${produto.titulo}.`),
   });
 }
 
@@ -381,7 +375,6 @@ async function sendRestockNotification(to, produto) {
     to,
     subject: `Voltou ao estoque! ${produto.titulo} — Zenith Zone`,
     html: base(`
-      ${ph(`ゼニス・ゾーン · ZENITH ZONE — ${produto.titulo} voltou ao estoque, garanta agora!`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-restock.png')}" alt="Restock Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -412,7 +405,7 @@ async function sendRestockNotification(to, produto) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, `ゼニス・ゾーン · ZENITH ZONE — ${produto.titulo} voltou ao estoque, garanta agora!`),
   });
 }
 
@@ -424,7 +417,6 @@ async function sendWelcomeEmail(to, userName) {
     to,
     subject: 'Bem-vindo ao Clã — Zenith Zone',
     html: base(`
-      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Bem-vindo ao clã, ${userName || 'Membro'}!`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-sign-in.png')}" alt="Bem-vindo à Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -452,7 +444,7 @@ async function sendWelcomeEmail(to, userName) {
       <div style="margin: 1.5rem -2rem -2rem -2rem; border-top: 1px solid rgba(245,240,230,0.07);">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, `ゼニス・ゾーン · ZENITH ZONE — Bem-vindo ao clã, ${userName || 'Membro'}!`),
   });
 }
 
@@ -462,7 +454,6 @@ async function sendNewsletterWelcome(to) {
     to,
     subject: 'Você está na lista — Zenith Zone',
     html: base(`
-      ${ph('ゼニス・ゾーン · ZENITH ZONE — Você está na lista, será o primeiro a saber.')}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -477,7 +468,7 @@ async function sendNewsletterWelcome(to) {
       <div style="margin:1.5rem -2rem -2rem -2rem;">
         <img src="${img('email-rodape.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
-    `),
+    `, 'ゼニス・ゾーン · ZENITH ZONE — Você está na lista, será o primeiro a saber.'),
   });
 }
 
