@@ -15,10 +15,10 @@ html { scroll-behavior: smooth; }
 
 section[id] { scroll-margin-top: 64px; }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   section[id] { scroll-margin-top: 56px; }
 }
-@media (max-width: 375px) {
+@media (max-width: 480px) {
   section[id] { scroll-margin-top: 52px; }
 }
 

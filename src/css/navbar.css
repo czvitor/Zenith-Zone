@@ -713,19 +713,37 @@ body.auth-modal-open .zz-nav-actions { pointer-events: none; }
   /* Padding reduzido em tablet */
   .zz-nav-bar { padding: 0 4%; }
 }
-@media (max-width: 560px) {
+@media (max-width: 900px) {
+  /* Garante que a navbar nunca muda de altura — sem conteúdo que aumente */
+  #zz-header { max-height: 64px; }
+}
+@media (max-width: 640px) {
+  /* No breakpoint do hamburguer: estabiliza a altura */
+  #zz-header { max-height: 56px; }
   .zz-nav-bar { padding: 0 3.5%; height: 56px; }
-  .zz-nav-bar .nav-logo-img { height: 28px; }
+  .zz-nav-bar .nav-logo-img { height: 30px; }
   .nav-mobile { top: 56px; }
   .zz-srch-panel { top: 56px !important; }
-  .zz-mega-panel { top: 56px !important; }
+  /* Esconde favoritos na barra — acessível via menu mobile */
+  .zz-fav-btn { display: none; }
+  /* Ícones mais compactos */
+  .zz-cart-btn { width: 32px; height: 32px; }
+  .zz-cart-btn svg { width: 18px; height: 18px; }
+  .zz-srch-trigger svg { width: 18px; height: 18px; }
 }
-@media (max-width: 375px) {
+@media (max-width: 480px) {
+  #zz-header { max-height: 52px; }
   .zz-nav-bar { padding: 0 3%; height: 52px; }
   .nav-mobile { top: 52px; }
-  /* Ícones mais pequenos */
-  .zz-cart-btn, .zz-nav-actions button { padding: .3rem; }
-  .zz-cart-btn svg { width: 20px; height: 20px; }
+  .zz-nav-bar .nav-logo-img { height: 26px; }
+  .nav-menu-btn { width: 36px; height: 36px; }
+  .nav-menu-btn svg { width: 20px; height: 20px; }
+  /* Gap mínimo entre ícones */
+  .zz-nav-actions { gap: 0; }
+}
+@media (max-width: 375px) {
+  .zz-nav-bar { padding: 0 2.5%; }
+  .zz-cart-btn svg { width: 16px; height: 16px; }
 }
 
 /* ══════════════════════════════════════════════════════════
