@@ -473,6 +473,150 @@
   /* Carrega carrinho salvo ao inicializar o script */
   cartLoad();
 
+  /* ── CUPÃO ──────────────────────────────────────────────── */
+  const COUPON_KEY = 'zz_coupon';
+  let _coupon = null; // { code, discount, discountType, discountValue, promoType }
+
+  try { _coupon = JSON.parse(sessionStorage.getItem(COUPON_KEY)); } catch { _coupon = null; }
+
+  function _couponSave() {
+    if (_coupon) sessionStorage.setItem(COUPON_KEY, JSON.stringify(_coupon));
+    else sessionStorage.removeItem(COUPON_KEY);
+  }
+
+  /* Injeta o HTML do cupão no footer do drawer (uma vez) */
+  function _couponInject() {
+    if (!cartDrawer || cartDrawer.querySelector('#zz-coupon-wrap')) return;
+    const footer = cartDrawer.querySelector('.zz-cart-drawer-footer');
+    if (!footer) return;
+    footer.insertAdjacentHTML('afterbegin', `
+<div id="zz-coupon-wrap" style="padding:.75rem 1rem .5rem;border-bottom:1px solid rgba(245,240,230,.06)">
+  <div id="zz-coupon-input-row" style="display:flex;gap:.5rem">
+    <input id="zz-coupon-input" type="text" placeholder="Código do cupão"
+      style="flex:1;background:rgba(245,240,230,.06);border:1px solid rgba(245,240,230,.12);border-radius:4px;padding:.5rem .75rem;color:#f5f0e6;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;outline:none"
+      autocomplete="off" spellcheck="false">
+    <button id="zz-coupon-apply-btn" type="button"
+      style="padding:.5rem .9rem;background:#DC143C;color:#fff;border:none;border-radius:4px;font-size:.75rem;font-weight:700;letter-spacing:.06em;cursor:pointer;white-space:nowrap">
+      Aplicar
+    </button>
+  </div>
+  <p id="zz-coupon-msg" style="margin:.35rem 0 0;font-size:.72rem;display:none"></p>
+  <div id="zz-coupon-applied-row" style="display:none;align-items:center;gap:.5rem;margin-top:.4rem">
+    <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#5dc78c">
+      ✔ <span id="zz-coupon-applied-code"></span>
+    </span>
+    <span id="zz-coupon-discount-label" style="flex:1;font-size:.72rem;color:#5dc78c"></span>
+    <button id="zz-coupon-remove-btn" type="button"
+      style="background:none;border:none;color:#4a4a5a;cursor:pointer;font-size:1rem;line-height:1;padding:0 .2rem"
+      title="Remover cupão">×</button>
+  </div>
+</div>`);
+  }
+
+  function _couponUpdateUI() {
+    const inputRow   = document.getElementById('zz-coupon-input-row');
+    const appliedRow = document.getElementById('zz-coupon-applied-row');
+    const msg        = document.getElementById('zz-coupon-msg');
+    const codeEl     = document.getElementById('zz-coupon-applied-code');
+    const discEl     = document.getElementById('zz-coupon-discount-label');
+    if (!inputRow) return;
+
+    if (_coupon) {
+      inputRow.style.display   = 'none';
+      appliedRow.style.display = 'flex';
+      if (codeEl) codeEl.textContent = _coupon.code;
+      if (discEl) {
+        discEl.textContent = _coupon.promoType === 'bxgy'
+          ? `Compre ${_coupon.buyQty} Leve ${(_coupon.buyQty || 0) + (_coupon.getQty || 0)}`
+          : _coupon.discountType === 'percentage'
+            ? `-${_coupon.discountValue}%`
+            : `-R$ ${(_coupon.discountValue || 0).toFixed(2)}`;
+      }
+      if (msg) msg.style.display = 'none';
+    } else {
+      inputRow.style.display   = 'flex';
+      appliedRow.style.display = 'none';
+      const inp = document.getElementById('zz-coupon-input');
+      if (inp) inp.value = '';
+    }
+
+    /* Re-renderiza o drawer para actualizar a linha de desconto */
+    drawerRender();
+  }
+
+  /* Botão Aplicar */
+  document.addEventListener('click', async e => {
+    if (!e.target.closest('#zz-coupon-apply-btn')) return;
+    const input = document.getElementById('zz-coupon-input');
+    const msg   = document.getElementById('zz-coupon-msg');
+    const code  = input?.value?.trim().toUpperCase();
+    if (!code) return;
+
+    const btn = document.getElementById('zz-coupon-apply-btn');
+    btn.disabled    = true;
+    btn.textContent = '…';
+    if (msg) msg.style.display = 'none';
+
+    try {
+      const items     = window.ZZCart.items;
+      const cartTotal = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
+      const API       = window.ZZ_API_BASE || 'http://localhost:3001/api';
+      const token     = window.ZZAuth?.getToken?.();
+      const res = await fetch(`${API}/coupons/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ code, cartItems: items, cartTotal }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (msg) {
+          msg.textContent  = data.error || 'Cupão inválido.';
+          msg.style.cssText = 'margin:.35rem 0 0;font-size:.72rem;color:#f07080;display:block';
+        }
+      } else {
+        _coupon = {
+          code:          data.code,
+          discount:      data.discount,
+          discountType:  data.discountType,
+          discountValue: data.discountValue,
+          promoType:     data.promoType,
+          buyQty:        data.buyQty,
+          getQty:        data.getQty,
+        };
+        _couponSave();
+        _couponUpdateUI();
+      }
+    } catch {
+      if (msg) {
+        msg.textContent  = 'Erro ao validar cupão.';
+        msg.style.cssText = 'margin:.35rem 0 0;font-size:.72rem;color:#f07080;display:block';
+      }
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Aplicar';
+    }
+  });
+
+  /* Botão Remover */
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#zz-coupon-remove-btn')) return;
+    _coupon = null;
+    _couponSave();
+    _couponUpdateUI();
+  });
+
+  /* API pública do cupão */
+  window.ZZCoupon = {
+    get state()    { return _coupon; },
+    get discount() { return _coupon?.discount || 0; },
+    get code()     { return _coupon?.code || null; },
+    clear() { _coupon = null; _couponSave(); },
+  };
+
   function _fmtPrice(n) {
     return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
@@ -480,6 +624,7 @@
   /* Renderiza os itens do carrinho no drawer */
   function drawerRender() {
     if (!cartList) return;
+    _couponInject();
     const items = window.ZZCart.items;
     cartList.innerHTML = '';
 
@@ -533,12 +678,39 @@
       cartList.appendChild(li);
     });
 
-    if (cartTotal)   cartTotal.textContent   = _fmtPrice(total);
+    const discount   = _coupon?.discount || 0;
+    const finalTotal = Math.max(0, total - discount);
+
+    /* Linha de desconto (injeta/remove dinamicamente) */
+    const footer = cartDrawer?.querySelector('.zz-cart-drawer-footer');
+    let discRow  = footer?.querySelector('#zz-discount-row');
+    if (discount > 0) {
+      if (!discRow && footer) {
+        const totalRow = footer.querySelector('.zz-cart-drawer-total-row');
+        discRow = document.createElement('div');
+        discRow.id = 'zz-discount-row';
+        discRow.style.cssText = 'display:flex;justify-content:space-between;padding:.35rem 1rem 0;font-size:.75rem;color:#5dc78c';
+        discRow.innerHTML = `<span>Desconto (<span id="zz-discount-code"></span>)</span><span id="zz-discount-val"></span>`;
+        totalRow?.before(discRow);
+      }
+      if (discRow) {
+        const codeSpan = discRow.querySelector('#zz-discount-code');
+        const valSpan  = discRow.querySelector('#zz-discount-val');
+        if (codeSpan) codeSpan.textContent = _coupon.code;
+        if (valSpan)  valSpan.textContent  = `-${_fmtPrice(discount)}`;
+      }
+    } else if (discRow) {
+      discRow.remove();
+    }
+
+    if (cartTotal)   cartTotal.textContent   = _fmtPrice(finalTotal);
     if (cartDrCount) cartDrCount.textContent = `(${items.reduce((s, i) => s + i.qty, 0)})`;
   }
 
   function drawerOpen() {
     if (!cartDrawer) return;
+    _couponInject();
+    _couponUpdateUI();
     drawerRender();
     cartDrawer.classList.add('is-open');
     cartOverlay?.classList.add('is-visible');

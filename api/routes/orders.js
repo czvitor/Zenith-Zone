@@ -4,13 +4,14 @@ const authenticate = require('../middleware/authenticate');
 const authorize    = require('../middleware/authorize');
 const Order        = require('../models/Order');
 const Product      = require('../models/Product');
+const Coupon       = require('../models/Coupon');
 const { sendOrderConfirmationEmail } = require('../utils/mailer');
 
 /* ── POST /api/orders ────────────────────────────────────────
    Cria pedido, deduz estoque e aciona auto-pause se zerado. */
 router.post('/', authenticate, async (req, res) => {
   try {
-    const { items, total } = req.body;
+    const { items, total, couponCode } = req.body;
 
     if (!Array.isArray(items) || !items.length)
       return res.status(422).json({ error: 'Carrinho vazio.' });
@@ -43,11 +44,58 @@ router.post('/', authenticate, async (req, res) => {
     if (Math.abs(expectedTotal - total) > 0.02)
       return res.status(422).json({ error: 'Total inconsistente. Recarregue a página.' });
 
+    /* ── Valida e aplica cupão (server-side) ────────────── */
+    let discount   = 0;
+    let appliedCode = null;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.trim().toUpperCase() });
+      const now = new Date();
+      const valid =
+        coupon && coupon.active &&
+        (!coupon.startsAt  || coupon.startsAt  <= now) &&
+        (!coupon.expiresAt || coupon.expiresAt >= now) &&
+        (coupon.maxUses === 0 || coupon.usedCount < coupon.maxUses) &&
+        (coupon.minCartValue === 0 || expectedTotal >= coupon.minCartValue);
+
+      if (valid) {
+        if (coupon.promoType === 'bxgy') {
+          const prices = items.flatMap(i =>
+            Array(Math.max(1, parseInt(i.qty) || 1)).fill(i.price || 0),
+          ).sort((a, b) => a - b);
+          const groupSize = coupon.buyQty + coupon.getQty;
+          const groups = Math.floor(prices.length / groupSize);
+          let free = 0;
+          for (let g = 0; g < groups; g++) {
+            for (let k = 0; k < coupon.getQty; k++) free += prices[k] || 0;
+            prices.splice(0, groupSize);
+          }
+          discount = free;
+        } else if (coupon.discountType === 'percentage') {
+          discount = expectedTotal * (coupon.discountValue / 100);
+        } else {
+          discount = Math.min(expectedTotal, coupon.discountValue);
+        }
+        discount = Math.round(discount * 100) / 100;
+        appliedCode = coupon.code;
+
+        /* Registar uso */
+        await Coupon.findByIdAndUpdate(coupon._id, {
+          $inc: { usedCount: 1 },
+          $push: { usedBy: { userId: req.user._id, usedAt: now } },
+        });
+      }
+    }
+
+    const finalTotal = Math.max(0, expectedTotal - discount);
+
     /* ── Cria pedido ────────────────────────────────────── */
     const order = await Order.create({
-      user:  req.user._id,
+      user:       req.user._id,
       items,
-      total: expectedTotal,
+      subtotal:   expectedTotal,
+      discount,
+      total:      finalTotal,
+      couponCode: appliedCode,
     });
 
     /* ── Deduz estoque + auto-pause + contagem de vendas ─── */

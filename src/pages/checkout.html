@@ -90,6 +90,21 @@
     .secure-note { text-align: center; font-size: var(--text-2xs); color: var(--color-text-ghost); letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
     .secure-note svg { width: 12px; height: 12px; color: var(--color-text-faint); }
 
+    /* Cupão */
+    .coupon-wrap { border: 1px solid rgba(245,240,230,.08); border-radius: var(--radius-xs); padding: 0.9rem 1rem; }
+    .coupon-label { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.5rem; }
+    .coupon-input-row { display: flex; gap: 0.5rem; }
+    .coupon-input-row input { flex: 1; background: rgba(245,240,230,.06); border: 1px solid rgba(245,240,230,.12); border-radius: var(--radius-xs); padding: 0.55rem 0.75rem; color: var(--color-offwhite); font-size: var(--text-sm); letter-spacing: .08em; text-transform: uppercase; outline: none; }
+    .coupon-input-row input:focus { border-color: rgba(220,20,60,.4); }
+    .coupon-apply-btn { padding: 0.55rem 1rem; background: var(--color-red); color: #fff; border: none; border-radius: var(--radius-xs); font-size: var(--text-xs); font-weight: var(--fw-bold); letter-spacing: .06em; cursor: pointer; white-space: nowrap; }
+    .coupon-apply-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .coupon-msg { margin-top: 0.35rem; font-size: var(--text-xs); display: none; }
+    .coupon-msg.error   { color: #f07080; }
+    .coupon-msg.success { color: #5dc78c; }
+    .coupon-applied-row { display: none; align-items: center; gap: 0.5rem; }
+    .coupon-applied-badge { font-size: var(--text-xs); font-weight: var(--fw-bold); letter-spacing: .08em; color: #5dc78c; flex: 1; }
+    .coupon-remove-btn { background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 0.2rem; }
+
     /* Estado de erro de carregamento */
     .empty-state { text-align: center; padding: 2.5rem 1rem; }
     .empty-state h2 { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-xl); text-transform: uppercase; color: var(--color-white); margin-bottom: 0.75rem; }
@@ -183,8 +198,110 @@
       return;
     }
 
-    const total = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
-    const title = isCart ? 'Finalizar Compra' : 'Comprar Agora';
+    const subtotal = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
+    const title    = isCart ? 'Finalizar Compra' : 'Comprar Agora';
+
+    /* Lê cupão aplicado no carrinho (via sessionStorage) */
+    let coupon = null;
+    try { coupon = JSON.parse(sessionStorage.getItem('zz_coupon')); } catch { coupon = null; }
+
+    function calcTotal() {
+      const disc = coupon?.discount || 0;
+      return Math.max(0, subtotal - disc);
+    }
+
+    function renderSummary() {
+      const disc  = coupon?.discount || 0;
+      const total = calcTotal();
+      const el    = document.getElementById('co-summary');
+      if (!el) return;
+      el.innerHTML = `
+        <div class="summary-row"><span>Subtotal</span><span>${fmtPrice(subtotal)}</span></div>
+        ${disc > 0 ? `
+        <div class="summary-row" style="color:#5dc78c">
+          <span>Desconto (${coupon.code})</span>
+          <span>-${fmtPrice(disc)}</span>
+        </div>` : ''}
+        <div class="summary-row">
+          <span>Frete</span>
+          <span style="color:var(--color-pink);font-weight:var(--fw-bold)">A calcular</span>
+        </div>
+        <div class="divider"></div>
+        <div class="summary-row" style="margin-top:0.25rem">
+          <span style="font-family:var(--font-head);font-weight:var(--fw-black);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-white)">Total</span>
+          <span class="summary-total">${fmtPrice(total)}</span>
+        </div>`;
+    }
+
+    function renderCouponWidget() {
+      const w = document.getElementById('co-coupon-widget');
+      if (!w) return;
+      if (coupon) {
+        w.innerHTML = `
+          <div class="coupon-wrap">
+            <p class="coupon-label">Cupão aplicado</p>
+            <div class="coupon-applied-row" style="display:flex">
+              <span class="coupon-applied-badge">✔ ${coupon.code}
+                — ${coupon.discountType === 'percentage' ? `-${coupon.discountValue}%` : `-${fmtPrice(coupon.discountValue)}`}
+              </span>
+              <button type="button" class="coupon-remove-btn" id="co-coupon-remove">×</button>
+            </div>
+          </div>`;
+        document.getElementById('co-coupon-remove')?.addEventListener('click', () => {
+          coupon = null;
+          sessionStorage.removeItem('zz_coupon');
+          renderCouponWidget();
+          renderSummary();
+        });
+      } else {
+        w.innerHTML = `
+          <div class="coupon-wrap">
+            <p class="coupon-label">Código de cupão</p>
+            <div class="coupon-input-row">
+              <input id="co-coupon-input" type="text" placeholder="VERAO2026" autocomplete="off" spellcheck="false">
+              <button id="co-coupon-apply" type="button" class="coupon-apply-btn">Aplicar</button>
+            </div>
+            <p id="co-coupon-msg" class="coupon-msg"></p>
+          </div>`;
+
+        document.getElementById('co-coupon-apply')?.addEventListener('click', async () => {
+          const inp  = document.getElementById('co-coupon-input');
+          const msg  = document.getElementById('co-coupon-msg');
+          const code = inp?.value?.trim().toUpperCase();
+          if (!code) return;
+
+          const btn = document.getElementById('co-coupon-apply');
+          btn.disabled = true; btn.textContent = '…';
+          msg.className = 'coupon-msg'; msg.style.display = 'none';
+
+          try {
+            const token = ZZAuth.getToken();
+            const res   = await fetch(`${API}/coupons/validate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ code, cartItems: items, cartTotal: subtotal }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              msg.textContent = data.error || 'Cupão inválido.';
+              msg.className   = 'coupon-msg error';
+              msg.style.display = 'block';
+            } else {
+              coupon = { code: data.code, discount: data.discount, discountType: data.discountType, discountValue: data.discountValue };
+              sessionStorage.setItem('zz_coupon', JSON.stringify(coupon));
+              renderCouponWidget();
+              renderSummary();
+            }
+          } catch {
+            msg.textContent = 'Erro ao validar cupão.';
+            msg.className   = 'coupon-msg error';
+            msg.style.display = 'block';
+          } finally {
+            btn.disabled = false; btn.textContent = 'Aplicar';
+          }
+        });
+      }
+    }
 
     card.innerHTML = `
       <div class="checkout-header">
@@ -195,18 +312,8 @@
         <div id="co-alert-wrap"></div>
         ${items.map(itemRow).join('')}
         <div class="divider"></div>
-        <div style="display:flex;flex-direction:column;gap:0.5rem">
-          <div class="summary-row"><span>Subtotal</span><span>${fmtPrice(total)}</span></div>
-          <div class="summary-row">
-            <span>Frete</span>
-            <span style="color:var(--color-pink);font-weight:var(--fw-bold)">A calcular</span>
-          </div>
-          <div class="divider"></div>
-          <div class="summary-row" style="margin-top:0.25rem">
-            <span style="font-family:var(--font-head);font-weight:var(--fw-black);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-white)">Total</span>
-            <span class="summary-total">${fmtPrice(total)}</span>
-          </div>
-        </div>
+        <div id="co-coupon-widget"></div>
+        <div id="co-summary" style="display:flex;flex-direction:column;gap:0.5rem"></div>
         <div style="font-size:var(--text-xs);color:var(--color-text-muted);padding:0.75rem 1rem;background:rgba(245,240,230,0.03);border:1px solid var(--color-border-faint);border-radius:var(--radius-xs)">
           <strong style="color:var(--color-offwhite)">Comprador:</strong> ${user?.firstName || ''} ${user?.lastName || ''}<br>
           <strong style="color:var(--color-offwhite)">E-mail:</strong> ${user?.email || '—'}
@@ -222,6 +329,9 @@
         </p>
       </div>`;
 
+    renderCouponWidget();
+    renderSummary();
+
     document.getElementById('co-confirm')?.addEventListener('click', async () => {
       const btn       = document.getElementById('co-confirm');
       const alertWrap = document.getElementById('co-alert-wrap');
@@ -235,14 +345,16 @@
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body:    JSON.stringify({
-            items: items.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty || 1, size: i.size, color: i.color })),
-            total,
+            items:      items.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty || 1, size: i.size, color: i.color })),
+            total:      calcTotal(),
+            couponCode: coupon?.code || null,
           }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
 
         sessionStorage.removeItem('zz_buy_now');
+        sessionStorage.removeItem('zz_coupon');
         if (isCart) localStorage.removeItem('zz_cart');
 
         alertWrap.innerHTML = `<div class="co-alert success">✔ Pedido <strong>#${String(data.order._id).slice(-6).toUpperCase()}</strong> realizado com sucesso!</div>`;

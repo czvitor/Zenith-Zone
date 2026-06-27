@@ -18,6 +18,7 @@ const newsletterRoutes = require('./routes/newsletter');
 const waitlistRoutes      = require('./routes/waitlist');
 const settingsRoutes      = require('./routes/settings');
 const siteSettingsRoutes  = require('./routes/site-settings');
+const couponRoutes        = require('./routes/coupons');
 const { startDropCron } = require('./utils/dropCron');
 
 const app = express();
@@ -68,6 +69,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/waitlist',       waitlistRoutes);
 app.use('/api/settings',       settingsRoutes);
 app.use('/api/site-settings',  siteSettingsRoutes);
+app.use('/api/coupons',        couponRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date() }));
 

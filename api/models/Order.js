@@ -20,6 +20,9 @@ const orderSchema = new mongoose.Schema({
     enum:    ['pendente', 'confirmado', 'enviado', 'entregue', 'cancelado'],
     default: 'pendente',
   },
+  couponCode:   { type: String, default: null },
+  discount:     { type: Number, default: 0 },
+  subtotal:     { type: Number, default: 0 },
 }, { timestamps: true });
 
 orderSchema.methods.toPublic = function () {
