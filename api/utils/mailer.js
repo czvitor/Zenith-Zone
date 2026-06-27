@@ -59,13 +59,7 @@ function base(content, preheader) {
   /* Técnica multi-camada para máxima compatibilidade:
      - span visível 1px (Outlook desktop lê para preview)
      - div display:none (Gmail/Apple Mail) */
-  /* Preheader duplo:
-     - div display:none → Gmail/Apple Mail/OWA (ignoram mso-hide)
-     - span 1px         → Outlook desktop lê para preview (SEM mso-hide)
-       cor = fundo do email, logo invisível ao utilizador mas legível pelo Outlook */
-  const preheaderHtml = preheader ? `
-<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
-<span style="font-size:1px;color:#04060f;display:block;line-height:1px">${preheader}</span>` : '';
+  const preheaderHtml = '';
   const cleanContent = content;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -77,24 +71,20 @@ function base(content, preheader) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  body, html { margin:0; padding:0; background-color:#04060f !important; }
-  .zz-wrap  { background-color:#04060f !important; min-height:100%; }
+  body { margin:0; padding:0; background-color:#04060f !important; }
   .zz-outer { background-color:#04060f !important; }
   .zz-card  { background-color:#07091A !important; }
   .zz-head  { background-color:#0c0f24 !important; }
 </style>
 <!--[if gte mso 9]><style>
-  body, html { background-color:#04060f !important; }
-  .zz-wrap td, .zz-outer td { background-color:#04060f !important; }
+  body { background-color:#04060f !important; }
+  .zz-outer td { background-color:#04060f !important; }
   .zz-head  { background-color:#0c0f24 !important; }
   .zz-body-td, .zz-foot-td { background-color:#07091A !important; }
 </style><![endif]-->
 </head>
-<body bgcolor="#04060f" style="margin:0;padding:0;background-color:#04060f;min-height:100vh">
-${preheaderHtml}
-<!-- Wrapper div para Gmail Android que ignora bgcolor do body -->
-<div class="zz-wrap" style="background-color:#04060f;min-height:100vh">
-<table class="zz-outer" width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem;min-height:100vh">
+<body bgcolor="#04060f" style="margin:0;padding:0;background-color:#04060f">
+<table class="zz-outer" width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem">
   <tr><td align="center" bgcolor="#04060f" style="background-color:#04060f">
   <!--[if (gte mso 9)|(IE)]><table width="520" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
   <table class="zz-card" width="520" cellpadding="0" cellspacing="0" bgcolor="#07091A" style="max-width:520px;width:100%;background-color:#07091A;border-radius:8px;border:1px solid #1a0a10">
@@ -121,7 +111,6 @@ ${preheaderHtml}
   <!--[if (gte mso 9)|(IE)]></td></tr></table><![endif]-->
   </td></tr>
 </table>
-</div>
 </body>
 </html>`;
 }
