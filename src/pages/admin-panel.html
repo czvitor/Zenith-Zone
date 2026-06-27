@@ -426,7 +426,144 @@
   .disc-date-trigger svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--color-red); opacity: 0.8; }
   .disc-date-trigger:hover { border-color: rgba(220,20,60,0.4); }
 
-  .disc-dtp-wrap { position: relative; }
+  /* ── Scope Picker Modal ─────────────────────────────────── */
+  @keyframes disc-scope-in {
+    from { opacity:0; transform:translate(-50%, calc(-50% + 14px)); }
+    to   { opacity:1; transform:translate(-50%, -50%); }
+  }
+  .disc-scope-modal {
+    display: none; position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9100;
+    width: min(740px, 96vw); height: min(540px, 88vh);
+    flex-direction: column;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-red-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 28px 72px rgba(0,0,0,.75), 0 0 0 1px rgba(220,20,60,.14);
+    overflow: hidden;
+  }
+  .disc-scope-modal.open { display:flex; animation:disc-scope-in .22s ease both; }
+
+  .disc-scope-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .85rem 1.25rem;
+    border-bottom: 1px solid var(--color-border-faint);
+    flex-shrink: 0;
+    background: rgba(12,15,36,.6);
+  }
+  .disc-scope-head-title {
+    font-family: var(--font-head); font-weight: var(--fw-black);
+    font-size: var(--text-base); text-transform: uppercase;
+    letter-spacing: var(--tracking-normal); color: var(--color-white);
+  }
+  .disc-scope-head-sub { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: .1rem; }
+  .disc-scope-close {
+    background:none; border:none; cursor:pointer; color:var(--color-text-faint);
+    line-height:0; padding:.25rem; transition:color var(--ease-fast);
+  }
+  .disc-scope-close:hover { color:var(--color-offwhite); }
+
+  .disc-scope-layout { display:flex; flex:1; overflow:hidden; }
+
+  .disc-scope-sidebar {
+    width: 200px; flex-shrink:0;
+    border-right: 1px solid var(--color-border-faint);
+    overflow-y: auto; padding: .5rem 0;
+    background: rgba(4,6,16,.4);
+  }
+  .disc-scope-type {
+    display: flex; align-items: center; gap: .7rem;
+    width: 100%; padding: .75rem 1.1rem;
+    background: none; border: none; border-right: 3px solid transparent;
+    text-align: left; cursor: pointer;
+    color: var(--color-text-muted); font-size: var(--text-sm);
+    transition: color var(--ease-fast), background var(--ease-fast), border-color var(--ease-fast);
+  }
+  .disc-scope-type:hover { color:var(--color-offwhite); background:rgba(245,240,230,.04); }
+  .disc-scope-type.active {
+    color: var(--color-white); background: rgba(220,20,60,.08);
+    border-right-color: var(--color-red);
+  }
+  .disc-scope-type svg { width:16px; height:16px; flex-shrink:0; }
+  .disc-scope-type-name { font-weight: var(--fw-medium); }
+  .disc-scope-type-count { font-size:var(--text-2xs); color:var(--color-text-ghost); margin-top:.1rem; }
+
+  .disc-scope-content { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+  .disc-scope-search-row {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--color-border-faint);
+    flex-shrink: 0;
+  }
+  .disc-scope-search {
+    width: 100%; background: rgba(7,9,26,.6);
+    border: 1px solid rgba(245,240,230,.09);
+    border-radius: var(--radius-sm); padding: .55rem .9rem;
+    color: var(--color-offwhite); font-family: var(--font-body); font-size: var(--text-sm);
+    outline: none; transition: border-color var(--ease-fast);
+  }
+  .disc-scope-search:focus { border-color: rgba(220,20,60,.5); }
+  .disc-scope-search::placeholder { color: rgba(245,240,230,.22); }
+
+  .disc-scope-items {
+    flex: 1; overflow-y: auto; padding: .75rem 1rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: .5rem; align-content: start;
+  }
+  .disc-scope-item {
+    padding: .7rem .9rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-subtle);
+    cursor: pointer; transition: border-color var(--ease-fast), background var(--ease-fast), color var(--ease-fast);
+    background: rgba(245,240,230,.03);
+  }
+  .disc-scope-item:hover { border-color: rgba(220,20,60,.3); background: rgba(220,20,60,.05); color:var(--color-offwhite); }
+  .disc-scope-item.selected {
+    border-color: var(--color-red); background: rgba(220,20,60,.1);
+    color: var(--color-white);
+  }
+  .disc-scope-item-name { font-size:var(--text-sm); font-weight:var(--fw-medium); color:inherit; }
+  .disc-scope-item-sub  { font-size:var(--text-2xs); color:var(--color-text-ghost); margin-top:.2rem; }
+  .disc-scope-item.selected .disc-scope-item-sub { color:rgba(220,20,60,.7); }
+
+  /* Global pane */
+  .disc-scope-global {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:.75rem; padding:2rem; text-align:center; color:var(--color-text-muted);
+  }
+  .disc-scope-global svg { width:48px;height:48px;color:var(--color-red);opacity:.6; }
+  .disc-scope-global p { font-size:var(--text-sm); max-width:320px; line-height:1.5; }
+
+  .disc-scope-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.75rem 1.25rem; border-top:1px solid var(--color-border-faint);
+    flex-shrink:0; background:rgba(4,6,16,.3);
+  }
+  .disc-scope-sel-info { font-size:var(--text-sm); color:var(--color-text-muted); }
+  .disc-scope-sel-info strong { color:var(--color-offwhite); }
+
+  /* Produto chips */
+  .disc-scope-chip {
+    display:inline-flex; align-items:center; gap:.3rem;
+    background:rgba(220,20,60,.12); border:1px solid rgba(220,20,60,.22);
+    border-radius:4px; padding:.2rem .5rem;
+    font-size:var(--text-xs); color:var(--color-offwhite);
+  }
+  .disc-scope-chip button { background:none;border:none;cursor:pointer;color:#f07080;font-size:.9rem;line-height:1;padding:0; }
+
+  .disc-scope-trigger { transition: border-color var(--ease-fast), box-shadow var(--ease-fast); }
+  .disc-scope-trigger:hover { border-color:rgba(220,20,60,.4); }
+  .disc-scope-trigger.has-val { color:var(--color-offwhite); }
+
+  .disc-scope-backdrop { z-index: 9099; }
+
+  .disc-scope-items-empty {
+    grid-column: 1/-1; text-align:center; padding:2rem;
+    color:var(--color-text-ghost); font-size:var(--text-sm); font-style:italic;
+  }
+
+  .disc-scope-dtp-wrap { position: relative; }
 
   /* Backdrop do calendário — modal centralizado */
   .disc-dtp-backdrop {
@@ -4301,24 +4438,15 @@
             </div>
           </div>
           <div class="card-section-divider"><span>Escopo</span></div>
-          <div class="fields-row" style="margin-bottom:.75rem">
-            <div class="field">
-              <label class="field-label" for="dc-scope">Aplicar em</label>
-              <select class="field-input" id="dc-scope">
-                <option value="global">Todo o catálogo</option>
-                <option value="colecao">Coleção específica</option>
-                <option value="categoria">Categoria</option>
-                <option value="subcategoria">Subcategoria</option>
-                <option value="zona">Zona / Segmento</option>
-                <option value="produto">Produto (ID)</option>
-              </select>
-            </div>
-            <div class="field" id="dc-scope-val-wrap" style="display:none">
-              <label class="field-label" id="dc-scope-val-label">Seleccionar</label>
-              <select class="field-input" id="dc-scope-val">
-                <option value="">— Escolha —</option>
-              </select>
-            </div>
+          <div class="field" style="margin-bottom:.75rem">
+            <label class="field-label">Aplicar em</label>
+            <button type="button" class="field-input disc-scope-trigger" id="dc-scope-trigger" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;color:var(--color-red)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span id="dc-scope-display" style="flex:1">Todo o catálogo</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0;color:var(--color-text-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <input type="hidden" id="dc-scope" value="global">
+            <input type="hidden" id="dc-scope-val" value="">
           </div>
           <div class="card-section-divider"><span>Validade & Limites</span></div>
           <div class="fields-row" style="margin-bottom:.75rem">
@@ -4423,23 +4551,15 @@
               <input class="field-input" id="db-code" type="text" placeholder="COMPRE3LEVE4" maxlength="32" style="text-transform:uppercase;letter-spacing:.08em">
             </div>
             <div class="field">
-              <label class="field-label" for="db-scope">Aplicar em</label>
-              <select class="field-input" id="db-scope">
-                <option value="global">Todo o catálogo</option>
-                <option value="colecao">Coleção específica</option>
-                <option value="categoria">Categoria</option>
-                <option value="produto">Produto (ID)</option>
-              </select>
+              <label class="field-label">Aplicar em</label>
+              <button type="button" class="field-input disc-scope-trigger" id="db-scope-trigger" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;color:var(--color-red)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span id="db-scope-display" style="flex:1">Todo o catálogo</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0;color:var(--color-text-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <input type="hidden" id="db-scope" value="global">
+              <input type="hidden" id="db-scope-val" value="">
             </div>
-          </div>
-          <div class="fields-row" id="db-scope-val-wrap" style="display:none;margin-bottom:.75rem">
-            <div class="field">
-              <label class="field-label" id="db-scope-val-label">Seleccionar</label>
-              <select class="field-input" id="db-scope-val">
-                <option value="">— Escolha —</option>
-              </select>
-            </div>
-            <div></div>
           </div>
           <div class="card-section-divider"><span>Regra da Oferta</span></div>
           <div class="fields-row" style="margin-bottom:.75rem">
@@ -4545,33 +4665,18 @@
 
         <div class="fields-row" style="margin-bottom:.75rem">
           <div class="field">
-            <label class="field-label" for="bd-scope">Aplicar em</label>
-            <select class="field-input" id="bd-scope">
-              <option value="global">Todos os produtos</option>
-              <option value="zona">Zona / Segmento</option>
-              <option value="categoria">Categoria</option>
-              <option value="subcategoria">Subcategoria</option>
-              <option value="colecao">Coleção</option>
-              <option value="produto">Produtos específicos</option>
-            </select>
+            <label class="field-label">Aplicar em</label>
+            <button type="button" class="field-input disc-scope-trigger" id="bd-scope-trigger" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;color:var(--color-red)"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span id="bd-scope-display" style="flex:1">Todos os produtos</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;flex-shrink:0;color:var(--color-text-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <input type="hidden" id="bd-scope" value="global">
+            <input type="hidden" id="bd-scope-val" value="">
           </div>
-          <div class="field" id="bd-scope-val-wrap" style="display:none">
-            <label class="field-label" id="bd-scope-val-label">Seleccionar</label>
-            <select class="field-input" id="bd-scope-val">
-              <option value="">— Escolha —</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Pesquisa de produtos específicos -->
-        <div id="bd-products-wrap" style="display:none;margin-bottom:.75rem">
           <div class="field">
-            <label class="field-label">Pesquisar produtos</label>
-            <div style="position:relative">
-              <input class="field-input" id="bd-prod-search" type="text" placeholder="Escreve o nome do produto…" autocomplete="off">
-              <div id="bd-prod-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--color-bg-card);border:1px solid var(--color-red-border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:220px;overflow-y:auto"></div>
-            </div>
-            <div id="bd-selected-products" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;min-height:24px"></div>
+            <label class="field-label" style="visibility:hidden">.</label>
+            <div id="bd-selected-products" style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:44px;align-items:flex-start"></div>
           </div>
         </div>
 
@@ -9190,79 +9295,299 @@
       resetCouponForm();
     });
 
-    /* Scope change */
-    /* ── Scope select helpers ─────────────────────────────── */
-    const _SCOPE_LABELS = {
-      colecao:'Coleção', categoria:'Categoria', subcategoria:'Subcategoria', zona:'Zona / Segmento', produto:'Produto'
-    };
+    /* ── SCOPE PICKER MODAL ───────────────────────────────── */
     let _colecoesCached = null;
+    let _produtosCached = null;
 
-    async function _getColecoes() {
-      if (_colecoesCached) return _colecoesCached;
-      try {
-        const res  = await fetch(`${API}/products?limit=500`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
-        const data = await res.json();
-        const set  = new Set((data.products||[]).map(p => p.colecao).filter(Boolean));
-        _colecoesCached = [...set].sort();
-      } catch { _colecoesCached = []; }
-      return _colecoesCached;
+    async function _getScopeData(scope) {
+      const cat = window.ZZCatalogo;
+      if (scope === 'zona')  return (cat?.zones||[]).map(z => ({ value:z.id, name:z.nome, sub:'' }));
+      if (scope === 'categoria') return (cat?.cats||[]).map(c => {
+        const z = cat.zones.find(x => x.id===c.zonaId);
+        return { value:c.id, name:c.nome, sub:z?.nome||'' };
+      });
+      if (scope === 'subcategoria') return (cat?.subs||[]).map(s => {
+        const c = cat.cats.find(x => x.id===s.catId);
+        return { value:s.id, name:s.nome, sub:c?.nome||'' };
+      });
+      if (scope === 'colecao') {
+        if (!_colecoesCached) {
+          try {
+            const r = await fetch(`${API}/products?limit=500`,{headers:{Authorization:`Bearer ${ZZAuth.getToken()}`}});
+            const d = await r.json();
+            _colecoesCached = [...new Set((d.products||[]).map(p=>p.colecao).filter(Boolean))].sort().map(c=>({value:c,name:c,sub:''}));
+          } catch { _colecoesCached = []; }
+        }
+        return _colecoesCached;
+      }
+      if (scope === 'produto') {
+        if (!_produtosCached) {
+          try {
+            const r = await fetch(`${API}/products?limit=300`,{headers:{Authorization:`Bearer ${ZZAuth.getToken()}`}});
+            const d = await r.json();
+            _produtosCached = (d.products||[]).map(p=>({value:p._id, name:p.titulo, sub:'R$ '+Number(p.preco).toLocaleString('pt-BR',{minimumFractionDigits:2})}));
+          } catch { _produtosCached = []; }
+        }
+        return _produtosCached;
+      }
+      return [];
     }
 
-    async function populateScopeSelect(selectEl, labelEl, scope) {
-      if (!selectEl) return;
-      const cat = window.ZZCatalogo;
-      let opts  = [];
-      let label = _SCOPE_LABELS[scope] || 'Valor';
+    /* Cria o modal de escopo uma vez */
+    const _scopeBackdrop = document.createElement('div');
+    _scopeBackdrop.className = 'disc-dtp-backdrop disc-scope-backdrop';
+    document.body.appendChild(_scopeBackdrop);
 
-      if (scope === 'zona' && cat) {
-        label = 'Zona'; opts = cat.zones.map(z => ({ value: z.id, text: z.nome }));
-      } else if (scope === 'categoria' && cat) {
-        label = 'Categoria'; opts = cat.cats.map(c => {
-          const zona = cat.zones.find(z => z.id === c.zonaId);
-          return { value: c.id, text: `${c.nome}${zona ? ' — '+zona.nome : ''}` };
-        });
-      } else if (scope === 'subcategoria' && cat) {
-        label = 'Subcategoria'; opts = cat.subs.map(s => {
-          const cat2 = cat.cats.find(c => c.id === s.catId);
-          return { value: s.id, text: `${s.nome}${cat2 ? ' — '+cat2.nome : ''}` };
-        });
-      } else if (scope === 'colecao') {
-        label = 'Coleção';
-        const cols = await _getColecoes();
-        opts = cols.map(c => ({ value: c, text: c }));
-      } else if (scope === 'produto') {
-        label = 'Produto';
-        try {
-          const res  = await fetch(`${API}/products?limit=200&status=publicado`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
-          const data = await res.json();
-          opts = (data.products||[]).map(p => ({ value: p._id, text: p.titulo }));
-        } catch { opts = []; }
+    const _scopeModal = document.createElement('div');
+    _scopeModal.className = 'disc-scope-modal';
+    _scopeModal.innerHTML = `
+      <div class="disc-scope-head">
+        <div>
+          <div class="disc-scope-head-title">Escopo de Aplicação</div>
+          <div class="disc-scope-head-sub">Escolhe onde este desconto será aplicado</div>
+        </div>
+        <button type="button" class="disc-scope-close" id="_sp-close">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
+        </button>
+      </div>
+      <div class="disc-scope-layout">
+        <aside class="disc-scope-sidebar" id="_sp-sidebar"></aside>
+        <div class="disc-scope-content">
+          <div class="disc-scope-search-row">
+            <input class="disc-scope-search" id="_sp-search" type="text" placeholder="Pesquisar…" autocomplete="off">
+          </div>
+          <div class="disc-scope-items" id="_sp-items"></div>
+        </div>
+      </div>
+      <div class="disc-scope-footer">
+        <div class="disc-scope-sel-info" id="_sp-sel-info">Nenhum seleccionado</div>
+        <div style="display:flex;gap:.5rem">
+          <button type="button" class="btn-ghost" id="_sp-cancel">Cancelar</button>
+          <button type="button" class="btn-primary" id="_sp-confirm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+            Aplicar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(_scopeModal);
+
+    const _spSidebar = document.getElementById('_sp-sidebar');
+    const _spItems   = document.getElementById('_sp-items');
+    const _spSearch  = document.getElementById('_sp-search');
+    const _spSelInfo = document.getElementById('_sp-sel-info');
+
+    let _spCurrentScope = 'global';
+    let _spSelectedVal  = '';
+    let _spSelectedName = '';
+    let _spMultiSel     = []; // para produto multi-select
+    let _spMultiMode    = false;
+    let _spAllItems     = [];
+    let _spOnConfirm    = null;
+    let _spTypes        = [];
+
+    const _SP_TYPE_DEFS = [
+      { scope:'global',       icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',       name:'Todo o catálogo',     count:'' },
+      { scope:'zona',         icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',   name:'Zona / Segmento',     count:'' },
+      { scope:'categoria',    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',          name:'Categoria',           count:'' },
+      { scope:'subcategoria', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',                                                  name:'Subcategoria',        count:'' },
+      { scope:'colecao',      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>', name:'Coleção',             count:'' },
+      { scope:'produto',      icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>', name:'Produto específico', count:'' },
+    ];
+
+    function _spRenderSidebar() {
+      _spSidebar.innerHTML = _spTypes.map(s => {
+        const def = _SP_TYPE_DEFS.find(d => d.scope === s) || {};
+        return `<button type="button" class="disc-scope-type${s===_spCurrentScope?' active':''}" data-scope="${s}">
+          ${def.icon||''}
+          <div><div class="disc-scope-type-name">${def.name||s}</div></div>
+        </button>`;
+      }).join('');
+      _spSidebar.querySelectorAll('[data-scope]').forEach(b => {
+        b.addEventListener('click', () => _spSelectType(b.dataset.scope));
+      });
+    }
+
+    async function _spSelectType(scope) {
+      _spCurrentScope = scope;
+      _spSearch.value = '';
+      _spRenderSidebar();
+
+      if (scope === 'global') {
+        _spItems.innerHTML = `
+          <div class="disc-scope-global" style="grid-column:1/-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <strong style="color:var(--color-white);font-size:var(--text-base)">Todo o catálogo</strong>
+            <p>O desconto aplicar-se-á a todos os produtos da loja, sem excepção.</p>
+          </div>`;
+        _spSelectedVal = ''; _spSelectedName = 'Todo o catálogo';
+        _spUpdateInfo();
+        return;
       }
 
-      if (labelEl) labelEl.textContent = label;
-      selectEl.innerHTML = `<option value="">— Escolha —</option>` +
-        opts.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
+      _spItems.innerHTML = `<div class="disc-scope-items-empty">A carregar…</div>`;
+      const items = await _getScopeData(scope);
+      _spAllItems = items;
+      _spRenderItems(items);
     }
 
-    const dcScope = document.getElementById('dc-scope');
-    const dcScopeWrap = document.getElementById('dc-scope-val-wrap');
-    const dcScopeLabel = document.getElementById('dc-scope-val-label');
-    dcScope?.addEventListener('change', () => {
-      const v = dcScope.value;
-      dcScopeWrap.style.display = v === 'global' ? 'none' : 'block';
-      populateScopeSelect(document.getElementById('dc-scope-val'), dcScopeLabel, v);
+    function _spRenderItems(items) {
+      if (!items.length) { _spItems.innerHTML = `<div class="disc-scope-items-empty">Nenhum item encontrado.</div>`; return; }
+
+      if (_spMultiMode && _spCurrentScope === 'produto') {
+        _spItems.innerHTML = items.map(it => {
+          const isSel = _spMultiSel.some(s => s.value === it.value);
+          return `<div class="disc-scope-item${isSel?' selected':''}" data-val="${it.value}" data-name="${it.name}">
+            <div class="disc-scope-item-name">${it.name}</div>
+            ${it.sub ? `<div class="disc-scope-item-sub">${it.sub}</div>` : ''}
+          </div>`;
+        }).join('');
+        _spItems.querySelectorAll('.disc-scope-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const obj = { value: el.dataset.val, name: el.dataset.name };
+            const idx = _spMultiSel.findIndex(s => s.value === obj.value);
+            if (idx >= 0) { _spMultiSel.splice(idx,1); el.classList.remove('selected'); }
+            else { _spMultiSel.push(obj); el.classList.add('selected'); }
+            _spUpdateInfo();
+          });
+        });
+      } else {
+        _spItems.innerHTML = items.map(it => {
+          const isSel = it.value === _spSelectedVal;
+          return `<div class="disc-scope-item${isSel?' selected':''}" data-val="${it.value}" data-name="${it.name}">
+            <div class="disc-scope-item-name">${it.name}</div>
+            ${it.sub ? `<div class="disc-scope-item-sub">${it.sub}</div>` : ''}
+          </div>`;
+        }).join('');
+        _spItems.querySelectorAll('.disc-scope-item').forEach(el => {
+          el.addEventListener('click', () => {
+            if (_spSelectedVal === el.dataset.val) { _spSelectedVal = ''; _spSelectedName = ''; }
+            else { _spSelectedVal = el.dataset.val; _spSelectedName = el.dataset.name; }
+            _spItems.querySelectorAll('.disc-scope-item').forEach(e => e.classList.toggle('selected', e.dataset.val === _spSelectedVal));
+            _spUpdateInfo();
+          });
+        });
+      }
+    }
+
+    function _spUpdateInfo() {
+      if (_spCurrentScope === 'global') { _spSelInfo.innerHTML = '<strong>Todo o catálogo</strong>'; return; }
+      if (_spMultiMode && _spCurrentScope === 'produto') {
+        _spSelInfo.innerHTML = _spMultiSel.length
+          ? `<strong>${_spMultiSel.length}</strong> produto(s) seleccionado(s)`
+          : 'Nenhum produto seleccionado';
+      } else {
+        _spSelInfo.innerHTML = _spSelectedVal
+          ? `Seleccionado: <strong>${_spSelectedName}</strong>`
+          : 'Nenhum item seleccionado';
+      }
+    }
+
+    _spSearch?.addEventListener('input', () => {
+      const q = _spSearch.value.toLowerCase();
+      const filtered = q ? _spAllItems.filter(i => i.name.toLowerCase().includes(q)) : _spAllItems;
+      _spRenderItems(filtered);
     });
 
+    function openScopePicker(cfg) {
+      /* cfg: { types, triggerId, scopeId, scopeValId, displayId, multi?, multiSel?, onConfirm } */
+      _spTypes      = cfg.types;
+      _spMultiMode  = !!cfg.multi;
+      _spMultiSel   = cfg.multiSel ? [...cfg.multiSel] : [];
+      _spOnConfirm  = cfg.onConfirm;
+
+      const curScope = document.getElementById(cfg.scopeId)?.value || 'global';
+      _spSelectedVal  = document.getElementById(cfg.scopeValId)?.value || '';
+      _spSelectedName = '';
+
+      _spRenderSidebar();
+      _spSelectType(curScope);
+
+      _scopeBackdrop.classList.add('open');
+      _scopeModal.classList.add('open');
+    }
+
+    function _closeScopePicker() {
+      _scopeBackdrop.classList.remove('open');
+      _scopeModal.classList.remove('open');
+    }
+
+    document.getElementById('_sp-close')?.addEventListener('click', _closeScopePicker);
+    document.getElementById('_sp-cancel')?.addEventListener('click', _closeScopePicker);
+    _scopeBackdrop.addEventListener('click', _closeScopePicker);
+
+    document.getElementById('_sp-confirm')?.addEventListener('click', () => {
+      if (_spOnConfirm) _spOnConfirm({
+        scope:     _spCurrentScope,
+        scopeVal:  _spCurrentScope === 'global' ? '' : _spSelectedVal,
+        name:      _spCurrentScope === 'global' ? 'Todo o catálogo' : _spSelectedName,
+        multiSel:  _spMultiSel,
+      });
+      _closeScopePicker();
+    });
+
+    /* Wires trigger buttons */
+    function wireScopeTrigger(triggerId, scopeId, scopeValId, displayId, types, multi, getMultiSel, setMultiSel) {
+      const btn = document.getElementById(triggerId);
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        openScopePicker({
+          types, multi, multiSel: getMultiSel?.() || [],
+          scopeId, scopeValId, displayId,
+          onConfirm({ scope, scopeVal, name, multiSel }) {
+            document.getElementById(scopeId).value    = scope;
+            document.getElementById(scopeValId).value = scopeVal || '';
+            const disp = document.getElementById(displayId);
+            if (disp) disp.textContent = name || 'Todo o catálogo';
+            btn.classList.toggle('has-val', scope !== 'global');
+            if (setMultiSel) setMultiSel(multiSel);
+          },
+        });
+      });
+    }
+
+    /* Cupom */
+    wireScopeTrigger('dc-scope-trigger','dc-scope','dc-scope-val','dc-scope-display',
+      ['global','zona','categoria','subcategoria','colecao','produto'], false);
+
+    /* BXGY */
+    wireScopeTrigger('db-scope-trigger','db-scope','db-scope-val','db-scope-display',
+      ['global','colecao','categoria','produto'], false);
+
+    /* Bulk discount */
+    window._bdSelectedIds = [];
+    function renderBdChips() {
+      const wrap = document.getElementById('bd-selected-products');
+      if (!wrap) return;
+      wrap.innerHTML = window._bdSelectedIds.map(p => `
+        <span class="disc-scope-chip">
+          ${p.name}
+          <button type="button" data-id="${p.value}">×</button>
+        </span>`).join('');
+      wrap.querySelectorAll('[data-id]').forEach(b => {
+        b.addEventListener('click', () => {
+          window._bdSelectedIds = window._bdSelectedIds.filter(x => x.value !== b.dataset.id);
+          renderBdChips();
+        });
+      });
+    }
+    wireScopeTrigger('bd-scope-trigger','bd-scope','bd-scope-val','bd-scope-display',
+      ['global','zona','categoria','subcategoria','colecao','produto'], true,
+      () => window._bdSelectedIds.map(x=>({value:x.value,name:x.name})),
+      (sel) => { window._bdSelectedIds = sel.map(x=>({value:x.value, name:x.name})); renderBdChips(); });
+
     function resetCouponForm() {
-      ['dc-code','dc-dvalue','dc-mincart','dc-scope-val'].forEach(id => {
+      ['dc-code','dc-dvalue','dc-mincart'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = id === 'dc-mincart' ? '0' : '';
       });
       document.getElementById('dc-dtype').value = 'percentage';
-      document.getElementById('dc-scope').value = 'global';
+      document.getElementById('dc-scope').value    = 'global';
+      document.getElementById('dc-scope-val').value = '';
       document.getElementById('dc-maxuses').value = '0';
       document.getElementById('dc-maxuser').value = '0';
-      if (dcScopeWrap) dcScopeWrap.style.display = 'none';
+      const disp = document.getElementById('dc-scope-display');
+      if (disp) disp.textContent = 'Todo o catálogo';
+      document.getElementById('dc-scope-trigger')?.classList.remove('has-val');
       const msgEl = document.getElementById('dc-form-msg');
       if (msgEl) { msgEl.textContent = ''; msgEl.style.display = 'none'; }
       dtpDcStarts?.clear();
@@ -9317,15 +9642,6 @@
     document.getElementById('db-cancel-btn')?.addEventListener('click', () => {
       document.getElementById('disc-bxgy-form')?.classList.remove('open');
       document.getElementById('disc-bxgy-arrow').textContent = '＋';
-    });
-
-    const dbScope = document.getElementById('db-scope');
-    const dbScopeWrap = document.getElementById('db-scope-val-wrap');
-    const dbScopeLabel = document.getElementById('db-scope-val-label');
-    dbScope?.addEventListener('change', () => {
-      const v = dbScope.value;
-      dbScopeWrap.style.display = v === 'global' ? 'none' : 'block';
-      populateScopeSelect(document.getElementById('db-scope-val'), dbScopeLabel, v);
     });
 
     document.getElementById('db-save-btn')?.addEventListener('click', async () => {
@@ -9450,24 +9766,6 @@
     const API = window.ZZ_API_BASE || 'http://localhost:3001/api';
     function fmtR(n) { return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
 
-    const scopeValueLabels = { zona:'ID da zona', categoria:'ID da categoria', subcategoria:'ID da subcategoria', colecao:'Nome da coleção', produto:'IDs dos produtos' };
-
-    /* Scope select */
-    const bdScope       = document.getElementById('bd-scope');
-    const bdScopeWrap   = document.getElementById('bd-scope-val-wrap');
-    const bdScopeLabel  = document.getElementById('bd-scope-val-label');
-    const bdProductsWrap = document.getElementById('bd-products-wrap');
-
-    bdScope?.addEventListener('change', () => {
-      const v = bdScope.value;
-      const isGlobal  = v === 'global';
-      const isProduto = v === 'produto';
-      bdScopeWrap.style.display    = isGlobal || isProduto ? 'none' : 'block';
-      bdProductsWrap.style.display = isProduto ? 'block' : 'none';
-      if (!isGlobal && !isProduto)
-        populateScopeSelect(document.getElementById('bd-scope-val'), bdScopeLabel, v);
-    });
-
     /* Preview de desconto */
     const bdPct = document.getElementById('bd-pct');
     bdPct?.addEventListener('input', () => {
@@ -9482,62 +9780,6 @@
       }
     });
 
-    /* Pesquisa de produtos específicos */
-    let bdSelectedIds = [];
-    const bdSearch = document.getElementById('bd-prod-search');
-    const bdSuggestions = document.getElementById('bd-prod-suggestions');
-    const bdSelectedWrap = document.getElementById('bd-selected-products');
-
-    function renderSelectedProducts() {
-      if (!bdSelectedWrap) return;
-      bdSelectedWrap.innerHTML = bdSelectedIds.map(p => `
-        <span style="display:inline-flex;align-items:center;gap:.3rem;background:rgba(220,20,60,.12);border:1px solid rgba(220,20,60,.2);border-radius:4px;padding:.2rem .5rem;font-size:var(--text-xs);color:var(--color-offwhite)">
-          ${p.titulo}
-          <button type="button" data-pid="${p._id}" style="background:none;border:none;color:#f07080;cursor:pointer;font-size:.9rem;line-height:1;padding:0">×</button>
-        </span>`).join('');
-      bdSelectedWrap.querySelectorAll('[data-pid]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          bdSelectedIds = bdSelectedIds.filter(p => p._id !== btn.dataset.pid);
-          renderSelectedProducts();
-        });
-      });
-    }
-
-    let bdSearchTimer;
-    bdSearch?.addEventListener('input', () => {
-      clearTimeout(bdSearchTimer);
-      const q = bdSearch.value.trim();
-      if (!q) { bdSuggestions.style.display = 'none'; return; }
-      bdSearchTimer = setTimeout(async () => {
-        try {
-          const res  = await fetch(`${API}/products?search=${encodeURIComponent(q)}&limit=10&status=publicado`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
-          const data = await res.json();
-          const list = data.products || [];
-          if (!list.length) { bdSuggestions.style.display = 'none'; return; }
-          bdSuggestions.innerHTML = list.map(p =>
-            `<div class="bd-sug-item" data-id="${p._id}" data-titulo="${p.titulo}" style="padding:.55rem .8rem;cursor:pointer;font-size:var(--text-sm);border-bottom:1px solid rgba(245,240,230,.04)">${p.titulo} <span style="color:var(--color-text-muted);font-size:var(--text-xs)">${fmtR(p.preco)}</span></div>`
-          ).join('');
-          bdSuggestions.style.display = 'block';
-          bdSuggestions.querySelectorAll('.bd-sug-item').forEach(item => {
-            item.addEventListener('mouseenter', () => item.style.background = 'rgba(245,240,230,.05)');
-            item.addEventListener('mouseleave', () => item.style.background = '');
-            item.addEventListener('click', () => {
-              if (!bdSelectedIds.find(p => p._id === item.dataset.id)) {
-                bdSelectedIds.push({ _id: item.dataset.id, titulo: item.dataset.titulo });
-                renderSelectedProducts();
-              }
-              bdSearch.value = '';
-              bdSuggestions.style.display = 'none';
-            });
-          });
-        } catch { bdSuggestions.style.display = 'none'; }
-      }, 300);
-    });
-    document.addEventListener('click', e => {
-      if (!e.target.closest('#bd-prod-search') && !e.target.closest('#bd-prod-suggestions'))
-        bdSuggestions.style.display = 'none';
-    });
-
     /* Aplicar desconto */
     async function runBulkDiscount(remove = false) {
       const msg = document.getElementById('bd-msg');
@@ -9549,7 +9791,7 @@
       const scope      = document.getElementById('bd-scope').value;
       const scopeValue = (document.getElementById('bd-scope-val')?.value || '').trim();
       const pct        = remove ? 0 : parseFloat(document.getElementById('bd-pct')?.value);
-      const productIds = bdSelectedIds.map(p => p._id);
+      const productIds = (window._bdSelectedIds||[]).map(p => p.value);
 
       if (!remove && (isNaN(pct) || pct <= 0 || pct >= 100)) {
         msg.textContent = 'Insere uma percentagem entre 1 e 99.';
