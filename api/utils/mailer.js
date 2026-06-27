@@ -14,10 +14,12 @@ if (process.env.RESEND_API_KEY) {
   _resend    = new Resend(process.env.RESEND_API_KEY);
   _transport = 'resend';
 } else if (process.env.BREVO_API_KEY) {
-  const SibApiV3Sdk = require('@getbrevo/brevo');
-  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-  apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
-  _brevoApi  = apiInstance;
+  const { BrevoClient, BrevoEnvironment } = require('@getbrevo/brevo');
+  const client = new BrevoClient({
+    apiKey:      process.env.BREVO_API_KEY,
+    environment: BrevoEnvironment.Production,
+  });
+  _brevoApi  = client.transactionalEmails;
   _transport = 'brevo';
 } else {
   console.warn('[Mailer] Nenhuma chave de API configurada (RESEND_API_KEY ou BREVO_API_KEY).');
@@ -29,25 +31,30 @@ async function _send({ to, subject, html }) {
     if (error) throw new Error(error.message || JSON.stringify(error));
 
   } else if (_transport === 'brevo') {
-    const SibApiV3Sdk = require('@getbrevo/brevo');
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    /* Extrai "Nome <email>" ou usa directamente */
     const fromMatch = FROM_ADDR.match(/^(.+?)\s*<(.+?)>$/);
-    sendSmtpEmail.sender  = fromMatch
+    const sender    = fromMatch
       ? { name: fromMatch[1].trim(), email: fromMatch[2].trim() }
       : { email: FROM_ADDR };
-    sendSmtpEmail.to      = [{ email: to }];
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.htmlContent = html;
-    await _brevoApi.sendTransacEmail(sendSmtpEmail);
+    await _brevoApi.sendTransacEmail({
+      sender,
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+    });
 
   } else {
     console.warn('[Mailer] Sem transporte configurado. Email não enviado para:', to);
   }
 }
 
+/* Preheader oculto — captado pelos clientes como preview abaixo do assunto */
+function ph(text) {
+  return `<div style="display:none;font-size:1px;color:#04060f;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">${text}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`;
+}
+
 /* ── Base visual de todos os e-mails ─────────────────────── */
 function base(content) {
+  const preheaderHtml = '';
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -71,6 +78,7 @@ function base(content) {
 </style><![endif]-->
 </head>
 <body bgcolor="#04060f" style="margin:0;padding:0;background-color:#04060f">
+${preheaderHtml}
 <table class="zz-outer" width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem">
   <tr><td align="center" bgcolor="#04060f" style="background-color:#04060f">
   <!--[if (gte mso 9)|(IE)]><table width="520" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
@@ -133,6 +141,7 @@ async function sendPasswordResetEmail(to, resetLink) {
     to,
     subject: 'Redefinir sua senha — Zenith Zone',
     html: base(`
+      ${ph('Redefina sua senha com segurança — o link expira em 1 hora.')}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-password-reset.png')}" alt="Segurança Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -184,6 +193,7 @@ async function sendOrderConfirmationEmail(to, order) {
     to,
     subject: `Pedido #${shortId} confirmado — Zenith Zone`,
     html: base(`
+      ${ph(`Pedido #${shortId} confirmado — nossa equipe já está a preparar o envio.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-order.png')}" alt="Pedido Confirmado Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -236,6 +246,7 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
     to,
     subject: `Você está na lista — ${dropTitle} | Zenith Zone`,
     html: base(`
+      ${ph(`Você está dentro — faltam ${remaining} para o ${dropTitle}. Fique de olho!`)}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="${dropTitle}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -288,6 +299,7 @@ async function sendDropAlert(to, dropTitle, label_) {
     to,
     subject: cfg.subject,
     html: base(`
+      ${ph(cfg.msg.replace(/<[^>]*>/g, ''))}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img(cfg.bannerFile)}" alt="${cfg.title}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -326,6 +338,7 @@ async function sendWaitlistConfirmation(to, produto) {
     to,
     subject: `Lista de espera confirmada — ${produto.titulo} | Zenith Zone`,
     html: base(`
+      ${ph(`Inscrição confirmada para ${produto.titulo} — você será notificado assim que voltar ao estoque.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-no-units.png')}" alt="Zenith Zone Restock" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -358,6 +371,7 @@ async function sendRestockNotification(to, produto) {
     to,
     subject: `Voltou ao estoque! ${produto.titulo} — Zenith Zone`,
     html: base(`
+      ${ph(`${produto.titulo} voltou ao estoque — garanta os seus itens antes que esgotem!`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-restock.png')}" alt="Restock Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -400,6 +414,7 @@ async function sendWelcomeEmail(to, userName) {
     to,
     subject: 'Bem-vindo ao Clã — Zenith Zone',
     html: base(`
+      ${ph(`Bem-vindo ao clã, ${userName || 'Membro'}! O seu perfil está ativo — acesso antecipado aos drops.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-sign-in.png')}" alt="Bem-vindo à Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -437,6 +452,7 @@ async function sendNewsletterWelcome(to) {
     to,
     subject: 'Você está na lista — Zenith Zone',
     html: base(`
+      ${ph('Você está na lista — será o primeiro a saber quando o próximo drop for anunciado.')}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
