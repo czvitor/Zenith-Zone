@@ -50,7 +50,6 @@ const couponSchema = new mongoose.Schema({
   usedBy:    [usageSchema],
 }, { timestamps: true });
 
-couponSchema.index({ code: 1 }, { unique: true });
 couponSchema.index({ active: 1, expiresAt: 1 });
 
 /* Remove usedBy do retorno público para não expor dados de users */
