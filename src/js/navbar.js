@@ -557,26 +557,12 @@
   /* Finalizar Compra — redireciona para checkout.html */
   cartDrawer?.addEventListener('click', e => {
     if (!e.target.closest('.zz-cart-drawer-checkout')) return;
-    const items = window.ZZCart.items;
-    if (!items.length) return;
-
-    const checkoutPage = location.pathname.includes('/src/pages/')
-      ? 'checkout.html'
-      : 'src/pages/checkout.html';
-
-    if (!window.ZZAuth?.isLoggedIn()) {
-      if (typeof openAuthModal === 'function') {
-        openAuthModal('login');
-        window.addEventListener('zz:auth:login',    () => { location.href = checkoutPage; }, { once: true });
-        window.addEventListener('zz:auth:register', () => { location.href = checkoutPage; }, { once: true });
-      } else {
-        location.href = checkoutPage;
-      }
-      return;
-    }
+    if (!window.ZZCart.items.length) return;
 
     drawerClose();
-    location.href = checkoutPage;
+    location.href = location.pathname.includes('/src/pages/')
+      ? 'checkout.html'
+      : 'src/pages/checkout.html';
   });
 
   cartBtn?.addEventListener('click', e => {
