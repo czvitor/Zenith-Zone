@@ -27,12 +27,12 @@
 
 (DONE) ao desativar o "Próximo Drop Exclusivo", faça sumir o botão "Ver proximo drop" da main page
 
-adicionar um dashboard no painel admin
-
 (DONE) adicionar email de cadastro concluido
 
 (DONE) arrumar o envio de email (nao recebi confirmação de inscrição do drop) e deixar imagens mais leves pois esta demorando muito para enviar os emails
 
 (DONE) fazer uma view no painel admin para aplicar descontos, criar cupons (que podem ser para um anuncio especifico ou em massa, para subcategoria, categoria, zona, coleção, para tudo...) e ofertas do tipo "compre 2 e leve 3"
 
-arrumar e atualizar as zonas OFERTAS e LANÇAMENTOS
+(DONE) arrumar e atualizar as zonas OFERTAS e LANÇAMENTOS
+
+adicionar um dashboard no painel admin
