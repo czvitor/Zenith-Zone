@@ -3025,6 +3025,15 @@
             </div>
           </div>
           <div class="field" style="margin-bottom:0">
+            <label class="field-label" for="an-preco-promo">Preço Promocional (R$)</label>
+            <div class="price-field-wrap">
+              <span class="price-prefix">R$</span>
+              <input class="field-input" type="number" id="an-preco-promo"
+                     placeholder="Deixe vazio para sem promoção" min="0" step="0.01" autocomplete="off">
+            </div>
+            <p class="form-hint">Quando preenchido, o preço original aparece riscado.</p>
+          </div>
+          <div class="field" style="margin-bottom:0">
             <label class="field-label" for="an-parcelas">Parcelas Sem Juros</label>
             <input class="field-input" type="number" id="an-parcelas"
                    placeholder="3" min="1" max="24" autocomplete="off">
@@ -3662,6 +3671,14 @@
                   <span class="price-prefix">R$</span>
                   <input class="field-input" type="number" id="pe-preco" min="0" step="0.01" required>
                 </div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="field-label" for="pe-preco-promo">Preço Promocional (R$)</label>
+                <div class="price-field-wrap">
+                  <span class="price-prefix">R$</span>
+                  <input class="field-input" type="number" id="pe-preco-promo" min="0" step="0.01" placeholder="Sem promoção">
+                </div>
+                <p class="form-hint">Preço original ficará riscado.</p>
               </div>
               <div class="field" style="margin-bottom:0">
                 <label class="field-label" for="pe-parcelas">Parcelas Sem Juros</label>
@@ -5645,8 +5662,9 @@
     function buildPayload() {
       const titulo   = document.getElementById('an-titulo')?.value.trim()    || '';
       const tituloJP = document.getElementById('an-titulo-jp')?.value.trim() || '';
-      const preco    = parseFloat(document.getElementById('an-preco')?.value) || 0;
-      const parcelas = parseInt(document.getElementById('an-parcelas')?.value) || 3;
+      const preco           = parseFloat(document.getElementById('an-preco')?.value) || 0;
+      const precoPromocional = parseFloat(document.getElementById('an-preco-promo')?.value) || null;
+      const parcelas        = parseInt(document.getElementById('an-parcelas')?.value) || 3;
       const desc     = document.getElementById('an-descricao')?.value.trim()  || '';
 
       const especificacoes = [];
@@ -5722,7 +5740,7 @@
       const dropExclusivo  = document.getElementById('an-drop-exclusivo')?.checked    ?? false;
 
       return {
-        titulo, tituloJP, preco, parcelas,
+        titulo, tituloJP, preco, precoPromocional, parcelas,
         descricao: desc, especificacoes, cores, fotos, fotosPorCor, estoque,
         logistica, zonaId, categoriaId, subcategoriaId, modelo, colecao,
         dropExclusivo,
@@ -5924,8 +5942,9 @@
         const setVal = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
         setVal('an-titulo',    draft.titulo);
         setVal('an-titulo-jp', draft.tituloJP);
-        setVal('an-preco',     draft.preco);
-        setVal('an-parcelas',  draft.parcelas);
+        setVal('an-preco',       draft.preco);
+        setVal('an-preco-promo', draft.precoPromocional || '');
+        setVal('an-parcelas',    draft.parcelas);
         setVal('an-descricao', draft.descricao);
 
         /* Dados logísticos */
@@ -7699,8 +7718,9 @@
       setV('pe-id',        p._id);
       setV('pe-titulo',    p.titulo    || '');
       setV('pe-tituloJP',  p.tituloJP  || '');
-      setV('pe-preco',     p.preco     ?? '');
-      setV('pe-parcelas',  p.parcelas  ?? 1);
+      setV('pe-preco',       p.preco            ?? '');
+      setV('pe-preco-promo', p.precoPromocional ?? '');
+      setV('pe-parcelas',    p.parcelas         ?? 1);
       setV('pe-status',    normStatus(p.status));
       setV('pe-descricao', p.descricao || '');
       const titleInp=document.getElementById('pe-titulo'), titleCounter=document.getElementById('pe-titulo-counter');
@@ -7781,8 +7801,9 @@
     async function buildEditPayload() {
       const titulo    = document.getElementById('pe-titulo')?.value.trim()   ||'';
       const tituloJP  = document.getElementById('pe-tituloJP')?.value.trim()||'';
-      const preco     = parseFloat(document.getElementById('pe-preco')?.value)   ||0;
-      const parcelas  = parseInt(document.getElementById('pe-parcelas')?.value)  ||1;
+      const preco            = parseFloat(document.getElementById('pe-preco')?.value)       || 0;
+      const precoPromocional = parseFloat(document.getElementById('pe-preco-promo')?.value) || null;
+      const parcelas         = parseInt(document.getElementById('pe-parcelas')?.value)       || 1;
       const status    = document.getElementById('pe-status')?.value              ||'ativo';
       const descricao = document.getElementById('pe-descricao')?.value.trim()   ||'';
       const especificacoes=[];
@@ -7860,7 +7881,7 @@
       const modelo         = document.getElementById('pe-modelo')?.value.trim()       || '';
       const colecao        = document.getElementById('pe-colecao')?.value.trim()      || '';
       const dropExclusivo  = document.getElementById('pe-drop-exclusivo')?.checked    ?? false;
-      return { titulo, tituloJP, preco, parcelas, status, descricao, especificacoes, cores, fotos, fotosPorCor, imagensPorCor, estoque, logistica, zonaId, categoriaId, subcategoriaId, modelo, colecao, dropExclusivo };
+      return { titulo, tituloJP, preco, precoPromocional, parcelas, status, descricao, especificacoes, cores, fotos, fotosPorCor, imagensPorCor, estoque, logistica, zonaId, categoriaId, subcategoriaId, modelo, colecao, dropExclusivo };
     }
 
     async function openEditView(id) {

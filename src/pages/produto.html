@@ -933,7 +933,9 @@
         <p class="product-jp"    id="p-jp"></p>
 
         <div class="price-row">
+          <del class="price-original" id="p-preco-original" style="display:none;font-size:1rem;color:var(--color-text-muted);text-decoration:line-through;margin-right:.5rem"></del>
           <span class="price-main" id="p-preco">—</span>
+          <span class="price-badge-promo" id="p-preco-badge" style="display:none;margin-left:.6rem;background:rgba(220,20,60,.15);color:var(--color-red);border:1px solid rgba(220,20,60,.25);border-radius:4px;font-size:.7rem;font-weight:700;letter-spacing:.06em;padding:.15rem .45rem;vertical-align:middle"></span>
           <div class="price-inst"  id="p-inst"></div>
         </div>
 
@@ -1781,14 +1783,26 @@
     el('p-drop').style.display  = p.dropExclusivo ? 'flex' : 'none';
     el('p-jp').textContent      = p.tituloJP || '';
     el('p-jp').style.display    = p.tituloJP ? 'block' : 'none';
-    el('p-preco').textContent   = fmtPrice(p.preco);
+    const hasPromo = p.precoPromocional > 0;
+    const effectivePrice = hasPromo ? p.precoPromocional : p.preco;
+    el('p-preco').textContent = fmtPrice(effectivePrice);
+    if (hasPromo) {
+      const pct = Math.round((1 - p.precoPromocional / p.preco) * 100);
+      el('p-preco-original').textContent = fmtPrice(p.preco);
+      el('p-preco-original').style.display = 'inline';
+      el('p-preco-badge').textContent = `-${pct}%`;
+      el('p-preco-badge').style.display = 'inline';
+    } else {
+      el('p-preco-original').style.display = 'none';
+      el('p-preco-badge').style.display = 'none';
+    }
 
     /* Drop Exclusivo — carimbo na galeria */
     const carimbo = el('p-carimbo');
     if (carimbo) carimbo.classList.toggle('is-visible', !!p.dropExclusivo);
 
     if (p.parcelas > 1) {
-      el('p-inst').innerHTML = `ou <strong>${p.parcelas}x de ${fmtPrice(p.preco/p.parcelas)}</strong><br>sem juros no cartão`;
+      el('p-inst').innerHTML = `ou <strong>${p.parcelas}x de ${fmtPrice(effectivePrice/p.parcelas)}</strong><br>sem juros no cartão`;
     }
 
     /* Cores — com suporte a pausa por cor + sobreposição global */
@@ -1979,7 +1993,7 @@
       window.ZZCart.add({
         id:    produto._id,
         name:  produto.titulo,
-        price: produto.preco,
+        price: (produto.precoPromocional > 0 ? produto.precoPromocional : produto.preco),
         qty:   1,
         size:  activeSz,
         color: activeColor,

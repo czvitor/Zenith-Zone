@@ -1843,7 +1843,9 @@
             <p class="card-collection">${esc(p.colecao || '')}</p>
             <h3 class="card-title">${esc(p.titulo)}</h3>
             ${colorsHtml ? `<div class="card-colors">${colorsHtml}</div>` : ''}
-            <p class="card-price">${fmtPrice(p.preco)}</p>
+            ${p.precoPromocional > 0
+              ? `<p class="card-price" style="color:var(--color-red)">${fmtPrice(p.precoPromocional)} <del style="font-size:.8em;color:var(--color-text-muted);font-weight:400">${fmtPrice(p.preco)}</del></p>`
+              : `<p class="card-price">${fmtPrice(p.preco)}</p>`}
             ${p.parcelas > 1 ? `<p class="card-parcelas">ou ${p.parcelas}× sem juros</p>` : ''}
           </div>`;
 

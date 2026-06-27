@@ -26,19 +26,21 @@ router.post('/', authenticate, async (req, res) => {
         return res.status(422).json({ error: 'ID de produto inválido.' });
 
       const product = await Product.findById(item.id)
-        .select('titulo preco status estoque pausedVariations');
+        .select('titulo preco precoPromocional status estoque pausedVariations');
 
       if (!product || !['publicado', 'pausado'].includes(product.status))
         return res.status(422).json({
           error: `Produto "${item.name || item.id}" não está disponível.`,
         });
 
-      if (Math.abs(product.preco - (item.price || 0)) > 0.01)
+      const effectivePrice = (product.precoPromocional > 0) ? product.precoPromocional : product.preco;
+
+      if (Math.abs(effectivePrice - (item.price || 0)) > 0.01)
         return res.status(422).json({
           error: `Preço desatualizado para "${product.titulo}". Recarregue a página.`,
         });
 
-      expectedTotal += product.preco * Math.max(1, parseInt(item.qty) || 1);
+      expectedTotal += effectivePrice * Math.max(1, parseInt(item.qty) || 1);
     }
 
     if (Math.abs(expectedTotal - total) > 0.02)

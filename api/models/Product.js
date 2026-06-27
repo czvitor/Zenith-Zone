@@ -91,8 +91,9 @@ const productSchema = new mongoose.Schema({
   tituloJP: { type: String, trim: true, default: '' },
   slug:     { type: String, unique: true, lowercase: true, trim: true },
 
-  preco:    { type: Number, required: true, min: 0 },
-  parcelas: { type: Number, default: 1, min: 1 },
+  preco:             { type: Number, required: true, min: 0 },
+  precoPromocional:  { type: Number, default: null, min: 0 },
+  parcelas:          { type: Number, default: 1, min: 1 },
 
   descricao:     { type: String, default: '' },
   especificacoes: [{
