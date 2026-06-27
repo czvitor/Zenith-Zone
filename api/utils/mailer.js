@@ -86,6 +86,7 @@ function base(content, preheader) {
 </style><![endif]-->
 </head>
 <body bgcolor="#04060f" style="margin:0;padding:0;background-color:#04060f">
+${preheaderHtml}
 <table class="zz-outer" width="100%" cellpadding="0" cellspacing="0" bgcolor="#04060f" style="background-color:#04060f;padding:2rem 1rem">
   <tr><td align="center" bgcolor="#04060f" style="background-color:#04060f">
   <!--[if (gte mso 9)|(IE)]><table width="520" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
