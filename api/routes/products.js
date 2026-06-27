@@ -439,6 +439,60 @@ router.put('/:id', authenticate, authorize('canEditProducts'), writeLimiter, asy
 });
 
 /* ── DELETE /api/products/:id ─────────────────────────────── */
+/* ── POST /api/products/bulk-discount ────────────────────────
+   Aplica ou remove desconto em massa.
+   Body: { scope, scopeValue, discountPct, productIds? }
+     scope: 'global' | 'zona' | 'categoria' | 'subcategoria' | 'produto'
+     discountPct: 0–100 (0 remove o desconto)
+     productIds: array de ids (só para scope='produto') */
+router.post('/bulk-discount', authenticate, authorize('canEditProducts'), writeLimiter, async (req, res) => {
+  try {
+    const { scope = 'global', scopeValue = '', discountPct, productIds = [] } = req.body;
+    const pct = parseFloat(discountPct);
+
+    if (isNaN(pct) || pct < 0 || pct > 100)
+      return res.status(422).json({ error: 'discountPct deve ser entre 0 e 100.' });
+
+    /* Monta filtro MongoDB */
+    const filter = { status: { $in: ['publicado', 'pausado', 'ativo'] } };
+    if (scope === 'zona')          filter.zonaId         = scopeValue;
+    else if (scope === 'categoria')    filter.categoriaId    = scopeValue;
+    else if (scope === 'subcategoria') filter.subcategoriaId = scopeValue;
+    else if (scope === 'colecao')      filter.colecao        = scopeValue;
+    else if (scope === 'produto') {
+      if (!productIds.length)
+        return res.status(422).json({ error: 'Forneça pelo menos um productId.' });
+      const validIds = productIds.filter(id => mongoose.isValidObjectId(id));
+      filter._id = { $in: validIds };
+    }
+
+    let update;
+    if (pct === 0) {
+      /* Remove o desconto — volta ao preço original */
+      update = { $unset: { precoPromocional: '' } };
+      const result = await Product.updateMany(filter, update);
+      return res.json({ updated: result.modifiedCount, action: 'removed' });
+    }
+
+    /* Aplica desconto: precoPromocional = preco * (1 - pct/100) */
+    const products = await Product.find(filter).select('_id preco').lean();
+    if (!products.length)
+      return res.json({ updated: 0, action: 'applied', message: 'Nenhum produto encontrado para este escopo.' });
+
+    const bulkOps = products.map(p => ({
+      updateOne: {
+        filter: { _id: p._id },
+        update: { $set: { precoPromocional: Math.round(p.preco * (1 - pct / 100) * 100) / 100 } },
+      },
+    }));
+    const result = await Product.bulkWrite(bulkOps);
+    res.json({ updated: result.modifiedCount, action: 'applied', discountPct: pct });
+  } catch (err) {
+    console.error('products/bulk-discount:', err);
+    res.status(500).json({ error: 'Erro interno.' });
+  }
+});
+
 router.delete('/:id', authenticate, authorize('canEditProducts'), async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id))
     return res.status(422).json({ error: 'ID de produto inválido.' });
