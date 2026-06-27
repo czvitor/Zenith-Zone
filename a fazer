@@ -31,4 +31,8 @@ adicionar um dashboard no painel admin
 
 (DONE) adicionar email de cadastro concluido
 
-arrumar o envio de email (nao recebi confirmação de inscrição do drop) e deixar imagens mais leves pois esta demorando muito para enviar os emails
+(DONE) arrumar o envio de email (nao recebi confirmação de inscrição do drop) e deixar imagens mais leves pois esta demorando muito para enviar os emails
+
+fazer uma view no painel admin para aplicar descontos, criar cupons (que podem ser para um anuncio especifico, para subcategoria, categoria, zona, coleção, para tudo...)
+
+arrumar e atualizar as zonas OFERTAS e LANÇAMENTOS
