@@ -9592,11 +9592,29 @@
 
     /* Cupom */
     wireScopeTrigger('dc-scope-trigger','dc-scope','dc-scope-val','dc-scope-display',
-      ['global','zona','categoria','subcategoria','colecao','produto'], false);
+      ['global','zona','categoria','subcategoria','colecao','produto'], true,
+      () => [],
+      (sel) => {
+        window._dcScopeValues = sel;
+        const disp = document.getElementById('dc-scope-display');
+        if (disp) disp.textContent = sel.length === 0 ? 'Todo o catálogo'
+          : sel.length === 1 ? sel[0].name
+          : `${sel.length} itens seleccionados`;
+        document.getElementById('dc-scope-trigger')?.classList.toggle('has-val', sel.length > 0);
+      });
 
     /* BXGY */
     wireScopeTrigger('db-scope-trigger','db-scope','db-scope-val','db-scope-display',
-      ['global','colecao','categoria','produto'], false);
+      ['global','colecao','categoria','produto'], true,
+      () => [],
+      (sel) => {
+        window._dbScopeValues = sel;
+        const disp = document.getElementById('db-scope-display');
+        if (disp) disp.textContent = sel.length === 0 ? 'Todo o catálogo'
+          : sel.length === 1 ? sel[0].name
+          : `${sel.length} itens seleccionados`;
+        document.getElementById('db-scope-trigger')?.classList.toggle('has-val', sel.length > 0);
+      });
 
     /* Bulk discount */
     window._bdSelectedIds = [];
@@ -9635,6 +9653,7 @@
       document.getElementById('dc-dtype').value = 'percentage';
       document.getElementById('dc-scope').value    = 'global';
       document.getElementById('dc-scope-val').value = '';
+      window._dcScopeValues = [];
       document.getElementById('dc-maxuses').value = '0';
       document.getElementById('dc-maxuser').value = '0';
       const disp = document.getElementById('dc-scope-display');
@@ -9657,7 +9676,8 @@
         discountType:   document.getElementById('dc-dtype').value,
         discountValue:  parseFloat(document.getElementById('dc-dvalue').value)||0,
         scope:          document.getElementById('dc-scope').value,
-        scopeValue:     document.getElementById('dc-scope-val')?.value?.trim()||'',
+        scopeValues:    (window._dcScopeValues||[]).map(x=>x.value),
+        scopeValue:     (window._dcScopeValues||[])[0]?.value || document.getElementById('dc-scope-val')?.value?.trim()||'',
         minCartValue:   parseFloat(document.getElementById('dc-mincart').value)||0,
         maxUses:        parseInt(document.getElementById('dc-maxuses').value)||0,
         maxUsesPerUser: parseInt(document.getElementById('dc-maxuser').value)||0,
@@ -9710,7 +9730,8 @@
         getQty:        parseInt(document.getElementById('db-get').value)||1,
         freeRule:      document.getElementById('db-freerule').value,
         scope:         document.getElementById('db-scope').value,
-        scopeValue:    (document.getElementById('db-scope-val')?.value||'').trim(),
+        scopeValues:   (window._dbScopeValues||[]).map(x=>x.value),
+        scopeValue:    (window._dbScopeValues||[])[0]?.value || (document.getElementById('db-scope-val')?.value||'').trim(),
         minCartValue:  parseFloat(document.getElementById('db-mincart').value)||0,
         startsAt:      document.getElementById('db-starts').value||null,
         expiresAt:     document.getElementById('db-expires').value||null,

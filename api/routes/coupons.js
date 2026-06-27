@@ -18,11 +18,18 @@ async function itemsMatchScope(coupon, cartItems) {
   if (coupon.scope === 'global') return true;
   if (!cartItems?.length) return false;
 
+  /* Constrói o conjunto de valores elegíveis (singular + array) */
+  const vals = new Set([
+    ...(coupon.scopeValues?.length ? coupon.scopeValues : []),
+    ...(coupon.scopeValue ? [coupon.scopeValue] : []),
+  ]);
+  if (!vals.size) return false;
+
   for (const item of cartItems) {
     if (!item.id || !mongoose.isValidObjectId(item.id)) continue;
 
     if (coupon.scope === 'produto') {
-      if (String(item.id) === String(coupon.scopeValue)) return true;
+      if (vals.has(String(item.id))) return true;
       continue;
     }
 
@@ -30,10 +37,10 @@ async function itemsMatchScope(coupon, cartItems) {
       .select('colecao categoriaId subcategoriaId zonaId').lean();
     if (!product) continue;
 
-    if (coupon.scope === 'colecao'       && product.colecao       === coupon.scopeValue) return true;
-    if (coupon.scope === 'categoria'     && product.categoriaId   === coupon.scopeValue) return true;
-    if (coupon.scope === 'subcategoria'  && product.subcategoriaId === coupon.scopeValue) return true;
-    if (coupon.scope === 'zona'          && product.zonaId        === coupon.scopeValue) return true;
+    if (coupon.scope === 'colecao'      && vals.has(product.colecao))       return true;
+    if (coupon.scope === 'categoria'    && vals.has(product.categoriaId))   return true;
+    if (coupon.scope === 'subcategoria' && vals.has(product.subcategoriaId)) return true;
+    if (coupon.scope === 'zona'         && vals.has(product.zonaId))        return true;
   }
   return false;
 }

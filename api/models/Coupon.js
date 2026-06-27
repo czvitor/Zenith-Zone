@@ -34,7 +34,8 @@ const couponSchema = new mongoose.Schema({
     enum: ['global', 'colecao', 'categoria', 'subcategoria', 'zona', 'produto'],
     default: 'global',
   },
-  scopeValue: { type: String, default: '' }, // nome da coleção, id da zona, ObjectId do produto, etc.
+  scopeValue:  { type: String, default: '' },
+  scopeValues: { type: [String], default: [] }, // múltiplos valores do mesmo scope
 
   /* ── Regras de activação ────────────────────────────── */
   startsAt:       { type: Date, default: null },
