@@ -678,9 +678,33 @@
     .footer-logo-img { height: 56px; width: auto; }
     footer p { font-size: var(--text-2xs); color: rgba(var(--rgb-offwhite),.25); letter-spacing: .1em; }
 
-    @media (max-width: 900px) { .product-layout { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 5%; } .gallery { position: static; } }
-    @media (max-width: 560px) { .trust { grid-template-columns: 1fr 1fr; } .specs-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 480px) { .product-name { font-size: clamp(1.6rem,8vw,2rem); } .price-main { font-size: 2.2rem; } }
+    @media (max-width: 900px) { .product-layout { grid-template-columns: 1fr; gap: 2.5rem; padding: 2rem 5%; } .product-gallery { position: static; } }
+    @media (max-width: 560px) {
+      .trust { grid-template-columns: 1fr 1fr; }
+      .specs-grid { grid-template-columns: 1fr; }
+      .product-layout { padding: 1.25rem 4%; gap: 1.75rem; }
+      .pgal-arrow { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+      .btn-buy, .btn-cart, .btn-wish, .btn-share { padding: .9rem 1rem; font-size: var(--text-xs); }
+      .cta-group { gap: .55rem; }
+      .size-opts { gap: .35rem; }
+      .size-btn { min-width: 42px; min-height: 42px; font-size: var(--text-xs); }
+    }
+    @media (max-width: 480px) {
+      .product-name { font-size: clamp(1.4rem, 7vw, 1.8rem); }
+      .price-main   { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+      .trust { grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+      .trust-item span { font-size: .58rem; }
+    }
+    @media (max-width: 360px) {
+      .product-layout { padding: 1rem 3.5%; }
+      .trust { grid-template-columns: 1fr 1fr; }
+      .acc-head { font-size: var(--text-xs); }
+    }
+    @media (max-width: 320px) {
+      .product-name { font-size: 1.35rem; }
+      .price-main   { font-size: 1.6rem; }
+      .size-btn { min-width: 38px; padding: 0 .3rem; }
+    }
 
     /* ── Botão Favoritar (produto) ─────────────────────────────── */
     .btn-wish {

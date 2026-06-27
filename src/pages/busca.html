@@ -202,6 +202,20 @@
     }
     #busca-load-more:hover { border-color: var(--color-red); color: var(--color-red); }
     #busca-load-more:disabled { opacity: .45; cursor: not-allowed; }
+
+    @media (max-width: 600px) {
+      .busca-header { padding: 1.75rem 1rem 0; }
+      .busca-header-title { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+      .busca-toolbar { padding: .9rem 1rem 0; }
+      .busca-grid { padding: 1rem; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .75rem; }
+      #busca-load-more { padding: .75rem 1.5rem; }
+    }
+    @media (max-width: 380px) {
+      .busca-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 320px) {
+      .busca-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>

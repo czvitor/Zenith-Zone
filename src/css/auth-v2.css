@@ -455,3 +455,11 @@ html::-webkit-scrollbar-thumb:active { background: var(--color-pink); }
 @media (max-height: 660px) {
   .panels-wrap { height: calc(100dvh - 145px); }
 }
+/* 320px – telefones muito compactos */
+@media (max-width: 360px) {
+  .panel-body   { padding: 1rem .9rem .4rem; }
+  .panel-footer { padding: .6rem .9rem 1.2rem; }
+  .modal-header { padding: 1rem .9rem 0; }
+  .panel-title  { font-size: clamp(1.3rem, 7vw, 1.6rem); }
+  .field-input, .btn-auth { font-size: .88rem; }
+}

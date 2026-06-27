@@ -980,6 +980,14 @@
       .card-title { font-size: 0.8rem; }
       .card-price { font-size: 1.2rem; }
     }
+    @media (max-width: 360px) {
+      .product-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
+      .card-title { font-size: .72rem; }
+      .catalog-layout { padding: 0 2.5% 5rem; }
+    }
+    @media (max-width: 320px) {
+      .product-grid { grid-template-columns: 1fr; }
+    }
 
     /* ══════════════════════════════════════════════════════════
        CATALOG BACKGROUND — marca d'água imersiva (full-cover)

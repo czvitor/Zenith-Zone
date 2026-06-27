@@ -818,6 +818,17 @@
       .btn-logout { width: auto; }
       .pf-row { grid-template-columns: 1fr; }
     }
+    @media (max-width: 560px) {
+      .pf-avatar-section { flex-direction: column; text-align: center; gap: 1rem; }
+      .pf-avatar-meta { align-items: center; }
+      .cards-list { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+      .tab-nav { gap: .25rem; }
+      .tab-btn { padding: .55rem .7rem; font-size: var(--text-xs); }
+    }
+    @media (max-width: 380px) {
+      .cards-list { grid-template-columns: 1fr; }
+      .perfil-sidebar { padding: 1rem .75rem; }
+    }
   </style>
 </head>
 <body>

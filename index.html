@@ -187,8 +187,8 @@
     /* Shuriken giratória neon atrás da imagem */
     .dpb-ring {
       position:absolute; pointer-events:none; z-index:1;
-      width: clamp(450px,55vw,640px);
-      height: clamp(450px,55vw,640px);
+      width: clamp(260px,70vw,640px);
+      height: clamp(260px,70vw,640px);
       top:50%; left:50%;
       background: linear-gradient(
         135deg,
@@ -591,6 +591,10 @@
     @media (max-width:700px) {
       .dpb-arena { flex-direction:column; gap:1.8rem; }
       .dpb-holo-panel { display: none; }
+    }
+    @media (max-width:480px) {
+      .dpb-ring  { width:clamp(200px,88vw,320px); height:clamp(200px,88vw,320px); }
+      .dpb-main-card { width:clamp(140px,52vw,220px); height:clamp(175px,65vw,275px); }
     }
     /* Desktop pequeno: ocultar painéis extremos (distantes esq. e dir. direita) */
     @media (min-width:701px) and (max-width:1200px) {

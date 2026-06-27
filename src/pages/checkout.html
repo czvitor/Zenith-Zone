@@ -109,6 +109,22 @@
     .empty-state { text-align: center; padding: 2.5rem 1rem; }
     .empty-state h2 { font-family: var(--font-head); font-weight: var(--fw-black); font-size: var(--text-xl); text-transform: uppercase; color: var(--color-white); margin-bottom: 0.75rem; }
     .empty-state p { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: 1.5rem; }
+
+    @media (max-width: 560px) {
+      body { padding: 1rem .75rem; align-items: stretch; }
+      .checkout-wrap { width: 100%; }
+      .checkout-title { font-size: clamp(1.4rem, 7vw, 1.8rem); }
+      .checkout-body { padding: 1.25rem 1rem; }
+      .checkout-header { padding: 1.1rem 1rem 1rem; }
+      .item-card { gap: .75rem; }
+      .item-thumb { width: 56px; height: 56px; }
+      .btn-confirm, .btn-back { font-size: var(--text-sm); padding: .95rem; }
+    }
+    @media (max-width: 360px) {
+      .coupon-input-row { flex-direction: column; }
+      .coupon-apply-btn { width: 100%; }
+      .item-card { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body>
