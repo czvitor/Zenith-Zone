@@ -2283,19 +2283,43 @@
   loadProduct().then(() => window.ZZWishlist?.initPage());
 
   /* ══════════════════════════════════════════════════════
-     SHARE MODAL
+     SHARE MODAL — IDs resolvidos lazy (HTML vem depois)
   ══════════════════════════════════════════════════════ */
   (() => {
-    const backdrop  = document.getElementById('share-backdrop');
-    const closeBtn  = document.getElementById('share-modal-close');
-    const urlInput  = document.getElementById('share-url-input');
-    const copyBtn   = document.getElementById('share-copy-btn');
-    const copyOpt   = document.getElementById('share-copy-opt');
-    const nativeBtn = document.getElementById('share-native');
+    const $ = id => document.getElementById(id);
+
+    function closeShare() {
+      $('share-backdrop')?.classList.remove('open');
+    }
+
+    function doCopy() {
+      const url = $('share-url-input')?.value || window.location.href;
+      const copyBtn = $('share-copy-btn');
+      const copyOpt = $('share-copy-opt');
+      navigator.clipboard?.writeText(url).then(() => {
+        [copyBtn, copyOpt].forEach(b => {
+          if (!b) return;
+          if (b === copyBtn) { b.textContent = '✔ Copiado!'; b.style.background = '#16a34a'; }
+          else { b.style.color = '#5dc78c'; }
+          setTimeout(() => {
+            if (b === copyBtn) { b.textContent = 'Copiar'; b.style.background = ''; }
+            else { b.style.color = ''; }
+          }, 2000);
+        });
+      }).catch(() => {
+        const inp = $('share-url-input');
+        if (inp) { inp.select(); document.execCommand('copy'); }
+      });
+    }
 
     function openShare() {
       const p = window._zzProduto;
       if (!p) return;
+
+      const backdrop  = $('share-backdrop');
+      const urlInput  = $('share-url-input');
+      const nativeBtn = $('share-native');
+      if (!backdrop) return;
 
       const pageUrl  = window.location.href;
       const title    = p.titulo || 'ZENITH ZONE';
@@ -2312,21 +2336,19 @@
       }
 
       /* Preview */
-      const previewImg  = document.getElementById('share-preview-img');
-      const previewName = document.getElementById('share-preview-name');
-      const previewPrc  = document.getElementById('share-preview-price');
-      if (previewImg) { previewImg.src = imgSrc || ''; previewImg.style.display = imgSrc ? '' : 'none'; }
-      if (previewName) previewName.textContent = title;
-      if (previewPrc)  previewPrc.textContent  = fmtPrc;
+      if ($('share-preview-img')) { $('share-preview-img').src = imgSrc || ''; $('share-preview-img').style.display = imgSrc ? '' : 'none'; }
+      if ($('share-preview-name')) $('share-preview-name').textContent = title;
+      if ($('share-preview-price')) $('share-preview-price').textContent = fmtPrc;
 
       /* URLs das redes */
-      const enc  = encodeURIComponent;
-      document.getElementById('share-whatsapp').href  = `https://api.whatsapp.com/send?text=${enc(text)}`;
-      document.getElementById('share-facebook').href  = `https://www.facebook.com/sharer/sharer.php?u=${enc(pageUrl)}&quote=${enc(title)}`;
-      document.getElementById('share-twitter').href   = `https://twitter.com/intent/tweet?url=${enc(pageUrl)}&text=${enc(title)}&via=zenithzone`;
-      document.getElementById('share-telegram').href  = `https://t.me/share/url?url=${enc(pageUrl)}&text=${enc(title)}`;
-      document.getElementById('share-pinterest').href = `https://pinterest.com/pin/create/button/?url=${enc(pageUrl)}&media=${enc(imgUrl)}&description=${enc(title)}`;
-      document.getElementById('share-email').href     = `mailto:?subject=${enc(title)}&body=${enc(text)}`;
+      const enc = encodeURIComponent;
+      const sa  = (id, href) => { const el=$('share-'+id); if(el) el.href=href; };
+      sa('whatsapp',  `https://api.whatsapp.com/send?text=${enc(text)}`);
+      sa('facebook',  `https://www.facebook.com/sharer/sharer.php?u=${enc(pageUrl)}&quote=${enc(title)}`);
+      sa('twitter',   `https://twitter.com/intent/tweet?url=${enc(pageUrl)}&text=${enc(title)}&via=zenithzone`);
+      sa('telegram',  `https://t.me/share/url?url=${enc(pageUrl)}&text=${enc(title)}`);
+      sa('pinterest', `https://pinterest.com/pin/create/button/?url=${enc(pageUrl)}&media=${enc(imgUrl)}&description=${enc(title)}`);
+      sa('email',     `mailto:?subject=${enc(title)}&body=${enc(text)}`);
 
       /* URL input */
       if (urlInput) urlInput.value = pageUrl;
@@ -2338,35 +2360,16 @@
       }
 
       backdrop.classList.add('open');
-    }
 
-    function closeShare() { backdrop.classList.remove('open'); }
+      /* Lazy-bind close/copy ao primeiro open */
+      $('share-modal-close')?.addEventListener('click', closeShare);
+      $('share-copy-btn')?.addEventListener('click', doCopy);
+      $('share-copy-opt')?.addEventListener('click', doCopy);
+      backdrop.addEventListener('click', e => { if (e.target === backdrop) closeShare(); });
+    }
 
     document.getElementById('btn-share')?.addEventListener('click', openShare);
-    closeBtn?.addEventListener('click', closeShare);
-    backdrop?.addEventListener('click', e => { if (e.target === backdrop) closeShare(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShare(); });
-
-    /* Copiar link */
-    function doCopy() {
-      const url = urlInput?.value || window.location.href;
-      navigator.clipboard?.writeText(url).then(() => {
-        [copyBtn, copyOpt].forEach(b => {
-          if (!b) return;
-          const orig = b.textContent;
-          if (b === copyBtn) { b.textContent = '✔ Copiado!'; b.style.background = '#16a34a'; }
-          else { b.style.color = '#5dc78c'; }
-          setTimeout(() => {
-            if (b === copyBtn) { b.textContent = orig; b.style.background = ''; }
-            else { b.style.color = ''; }
-          }, 2000);
-        });
-      }).catch(() => {
-        if (urlInput) { urlInput.select(); document.execCommand('copy'); }
-      });
-    }
-    copyBtn?.addEventListener('click', doCopy);
-    copyOpt?.addEventListener('click', doCopy);
   })();
   </script>
 
