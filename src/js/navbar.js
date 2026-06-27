@@ -778,3 +778,42 @@
   }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
 })();
+
+/* ── Drop Mega Menu — carrega o drop activo via API ── */
+(async function () {
+  const col = document.getElementById('mega-drop-atual');
+  if (!col) return;
+  const API = window.ZZ_API_BASE || 'https://zenith-zone-api.onrender.com/api';
+  try {
+    const d = await fetch(`${API}/site-settings`).then(r => r.json());
+    /* Determina caminho relativo para o catálogo */
+    const isSrcPages = location.pathname.includes('/src/pages/');
+    const catBase    = isSrcPages ? 'catalogo.html' : 'src/pages/catalogo.html';
+    const dropLink   = isSrcPages ? '../../index.html#drop' : '#drop';
+
+    if (d.dropActive && d.dropTitle) {
+      const dateStr = d.dropDate
+        ? new Date(d.dropDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+        : '';
+      col.innerHTML = `
+        <p class="zz-mega-col-title">Drop Atual</p>
+        <a href="${catBase}?zona=lancamentos" class="zz-mega-highlight" style="margin-bottom:.4rem;display:flex;flex-direction:column;gap:.25rem">
+          <span style="font-size:var(--text-xs);color:rgba(245,240,230,.5)">Em lançamento</span>
+          <span style="color:var(--color-pink);font-family:var(--font-head);font-weight:900;font-size:var(--text-lg)">${d.dropTitle}</span>
+        </a>
+        ${dateStr ? `<p style="font-size:var(--text-xs);color:rgba(245,240,230,.42);margin-bottom:.6rem">${dateStr}</p>` : ''}
+        <span class="zz-mega-badge red">Disponível Agora</span>
+        <a href="${dropLink}" class="zz-col-cta" style="margin-top:.9rem">Ver Countdown
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/></svg>
+        </a>`;
+    } else {
+      const newsLink = isSrcPages ? '../../index.html#newsletter' : '#newsletter';
+      col.innerHTML = `
+        <p class="zz-mega-col-title">Próximo Drop</p>
+        <p style="font-size:var(--text-xs);color:rgba(245,240,230,.4);margin-bottom:.75rem">Nenhum drop activo de momento.</p>
+        <a href="${newsLink}" class="zz-col-cta">Entrar na Lista VIP
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 10 6"/><polyline points="6 2 10 6 6 10"/></svg>
+        </a>`;
+    }
+  } catch { /* falha silenciosa */ }
+})();
