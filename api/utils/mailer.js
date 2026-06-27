@@ -56,9 +56,12 @@ function ph(text) {
 function base(content, preheader) {
   /* Preheader: 1º elemento do <body>, invisível, captado pelos clientes
      de email como texto de pré-visualização abaixo do assunto */
-  const preheaderHtml = preheader
-    ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
-    : '';
+  /* Técnica multi-camada para máxima compatibilidade:
+     - span visível 1px (Outlook desktop lê para preview)
+     - div display:none (Gmail/Apple Mail) */
+  const preheaderHtml = preheader ? `
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<span style="font-size:1px;color:#04060f;display:block;mso-hide:all;line-height:1px;max-height:1px;overflow:hidden">${preheader}</span>` : '';
   const cleanContent = content;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
