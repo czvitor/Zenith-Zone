@@ -439,11 +439,17 @@
   }
   .disc-dtp-backdrop.open { display: block; }
 
+  @keyframes disc-dtp-in {
+    from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
   /* Modal centralizado */
   .disc-dtp-modal {
     display: none;
     position: fixed;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     z-index: 9000;
     background: var(--color-bg-card);
@@ -451,9 +457,11 @@
     border-radius: var(--radius-md);
     box-shadow: 0 24px 64px rgba(0,0,0,.7), 0 0 0 1px rgba(220,20,60,.15);
     width: 290px;
-    animation: fadeIn .2s ease both;
   }
-  .disc-dtp-modal.open { display: block; }
+  .disc-dtp-modal.open {
+    display: block;
+    animation: disc-dtp-in .2s ease both;
+  }
 
   /* ── FORM ELEMENTS ──────────────────────────────────────── */
   .field { margin-bottom: 1rem; }
