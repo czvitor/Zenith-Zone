@@ -1177,6 +1177,18 @@
   @media (max-width: 480px) {
     .stats-grid { grid-template-columns: 1fr; }
     .table-search { min-width: 100%; }
+    .view { padding: 1rem; }
+    .card { padding: 1rem; }
+    .page-title { font-size: clamp(1.4rem, 7vw, 2rem); }
+    .btn-primary, .btn-ghost { padding: .65rem 1rem; font-size: var(--text-sm); }
+    .feat-card-body.open { padding: 1rem; }
+    .disc-stepper .disc-step-val { font-size: var(--text-base); }
+  }
+  @media (max-width: 360px) {
+    .sidebar { width: min(88vw, 240px); }
+    .topbar-title { font-size: var(--text-base); }
+    .stats-grid { gap: .65rem; }
+    .stat-card { padding: 1rem 1.1rem; }
   }
 
   /* ══════════════════════════════════════════════════════════
