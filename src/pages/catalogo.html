@@ -1272,6 +1272,21 @@
         </div>
       </div>
 
+      <!-- Descontos -->
+      <div class="filter-group open">
+        <button class="filter-toggle" aria-expanded="true">
+          Descontos
+          <svg class="filter-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 4 6 8 10 4"/></svg>
+        </button>
+        <div class="filter-body">
+          <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;font-size:var(--text-sm);color:var(--color-text-muted);padding:.1rem 0">
+            <input type="checkbox" id="filter-on-sale" style="width:15px;height:15px;accent-color:var(--color-red);cursor:pointer">
+            <span>Apenas em promoção</span>
+            <span style="margin-left:auto;background:rgba(220,20,60,.12);color:var(--color-red);border:1px solid rgba(220,20,60,.22);border-radius:4px;font-size:.65rem;font-weight:700;padding:.1rem .38rem;letter-spacing:.04em">SALE</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Preço -->
       <div class="filter-group open">
         <button class="filter-toggle" aria-expanded="true">
@@ -1419,6 +1434,7 @@
       colecoes:      new Set(),
       priceMin:      '',
       priceMax:      '',
+      onSale:        false,
       q:             '',
       ordenacao:     'newest',
       page:          1,
@@ -1480,6 +1496,7 @@
         + (state.subcategoriaId ? 1 : 0)
         + state.tamanhos.size + state.cores.size
         + state.modelos.size + state.colecoes.size
+        + (state.onSale ? 1 : 0)
         + (state.priceMin !== '' ? 1 : 0)
         + (state.priceMax !== '' ? 1 : 0);
     }
@@ -1744,8 +1761,9 @@
       if (state.cores.size) list = list.filter(p => (p.cores||[]).some(c => state.cores.has(colorSlug(c.nome))));
       if (state.modelos.size)  list = list.filter(p => state.modelos.has(p.modelo));
       if (state.colecoes.size) list = list.filter(p => state.colecoes.has(p.colecao));
-      if (state.priceMin !== '') list = list.filter(p => p.preco >= parseFloat(state.priceMin));
-      if (state.priceMax !== '') list = list.filter(p => p.preco <= parseFloat(state.priceMax));
+      if (state.onSale)           list = list.filter(p => p.precoPromocional > 0);
+      if (state.priceMin !== '') list = list.filter(p => (p.precoPromocional > 0 ? p.precoPromocional : p.preco) >= parseFloat(state.priceMin));
+      if (state.priceMax !== '') list = list.filter(p => (p.precoPromocional > 0 ? p.precoPromocional : p.preco) <= parseFloat(state.priceMax));
 
       if (state.q.trim()) {
         const rx = new RegExp(state.q.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
@@ -1936,6 +1954,7 @@
       state.cores.forEach(slug   => chips.push({ key:`cor:${slug}`,   label: slug.replace(/-/g,' ') }));
       state.modelos.forEach(m    => chips.push({ key:`mod:${m}`,      label: m }));
       state.colecoes.forEach(col => chips.push({ key:`col:${col}`,    label: col }));
+      if (state.onSale)           chips.push({ key:'onSale', label:'Em promoção' });
       if (state.priceMin !== '') chips.push({ key:'pMin', label:`≥ ${fmtPrice(state.priceMin)}` });
       if (state.priceMax !== '') chips.push({ key:'pMax', label:`≤ ${fmtPrice(state.priceMax)}` });
 
@@ -1965,6 +1984,7 @@
         state.subcategoriaId = '';
         buildCategoryTree();
       }
+      else if (key === 'onSale') { state.onSale=false; const cb=document.getElementById('filter-on-sale'); if(cb) cb.checked=false; }
       else if (key === 'pMin') { state.priceMin=''; const i=document.getElementById('price-min'); if(i) i.value=''; }
       else if (key === 'pMax') { state.priceMax=''; const i=document.getElementById('price-max'); if(i) i.value=''; }
       else if (key.startsWith('sz:'))  { const sz=key.slice(3); state.tamanhos.delete(sz); document.querySelector(`.size-btn[data-size="${sz}"]`)?.classList.remove('active'); }
@@ -1990,9 +2010,9 @@
     function clearAll() {
       state.q=''; state.zonaId=''; state.categoriaId=''; state.subcategoriaId='';
       state.tamanhos.clear(); state.cores.clear(); state.modelos.clear(); state.colecoes.clear();
-      state.priceMin=''; state.priceMax='';
-      const si=document.getElementById('search-input'), pmn=document.getElementById('price-min'), pmx=document.getElementById('price-max');
-      if(si) si.value=''; if(pmn) pmn.value=''; if(pmx) pmx.value='';
+      state.priceMin=''; state.priceMax=''; state.onSale=false;
+      const si=document.getElementById('search-input'), pmn=document.getElementById('price-min'), pmx=document.getElementById('price-max'), fos=document.getElementById('filter-on-sale');
+      if(si) si.value=''; if(pmn) pmn.value=''; if(pmx) pmx.value=''; if(fos) fos.checked=false;
       document.querySelectorAll('.size-btn.active').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.color-swatch.active').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
       document.querySelectorAll('#modelo-list input:checked, #colecao-list input:checked').forEach(i => i.checked=false);
@@ -2058,6 +2078,9 @@
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => { state.q = e.target.value.trim(); apply(); }, 230);
     });
+
+    /* On sale */
+    document.getElementById('filter-on-sale')?.addEventListener('change', e => { state.onSale = e.target.checked; apply(); });
 
     /* Price */
     document.getElementById('price-min')?.addEventListener('change', e => { state.priceMin = e.target.value; apply(); });
