@@ -835,6 +835,11 @@
       .addr-modal, .card-modal { width: min(92vw, 100%); padding: 1.25rem 1rem; }
       .tab-btn { padding: .5rem .55rem; font-size: .7rem; flex: 0 0 auto; }
     }
+    @media (max-width: 320px) {
+      .addr-modal, .card-modal { width: min(98vw, 100%); padding: 1rem .85rem; max-height: 85vh; overflow-y: auto; }
+      .addr-modal-title { font-size: var(--text-xs); padding-right: 1.75rem; }
+      .pf-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>

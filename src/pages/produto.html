@@ -705,6 +705,13 @@
       .acc-head { font-size: var(--text-xs); }
       .pgal-strip-thumb { width: 32px; height: 32px; }
       .pgal-cats { gap: .3rem; }
+      /* Size grid: 5 → 3 colunas */
+      .size-opts { grid-template-columns: repeat(3, 1fr) !important; }
+      /* Share modal ajustes */
+      .share-options { grid-template-columns: repeat(3, 1fr); gap: .35rem; padding: .75rem 1rem; }
+      .share-copy-bar { padding: .5rem 1rem .75rem; }
+      .share-preview { padding: .75rem 1rem; gap: .65rem; }
+      .share-preview-img { width: 48px; height: 48px; }
     }
     @media (max-width: 320px) {
       .product-name { font-size: 1.35rem; }
