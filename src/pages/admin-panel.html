@@ -9353,8 +9353,11 @@
       <div class="disc-scope-layout">
         <aside class="disc-scope-sidebar" id="_sp-sidebar"></aside>
         <div class="disc-scope-content">
-          <div class="disc-scope-search-row">
-            <input class="disc-scope-search" id="_sp-search" type="text" placeholder="Pesquisar…" autocomplete="off">
+          <div class="disc-scope-search-row" style="display:flex;gap:.5rem;align-items:center">
+            <input class="disc-scope-search" id="_sp-search" type="text" placeholder="Pesquisar…" autocomplete="off" style="flex:1">
+            <button type="button" id="_sp-select-all" style="display:none;padding:.45rem .8rem;background:rgba(220,20,60,.1);border:1px solid rgba(220,20,60,.25);border-radius:var(--radius-xs);color:var(--color-red);font-size:var(--text-xs);font-weight:var(--fw-bold);letter-spacing:.05em;cursor:pointer;white-space:nowrap;transition:background var(--ease-fast)">
+              Selecionar tudo
+            </button>
           </div>
           <div class="disc-scope-items" id="_sp-items"></div>
         </div>
@@ -9371,10 +9374,12 @@
       </div>`;
     document.body.appendChild(_scopeModal);
 
-    const _spSidebar = document.getElementById('_sp-sidebar');
-    const _spItems   = document.getElementById('_sp-items');
-    const _spSearch  = document.getElementById('_sp-search');
-    const _spSelInfo = document.getElementById('_sp-sel-info');
+    const _spSidebar   = document.getElementById('_sp-sidebar');
+    const _spItems     = document.getElementById('_sp-items');
+    const _spSearch    = document.getElementById('_sp-search');
+    const _spSelInfo   = document.getElementById('_sp-sel-info');
+    const _spSelAllBtn = document.getElementById('_sp-select-all');
+    let   _spAllSelected = false;
 
     let _spCurrentScope = 'global';
     let _spSelectedVal  = '';
@@ -9431,9 +9436,25 @@
     }
 
     function _spRenderItems(items) {
-      if (!items.length) { _spItems.innerHTML = `<div class="disc-scope-items-empty">Nenhum item encontrado.</div>`; return; }
+      if (!items.length) {
+        _spItems.innerHTML = `<div class="disc-scope-items-empty">Nenhum item encontrado.</div>`;
+        if (_spSelAllBtn) _spSelAllBtn.style.display = 'none';
+        return;
+      }
 
-      if (_spMultiMode && _spCurrentScope === 'produto') {
+      /* Botão selecionar tudo — só em multi-select com itens */
+      if (_spSelAllBtn) {
+        if (_spMultiMode && _spCurrentScope !== 'global') {
+          _spSelAllBtn.style.display = 'block';
+          _spAllSelected = items.every(it => _spMultiSel.some(s => s.value === it.value));
+          _spSelAllBtn.textContent = _spAllSelected ? 'Limpar seleção' : 'Selecionar tudo';
+        } else {
+          _spSelAllBtn.style.display = 'none';
+        }
+      }
+
+      if (_spMultiMode && _spCurrentScope !== 'global') {
+        /* Multi-select para todos os escopos em modo multi */
         _spItems.innerHTML = items.map(it => {
           const isSel = _spMultiSel.some(s => s.value === it.value);
           return `<div class="disc-scope-item${isSel?' selected':''}" data-val="${it.value}" data-name="${it.name}">
@@ -9447,10 +9468,13 @@
             const idx = _spMultiSel.findIndex(s => s.value === obj.value);
             if (idx >= 0) { _spMultiSel.splice(idx,1); el.classList.remove('selected'); }
             else { _spMultiSel.push(obj); el.classList.add('selected'); }
+            _spAllSelected = _spAllItems.every(it => _spMultiSel.some(s => s.value === it.value));
+            if (_spSelAllBtn) _spSelAllBtn.textContent = _spAllSelected ? 'Limpar seleção' : 'Selecionar tudo';
             _spUpdateInfo();
           });
         });
       } else {
+        /* Single-select */
         _spItems.innerHTML = items.map(it => {
           const isSel = it.value === _spSelectedVal;
           return `<div class="disc-scope-item${isSel?' selected':''}" data-val="${it.value}" data-name="${it.name}">
@@ -9469,12 +9493,33 @@
       }
     }
 
+    /* Botão selecionar tudo */
+    _spSelAllBtn?.addEventListener('click', () => {
+      if (_spAllSelected) {
+        /* Limpar */
+        _spMultiSel = _spMultiSel.filter(s => !_spAllItems.some(it => it.value === s.value));
+        _spAllSelected = false;
+        _spSelAllBtn.textContent = 'Selecionar tudo';
+      } else {
+        /* Selecionar todos os visíveis */
+        _spAllItems.forEach(it => {
+          if (!_spMultiSel.some(s => s.value === it.value))
+            _spMultiSel.push({ value: it.value, name: it.name });
+        });
+        _spAllSelected = true;
+        _spSelAllBtn.textContent = 'Limpar seleção';
+      }
+      _spRenderItems(_spAllItems);
+      _spUpdateInfo();
+    });
+
     function _spUpdateInfo() {
       if (_spCurrentScope === 'global') { _spSelInfo.innerHTML = '<strong>Todo o catálogo</strong>'; return; }
-      if (_spMultiMode && _spCurrentScope === 'produto') {
-        _spSelInfo.innerHTML = _spMultiSel.length
-          ? `<strong>${_spMultiSel.length}</strong> produto(s) seleccionado(s)`
-          : 'Nenhum produto seleccionado';
+      if (_spMultiMode) {
+        const n = _spMultiSel.length;
+        _spSelInfo.innerHTML = n
+          ? `<strong>${n}</strong> seleccionado(s)`
+          : 'Nenhum item seleccionado';
       } else {
         _spSelInfo.innerHTML = _spSelectedVal
           ? `Seleccionado: <strong>${_spSelectedName}</strong>`
@@ -9573,7 +9618,14 @@
     wireScopeTrigger('bd-scope-trigger','bd-scope','bd-scope-val','bd-scope-display',
       ['global','zona','categoria','subcategoria','colecao','produto'], true,
       () => window._bdSelectedIds.map(x=>({value:x.value,name:x.name})),
-      (sel) => { window._bdSelectedIds = sel.map(x=>({value:x.value, name:x.name})); renderBdChips(); });
+      (sel) => {
+        window._bdSelectedIds = sel.map(x=>({value:x.value, name:x.name}));
+        /* Actualiza display quando há seleção de scope único */
+        const disp = document.getElementById('bd-scope-display');
+        if (disp && sel.length === 1) disp.textContent = sel[0].name;
+        else if (disp && sel.length > 1) disp.textContent = `${sel.length} itens seleccionados`;
+        renderBdChips();
+      });
 
     function resetCouponForm() {
       ['dc-code','dc-dvalue','dc-mincart'].forEach(id => {
@@ -9788,10 +9840,12 @@
       msg.textContent = '';
       applyBtn.disabled = true; removeBtn.disabled = true;
 
-      const scope      = document.getElementById('bd-scope').value;
-      const scopeValue = (document.getElementById('bd-scope-val')?.value || '').trim();
-      const pct        = remove ? 0 : parseFloat(document.getElementById('bd-pct')?.value);
-      const productIds = (window._bdSelectedIds||[]).map(p => p.value);
+      const scope       = document.getElementById('bd-scope').value;
+      const pct         = remove ? 0 : parseFloat(document.getElementById('bd-pct')?.value);
+      const bdSel       = window._bdSelectedIds || [];
+      const productIds  = scope === 'produto' ? bdSel.map(p => p.value) : [];
+      const scopeValues = scope !== 'global' && scope !== 'produto' ? bdSel.map(p => p.value) : [];
+      const scopeValue  = scopeValues[0] || (document.getElementById('bd-scope-val')?.value || '').trim();
 
       if (!remove && (isNaN(pct) || pct <= 0 || pct >= 100)) {
         msg.textContent = 'Insere uma percentagem entre 1 e 99.';
@@ -9800,7 +9854,7 @@
         return;
       }
       if (scope === 'produto' && !productIds.length) {
-        msg.textContent = 'Selecciona pelo menos um produto.';
+        msg.textContent = 'Selecciona pelo menos um produto no campo "Aplicar em".';
         msg.style.color = '#f07080';
         applyBtn.disabled = false; removeBtn.disabled = false;
         return;
@@ -9810,7 +9864,7 @@
         const res  = await fetch(`${API}/products/bulk-discount`, {
           method: 'POST',
           headers: { 'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}` },
-          body: JSON.stringify({ scope, scopeValue, discountPct: pct, productIds }),
+          body: JSON.stringify({ scope, scopeValue, scopeValues, discountPct: pct, productIds }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);

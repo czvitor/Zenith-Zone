@@ -447,18 +447,24 @@ router.put('/:id', authenticate, authorize('canEditProducts'), writeLimiter, asy
      productIds: array de ids (só para scope='produto') */
 router.post('/bulk-discount', authenticate, authorize('canEditProducts'), writeLimiter, async (req, res) => {
   try {
-    const { scope = 'global', scopeValue = '', discountPct, productIds = [] } = req.body;
+    const { scope = 'global', scopeValue = '', scopeValues = [], discountPct, productIds = [] } = req.body;
     const pct = parseFloat(discountPct);
 
     if (isNaN(pct) || pct < 0 || pct > 100)
       return res.status(422).json({ error: 'discountPct deve ser entre 0 e 100.' });
 
+    /* Suporta scopeValues (array) ou scopeValue (string singular) */
+    const vals = (Array.isArray(scopeValues) && scopeValues.length)
+      ? scopeValues
+      : (scopeValue ? [scopeValue] : []);
+    const useIn = vals.length > 1;
+
     /* Monta filtro MongoDB */
     const filter = { status: { $in: ['publicado', 'pausado', 'ativo'] } };
-    if (scope === 'zona')          filter.zonaId         = scopeValue;
-    else if (scope === 'categoria')    filter.categoriaId    = scopeValue;
-    else if (scope === 'subcategoria') filter.subcategoriaId = scopeValue;
-    else if (scope === 'colecao')      filter.colecao        = scopeValue;
+    if (scope === 'zona')              filter.zonaId         = useIn ? { $in: vals } : vals[0];
+    else if (scope === 'categoria')    filter.categoriaId    = useIn ? { $in: vals } : vals[0];
+    else if (scope === 'subcategoria') filter.subcategoriaId = useIn ? { $in: vals } : vals[0];
+    else if (scope === 'colecao')      filter.colecao        = useIn ? { $in: vals } : vals[0];
     else if (scope === 'produto') {
       if (!productIds.length)
         return res.status(422).json({ error: 'Forneça pelo menos um productId.' });
