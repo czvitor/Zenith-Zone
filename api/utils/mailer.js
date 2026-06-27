@@ -141,7 +141,7 @@ async function sendPasswordResetEmail(to, resetLink) {
     to,
     subject: 'Redefinir sua senha — Zenith Zone',
     html: base(`
-      ${ph('Redefina sua senha com segurança — o link expira em 1 hora.')}
+      ${ph('ゼニス・ゾーン · ZENITH ZONE — Redefina sua senha, o link expira em 1 hora.')}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-password-reset.png')}" alt="Segurança Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -193,7 +193,7 @@ async function sendOrderConfirmationEmail(to, order) {
     to,
     subject: `Pedido #${shortId} confirmado — Zenith Zone`,
     html: base(`
-      ${ph(`Pedido #${shortId} confirmado — nossa equipe já está a preparar o envio.`)}
+      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Pedido #${shortId} confirmado, a preparar o envio.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-order.png')}" alt="Pedido Confirmado Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -246,7 +246,7 @@ async function sendDropConfirmation(to, dropTitle, dropDate) {
     to,
     subject: `Você está na lista — ${dropTitle} | Zenith Zone`,
     html: base(`
-      ${ph(`Você está dentro — faltam ${remaining} para o ${dropTitle}. Fique de olho!`)}
+      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Você está dentro, faltam ${remaining} para o drop.`)}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="${dropTitle}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -299,7 +299,7 @@ async function sendDropAlert(to, dropTitle, label_) {
     to,
     subject: cfg.subject,
     html: base(`
-      ${ph(cfg.msg.replace(/<[^>]*>/g, ''))}
+      ${ph('ゼニス・ゾーン · ZENITH ZONE — ' + cfg.msg.replace(/<[^>]*>/g, ''))}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img(cfg.bannerFile)}" alt="${cfg.title}" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -338,7 +338,7 @@ async function sendWaitlistConfirmation(to, produto) {
     to,
     subject: `Lista de espera confirmada — ${produto.titulo} | Zenith Zone`,
     html: base(`
-      ${ph(`Inscrição confirmada para ${produto.titulo} — você será notificado assim que voltar ao estoque.`)}
+      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Lista de espera confirmada para ${produto.titulo}.`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-no-units.png')}" alt="Zenith Zone Restock" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -371,7 +371,7 @@ async function sendRestockNotification(to, produto) {
     to,
     subject: `Voltou ao estoque! ${produto.titulo} — Zenith Zone`,
     html: base(`
-      ${ph(`${produto.titulo} voltou ao estoque — garanta os seus itens antes que esgotem!`)}
+      ${ph(`ゼニス・ゾーン · ZENITH ZONE — ${produto.titulo} voltou ao estoque, garanta agora!`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-restock.png')}" alt="Restock Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -414,7 +414,7 @@ async function sendWelcomeEmail(to, userName) {
     to,
     subject: 'Bem-vindo ao Clã — Zenith Zone',
     html: base(`
-      ${ph(`Bem-vindo ao clã, ${userName || 'Membro'}! O seu perfil está ativo — acesso antecipado aos drops.`)}
+      ${ph(`ゼニス・ゾーン · ZENITH ZONE — Bem-vindo ao clã, ${userName || 'Membro'}!`)}
       <div style="margin: -2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-sign-in.png')}" alt="Bem-vindo à Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
@@ -452,7 +452,7 @@ async function sendNewsletterWelcome(to) {
     to,
     subject: 'Você está na lista — Zenith Zone',
     html: base(`
-      ${ph('Você está na lista — será o primeiro a saber quando o próximo drop for anunciado.')}
+      ${ph('ゼニス・ゾーン · ZENITH ZONE — Você está na lista, será o primeiro a saber.')}
       <div style="margin:-2rem -2rem 1.5rem -2rem;">
         <img src="${img('banner-drop-assign.png')}" alt="Zenith Zone" width="520" style="width:100%;max-width:520px;display:block;border:0;height:auto;">
       </div>
