@@ -123,8 +123,7 @@
 
     /* ── Redireciona para login se não autenticado ── */
     if (!ZZAuth.isLoggedIn()) {
-      sessionStorage.setItem('zz_after_login', window.location.href);
-      window.location.href = 'auth.html';
+      window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
     }
 
     const raw = sessionStorage.getItem('zz_buy_now');

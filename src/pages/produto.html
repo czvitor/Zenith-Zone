@@ -1952,7 +1952,19 @@
       image: produto.fotos?.frente?.[0] || '',
     };
     sessionStorage.setItem('zz_buy_now', JSON.stringify(item));
-    window.location.href = 'checkout.html';
+
+    if (typeof ZZAuth !== 'undefined' && ZZAuth.isLoggedIn()) {
+      window.location.href = 'checkout.html';
+    } else {
+      /* Abre modal de login; após login o evento redireciona para checkout */
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+        window.addEventListener('zz:auth:login',  () => { window.location.href = 'checkout.html'; }, { once: true });
+        window.addEventListener('zz:auth:register', () => { window.location.href = 'checkout.html'; }, { once: true });
+      } else {
+        window.location.href = 'checkout.html';
+      }
+    }
   });
 
   /* ── Handler: Adicionar ao Carrinho ─────────────────── */
@@ -2046,9 +2058,11 @@
   el('btn-waitlist')?.addEventListener('click', async () => {
     /* Usuário não logado → leva para o login */
     if (typeof ZZAuth === 'undefined' || !ZZAuth.isLoggedIn()) {
-      const root = window.location.origin;
-      const back = encodeURIComponent(window.location.href);
-      window.location.href = `${root}/src/pages/login.html?redirect=${back}`;
+      if (typeof openAuthModal === 'function') {
+        openAuthModal('login');
+      } else {
+        window.location.href = `login.html`;
+      }
       return;
     }
 

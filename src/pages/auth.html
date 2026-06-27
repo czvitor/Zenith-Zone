@@ -481,6 +481,12 @@ document.getElementById('s-password').addEventListener('input', function () {
   });
 });
 
+const _redirectAfterAuth = new URLSearchParams(window.location.search).get('redirect') || null;
+function _goAfterAuth(user) {
+  if (_redirectAfterAuth) { window.location.replace(_redirectAfterAuth); return; }
+  window.location.replace(user.role === 'admin' ? 'admin-panel.html' : '../../index.html');
+}
+
 /* ── FORMULÁRIO: LOGIN ────────────────────────────────────── */
 const loginAlert  = document.getElementById('login-alert');
 const loginSubmit = document.getElementById('login-submit');
@@ -501,7 +507,7 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   loginSubmit.disabled = true; loginSubmit.textContent = 'Entrando…';
   try {
     const { user } = await ZZAuth.login(loginVal, passVal);
-    window.location.replace(user.role === 'admin' ? 'admin-panel.html' : '../../index.html');
+    _goAfterAuth(user);
   } catch (err) {
     loginAlert.textContent = err.error || 'Erro ao fazer login. Tente novamente.';
     loginAlert.hidden = false;
@@ -560,7 +566,7 @@ document.getElementById('signup-form').addEventListener('submit', async e => {
     signupAlert.textContent = 'Conta criada! Redirecionando…';
     signupAlert.className   = 'auth-alert success';
     signupAlert.hidden = false;
-    setTimeout(() => window.location.replace('../../index.html'), 1500);
+    setTimeout(() => _goAfterAuth({ role: 'user' }), 1500);
   } catch (err) {
     if (err.errors) {
       err.errors.forEach(e => { const f = e.path || e.param; if (f) sErr(f, e.msg); });
