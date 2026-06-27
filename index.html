@@ -1088,8 +1088,8 @@
   </section>
 
 
-  <!-- ── DROP COUNTDOWN ───────────────────────────────────── -->
-  <section id="drop">
+  <!-- ── DROP COUNTDOWN — visível só quando drop activo (controlado por JS) ── -->
+  <section id="drop" hidden>
     <p class="drop-label">Próximo Drop Exclusivo</p>
     <h2 class="drop-title">DROP #03 — SAKURA SEASON</h2>
 
@@ -1701,16 +1701,22 @@
       try { const v = localStorage.getItem(key); return v === null ? def : JSON.parse(v); }
       catch { return def; }
     }
-    let dropActive = _cfgBool('zz_drop_active', true);
+    /* Default FALSE — a secção de drop só aparece quando a API confirmar que está activo */
+    let dropActive = _cfgBool('zz_drop_active', false);
 
-    function _applyDropText(active) {
+    const dropSection = document.getElementById('drop');
+
+    function _applyDropState(active) {
+      /* Mostra/esconde a secção de countdown */
+      if (dropSection) dropSection.hidden = !active;
+      /* Actualiza texto do botão da newsletter */
       const text = active ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
       btn.textContent = text;
       document.querySelectorAll('.zz-nav-cta').forEach(el => {
         if (el.href && el.href.endsWith('#newsletter')) el.textContent = text;
       });
     }
-    _applyDropText(dropActive); /* aplica síncronamente */
+    _applyDropState(dropActive); /* aplica síncronamente com base no cache */
 
     /* 3. Confirma com a API em background — actualiza se diferir do cache */
     fetch(`${API}/settings`)
@@ -1718,9 +1724,11 @@
       .then(data => {
         if (!data) return;
         const apiActive = !!data.dropActive;
+        /* Persiste no cache para próxima visita */
+        try { localStorage.setItem('zz_drop_active', JSON.stringify(apiActive)); } catch {}
         if (apiActive !== dropActive) {
           dropActive = apiActive;
-          _applyDropText(dropActive);
+          _applyDropState(dropActive);
         }
       })
       .catch(() => {});

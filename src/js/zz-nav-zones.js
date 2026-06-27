@@ -150,12 +150,17 @@
   inject();
   document.dispatchEvent(new CustomEvent('zz:nav-zones-injected'));
 
-  /* ── Sincronização cross-tab em tempo real ── */
+  /* ── Sincronização cross-tab com debounce ────────────────
+     Evita flickering causado por múltiplos eventos storage
+     disparados em rápida sucessão (ex: admin a gravar).    */
+  var _injectTimer = null;
   window.addEventListener('storage', function(e) {
-    if (e.key === CATALOG_KEY) {
+    if (e.key !== CATALOG_KEY) return;
+    clearTimeout(_injectTimer);
+    _injectTimer = setTimeout(function() {
       inject();
       document.dispatchEvent(new CustomEvent('zz:nav-zones-injected'));
-    }
+    }, 300);
   });
 
 })();
