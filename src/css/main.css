@@ -22,8 +22,11 @@ section[id] { scroll-margin-top: 64px; }
   section[id] { scroll-margin-top: 52px; }
 }
 
+html {
+  overflow-x: hidden; /* previne scroll horizontal sem quebrar position:fixed */
+}
+
 body {
-  overflow-x: hidden; /* previne scroll horizontal em qualquer página */
   background: var(--color-bg-base);
   color: var(--color-offwhite);
   font-family: var(--font-body);

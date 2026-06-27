@@ -717,13 +717,15 @@ body.auth-modal-open .zz-nav-actions { pointer-events: none; }
 }
 @media (max-width: 640px) {
   /* Remove backdrop-filter: previne que #zz-header crie um containing-block
-     para os filhos position:fixed (nav-mobile), o que os fazia crescer dentro do header */
+     para os filhos position:fixed (nav-mobile), o que os fazia crescer dentro do header.
+     Sem backdrop-filter + overflow:visible, o nav-mobile posiciona-se correctamente
+     relativamente ao viewport e não ao header. */
   #zz-header {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(4, 6, 22, 0.99) !important; /* mais sólido sem backdrop-filter */
-    overflow: hidden !important;                  /* clippa qualquer overflow visual */
-    height: 56px !important;                      /* altura fixa — nunca muda */
+    background: rgba(4, 6, 22, 0.99) !important;
+    overflow: visible !important; /* NÃO clipar — nav-mobile position:fixed precisa de sair */
+    height: 56px !important;
   }
 
   .zz-nav-bar { padding: 0 3%; height: 56px; }
