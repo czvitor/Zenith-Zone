@@ -1227,7 +1227,7 @@ $e('ep-submit')?.addEventListener('click', async()=>{
   /* Verifica autenticação admin */
   const user = ZZAuth.getUser();
   if (!user || user.role !== 'admin') {
-    window.location.href = window.location.origin + '/src/pages/admin-panel.html';
+    window.location.href = 'admin-panel.html';
     return;
   }
 

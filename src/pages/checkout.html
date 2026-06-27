@@ -124,7 +124,7 @@
     /* ── Redireciona para login se não autenticado ── */
     if (!ZZAuth.isLoggedIn()) {
       sessionStorage.setItem('zz_after_login', window.location.href);
-      window.location.href = window.location.origin + '/src/pages/auth.html';
+      window.location.href = 'auth.html';
     }
 
     const raw = sessionStorage.getItem('zz_buy_now');
@@ -254,7 +254,7 @@
         btn.style.color      = '#5dc78c';
 
         setTimeout(() => {
-          window.location.href = window.location.origin + '/src/pages/pedidos.html';
+          window.location.href = 'pedidos.html';
         }, 2000);
 
       } catch (err) {
