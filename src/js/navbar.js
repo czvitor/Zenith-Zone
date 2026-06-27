@@ -500,8 +500,8 @@
       li.className = 'zz-cart-item';
       const meta = [item.size, item.color].filter(Boolean).join(' · ');
       li.innerHTML =
-        (item.img
-          ? `<img class="zz-cart-item-img" src="${item.img}" alt="${_escHtml(item.name || '')}" loading="lazy">`
+        ((item.img || item.image)
+          ? `<img class="zz-cart-item-img" src="${item.img || item.image}" alt="${_escHtml(item.name || '')}" loading="lazy">`
           : '<div class="zz-cart-item-img"></div>') +
         `<div class="zz-cart-item-info">
           <p class="zz-cart-item-name">${_escHtml(item.name || 'Produto')}</p>
