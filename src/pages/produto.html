@@ -358,7 +358,7 @@
     .product-name { font-family: var(--font-head); font-weight: var(--fw-black); font-size: clamp(2rem,4vw,3.2rem); text-transform: uppercase; letter-spacing: var(--tracking-tight); line-height: var(--leading-tight); color: var(--color-white); margin-bottom: .5rem; }
     .product-jp   { font-size: var(--text-sm); color: var(--color-pink); letter-spacing: var(--tracking-jp); margin-bottom: 1.5rem; }
     .price-row    { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border-subtle); }
-    .price-main   { font-family: var(--font-head); font-weight: var(--fw-black); font-size: 2.8rem; color: var(--color-white); line-height: 1; }
+    .price-main   { font-family: var(--font-head); font-weight: var(--fw-black); font-size: clamp(1.8rem, 5.5vw, 2.8rem); color: var(--color-white); line-height: 1; }
     .price-inst   { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
     .price-inst strong { color: var(--color-offwhite); }
     .opt-label    { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); margin-bottom: .8rem; }
@@ -695,9 +695,21 @@
     }
     @media (max-width: 480px) {
       .product-name { font-size: clamp(1.4rem, 7vw, 1.8rem); }
-      .price-main   { font-size: clamp(1.6rem, 8vw, 2.2rem); }
-      .trust { grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+      .price-main   { font-size: clamp(1.5rem, 7vw, 2rem); }
+      .trust { grid-template-columns: repeat(2, 1fr); gap: .4rem; }
       .trust-item span { font-size: .58rem; }
+      .price-row { margin-bottom: 1.25rem; padding-bottom: 1.25rem; gap: .5rem; }
+      .opt-label { font-size: var(--text-xs); }
+    }
+    @media (max-width: 375px) {
+      .product-layout { padding: 1rem 3.5%; gap: 1.5rem; }
+      .product-name  { font-size: clamp(1.25rem, 6vw, 1.6rem); }
+      .price-main    { font-size: clamp(1.4rem, 6.5vw, 1.8rem); }
+      .size-opts { grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+      .size-btn  { min-width: 38px; min-height: 40px; font-size: .7rem; padding: 0 .25rem; }
+      .btn-buy, .btn-cart, .btn-wish, .btn-share { font-size: .72rem; padding: .82rem .75rem; }
+      .acc-head  { font-size: var(--text-xs); }
+      .price-inst { font-size: var(--text-xs); }
     }
     @media (max-width: 360px) {
       .product-layout { padding: 1rem 3.5%; }

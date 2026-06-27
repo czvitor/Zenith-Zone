@@ -593,8 +593,24 @@
       .dpb-holo-panel { display: none; }
     }
     @media (max-width:480px) {
-      .dpb-ring  { width:clamp(200px,88vw,320px); height:clamp(200px,88vw,320px); }
-      .dpb-main-card { width:clamp(140px,52vw,220px); height:clamp(175px,65vw,275px); }
+      .dpb-arena { padding: 1.5rem 4% 2rem; gap: 1.4rem; }
+      .dpb-ring  { width:clamp(200px,82vw,300px); height:clamp(200px,82vw,300px); }
+      .dpb-main-card { width:clamp(130px,46vw,200px); height:clamp(163px,57.5vw,250px); }
+      .dpb-info  { gap: .65rem; text-align: center; align-items: center; }
+    }
+    @media (max-width:375px) {
+      .dpb-arena { padding: 1.25rem 3% 1.75rem; gap: 1.1rem; }
+      .dpb-ring  { width:clamp(170px,78vw,260px); height:clamp(170px,78vw,260px); }
+      .dpb-main-card { width:clamp(110px,42vw,175px); height:clamp(138px,52.5vw,219px); }
+      .dpb-title { font-size: clamp(1.6rem,4.2vw,2.2rem); line-height:1; }
+      .dpb-jp    { font-size: .8rem; }
+      .dpb-price { font-size: clamp(1.5rem,3.5vw,2rem); }
+      .dpb-cta   { padding: .7rem 1.4rem; font-size: .85rem; }
+    }
+    @media (max-width:320px) {
+      .dpb-ring  { width:clamp(150px,72vw,230px); height:clamp(150px,72vw,230px); }
+      .dpb-main-card { width:clamp(95px,38vw,150px); height:clamp(119px,47.5vw,188px); }
+      .dpb-title { font-size: 1.5rem; }
     }
     /* Desktop pequeno: ocultar painéis extremos (distantes esq. e dir. direita) */
     @media (min-width:701px) and (max-width:1200px) {
