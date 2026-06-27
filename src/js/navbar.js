@@ -554,46 +554,29 @@
   cartCloseBtn?.addEventListener('click', drawerClose);
   cartOverlay?.addEventListener('click', drawerClose);
 
-  /* Finalizar Compra */
-  document.querySelector('.zz-cart-drawer-checkout')?.addEventListener('click', async () => {
+  /* Finalizar Compra — redireciona para checkout.html */
+  cartDrawer?.addEventListener('click', e => {
+    if (!e.target.closest('.zz-cart-drawer-checkout')) return;
     const items = window.ZZCart.items;
     if (!items.length) return;
 
+    const checkoutPage = location.pathname.includes('/src/pages/')
+      ? 'checkout.html'
+      : 'src/pages/checkout.html';
+
     if (!window.ZZAuth?.isLoggedIn()) {
-      drawerClose();
       if (typeof openAuthModal === 'function') {
         openAuthModal('login');
+        window.addEventListener('zz:auth:login',    () => { location.href = checkoutPage; }, { once: true });
+        window.addEventListener('zz:auth:register', () => { location.href = checkoutPage; }, { once: true });
       } else {
-        const idx = location.pathname.indexOf('/src/');
-        const root = idx !== -1 ? location.pathname.substring(0, idx + 1) : '/';
-        location.href = `${root}src/pages/login.html`;
+        location.href = checkoutPage;
       }
       return;
     }
 
-    const btn = document.querySelector('.zz-cart-drawer-checkout');
-    if (btn) { btn.disabled = true; btn.textContent = 'Processando…'; }
-
-    try {
-      const total  = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
-      const token  = window.ZZAuth.getToken();
-      const API    = window.ZZ_API_BASE || 'http://localhost:3001/api';
-      const res    = await fetch(`${API}/orders`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body:    JSON.stringify({ items, total }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
-
-      window.ZZCart.clear();
-      drawerClose();
-      alert(`Pedido #${data.order._id?.slice(-6).toUpperCase()} recebido! Em breve você receberá a confirmação.`);
-    } catch (err) {
-      alert(`Erro ao finalizar pedido: ${err.message}`);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Finalizar Compra'; }
-    }
+    drawerClose();
+    location.href = checkoutPage;
   });
 
   cartBtn?.addEventListener('click', e => {

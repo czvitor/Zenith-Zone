@@ -121,70 +121,82 @@
   (() => {
     const API = window.ZZ_API_BASE || (window.location.origin + '/api');
 
-    /* ── Redireciona para login se não autenticado ── */
     if (!ZZAuth.isLoggedIn()) {
       window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+      return;
     }
 
-    const raw = sessionStorage.getItem('zz_buy_now');
     const card = document.getElementById('checkout-card');
+    const user = ZZAuth.getUser();
 
     function fmtPrice(n) {
       return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    /* ── Sem item no sessionStorage ── */
-    if (!raw) {
+    function itemRow(it) {
+      const img = it.image || it.img || '';
+      return `
+        <div class="item-card">
+          ${img ? `<img class="item-thumb" src="${img}" alt="${it.name || ''}" loading="lazy">` : '<div class="item-thumb"></div>'}
+          <div class="item-info">
+            <div class="item-name">${it.name || '—'}</div>
+            <div class="item-meta">
+              ${it.color ? `<span class="item-badge">${it.color}</span>` : ''}
+              ${it.size  ? `<span class="item-badge">${it.size}</span>`  : ''}
+              <span>Qtd: ${it.qty || 1}</span>
+            </div>
+          </div>
+          <div class="item-price">${fmtPrice((it.price || 0) * (it.qty || 1))}</div>
+        </div>`;
+    }
+
+    /* ── Resolve itens: zz_buy_now (comprar agora) ou zz_cart (carrinho) ── */
+    let items = [];
+    let isCart = false;
+    let backHref = '../../index.html';
+
+    const buyNowRaw = sessionStorage.getItem('zz_buy_now');
+    if (buyNowRaw) {
+      try {
+        const it = JSON.parse(buyNowRaw);
+        items = [{ ...it, qty: it.qty || 1 }];
+        backHref = `produto.html?slug=${it.slug || it.id || ''}`;
+      } catch { /* ignored */ }
+    }
+
+    if (!items.length) {
+      try {
+        const cartRaw = localStorage.getItem('zz_cart');
+        if (cartRaw) { items = JSON.parse(cartRaw) || []; isCart = true; }
+      } catch { /* ignored */ }
+    }
+
+    if (!items.length) {
       card.innerHTML = `
         <div class="checkout-body">
           <div class="empty-state">
-            <h2>Nenhum item</h2>
-            <p>Selecione um produto e tamanho antes de prosseguir para o checkout.</p>
+            <h2>Carrinho vazio</h2>
+            <p>Adicione produtos antes de prosseguir para o checkout.</p>
             <a href="../../index.html" class="btn-back">← Voltar à loja</a>
           </div>
         </div>`;
       return;
     }
 
-    let item;
-    try { item = JSON.parse(raw); } catch {
-      card.innerHTML = `<div class="checkout-body"><div class="empty-state"><h2>Erro</h2><p>Dados do pedido inválidos.</p><a href="../../index.html" class="btn-back">← Voltar</a></div></div>`;
-      return;
-    }
+    const total = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
+    const title = isCart ? 'Finalizar Compra' : 'Comprar Agora';
 
-    const user = ZZAuth.getUser();
-
-    /* ── Renderiza o checkout ── */
     card.innerHTML = `
       <div class="checkout-header">
         <p class="checkout-eyebrow">Confirmação de Pedido</p>
-        <h1 class="checkout-title">Comprar Agora</h1>
+        <h1 class="checkout-title">${title}</h1>
       </div>
       <div class="checkout-body">
         <div id="co-alert-wrap"></div>
-
-        <!-- Item selecionado -->
-        <div class="item-card">
-          ${item.image ? `<img class="item-thumb" src="${item.image}" alt="${item.name}" loading="lazy">` : '<div class="item-thumb"></div>'}
-          <div class="item-info">
-            <div class="item-name">${item.name || '—'}</div>
-            <div class="item-meta">
-              ${item.color ? `<span class="item-badge">${item.color}</span>` : ''}
-              ${item.size  ? `<span class="item-badge">${item.size}</span>` : ''}
-              <span>Qtd: 1</span>
-            </div>
-          </div>
-          <div class="item-price">${fmtPrice(item.price)}</div>
-        </div>
-
+        ${items.map(itemRow).join('')}
         <div class="divider"></div>
-
-        <!-- Resumo -->
         <div style="display:flex;flex-direction:column;gap:0.5rem">
-          <div class="summary-row">
-            <span>Subtotal</span>
-            <span>${fmtPrice(item.price)}</span>
-          </div>
+          <div class="summary-row"><span>Subtotal</span><span>${fmtPrice(total)}</span></div>
           <div class="summary-row">
             <span>Frete</span>
             <span style="color:var(--color-pink);font-weight:var(--fw-bold)">A calcular</span>
@@ -192,33 +204,26 @@
           <div class="divider"></div>
           <div class="summary-row" style="margin-top:0.25rem">
             <span style="font-family:var(--font-head);font-weight:var(--fw-black);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-white)">Total</span>
-            <span class="summary-total">${fmtPrice(item.price)}</span>
+            <span class="summary-total">${fmtPrice(total)}</span>
           </div>
         </div>
-
-        <!-- Dados do comprador -->
         <div style="font-size:var(--text-xs);color:var(--color-text-muted);padding:0.75rem 1rem;background:rgba(245,240,230,0.03);border:1px solid var(--color-border-faint);border-radius:var(--radius-xs)">
           <strong style="color:var(--color-offwhite)">Comprador:</strong> ${user?.firstName || ''} ${user?.lastName || ''}<br>
           <strong style="color:var(--color-offwhite)">E-mail:</strong> ${user?.email || '—'}
         </div>
-
-        <!-- CTA -->
         <button class="btn-confirm" id="co-confirm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           Confirmar Pedido
         </button>
-
-        <a href="produto.html?slug=${item.slug || item.id}" class="btn-back">← Voltar ao produto</a>
-
+        <a href="${backHref}" class="btn-back">← ${isCart ? 'Voltar à loja' : 'Voltar ao produto'}</a>
         <p class="secure-note">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           Pedido processado com segurança
         </p>
       </div>`;
 
-    /* ── Confirmar pedido ── */
     document.getElementById('co-confirm')?.addEventListener('click', async () => {
-      const btn     = document.getElementById('co-confirm');
+      const btn       = document.getElementById('co-confirm');
       const alertWrap = document.getElementById('co-alert-wrap');
       alertWrap.innerHTML = '';
       btn.disabled  = true;
@@ -230,31 +235,23 @@
           method:  'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body:    JSON.stringify({
-            items: [{
-              id:    item.id,
-              name:  item.name,
-              price: item.price,
-              qty:   1,
-              size:  item.size,
-              color: item.color,
-            }],
-            total: item.price,
+            items: items.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty || 1, size: i.size, color: i.color })),
+            total,
           }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
 
         sessionStorage.removeItem('zz_buy_now');
-        alertWrap.innerHTML = `<div class="co-alert success">✔ Pedido <strong>#${String(data.order._id).slice(-6).toUpperCase()}</strong> realizado com sucesso!</div>`;
+        if (isCart) localStorage.removeItem('zz_cart');
 
+        alertWrap.innerHTML = `<div class="co-alert success">✔ Pedido <strong>#${String(data.order._id).slice(-6).toUpperCase()}</strong> realizado com sucesso!</div>`;
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><polyline points="20 6 9 17 4 12"/></svg> Pedido Confirmado!`;
         btn.style.background = 'rgba(34,197,94,0.2)';
         btn.style.border     = '1px solid rgba(34,197,94,0.4)';
         btn.style.color      = '#5dc78c';
 
-        setTimeout(() => {
-          window.location.href = 'pedidos.html';
-        }, 2000);
+        setTimeout(() => { window.location.href = 'pedidos.html'; }, 2000);
 
       } catch (err) {
         alertWrap.innerHTML = `<div class="co-alert error">${err.message}</div>`;
