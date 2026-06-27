@@ -1659,16 +1659,13 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-    /* ── Verifica login — SÍNCRONO, antes de qualquer fetch ── */
-    const user     = JSON.parse(localStorage.getItem('zz_user') || 'null');
-    const token    = localStorage.getItem('zz_token');
-    const loggedIn = !!(user && token);
-
-    /* ── Aplica estado imediatamente, SEM esperar qualquer fetch ── */
+    /* ── Verifica login via ZZAuth (fonte de verdade, valida JWT) ── */
+    const loggedIn = (typeof ZZAuth !== 'undefined') && ZZAuth.isLoggedIn();
+    const user     = loggedIn ? ZZAuth.getUser() : null;
 
     /* 1. Input: esconde síncronamente se logado */
     if (loggedIn && input) {
-      input.style.display    = 'none';
+      input.style.setProperty('display', 'none', 'important');
       input.required         = false;
       btn.style.borderRadius = '4px';
       form.style.justifyContent = 'center';
