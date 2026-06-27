@@ -54,7 +54,13 @@ function ph(text) {
 
 /* ── Base visual de todos os e-mails ─────────────────────── */
 function base(content) {
-  const preheaderHtml = '';
+  /* Extrai o div de preheader (gerado por ph()) de onde quer que esteja no
+     content e coloca-o como 1º elemento do <body> — antes de qualquer conteúdo
+     visível — para que clientes de email o captem como texto de pré-visualização */
+  const phRe = /<div style="display:none;font-size:1px[\s\S]*?<\/div>/;
+  const phMatch = content.match(phRe);
+  const preheaderHtml = phMatch ? phMatch[0] : '';
+  const cleanContent  = phMatch ? content.replace(phRe, '') : content;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -91,7 +97,7 @@ ${preheaderHtml}
     </tr>
     <tr>
       <td class="zz-body-td" bgcolor="#07091A" data-ogsb="#07091A" style="background-color:#07091A;padding:2rem">
-        ${content}
+        ${cleanContent}
       </td>
     </tr>
     <tr>
