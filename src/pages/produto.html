@@ -1857,6 +1857,7 @@
   /* ── Render ───────────────────────────────────────── */
   function renderProduct(p) {
     produto = p;
+    window._zzProduto = p; // exposto para o share modal
     document.title = `${p.titulo} — Zenith Zone`;
     /* Breadcrumb dinâmico */
     (function buildBreadcrumb() {
@@ -2293,13 +2294,14 @@
     const nativeBtn = document.getElementById('share-native');
 
     function openShare() {
-      if (!produto) return;
+      const p = window._zzProduto;
+      if (!p) return;
 
       const pageUrl  = window.location.href;
-      const title    = produto.titulo || 'ZENITH ZONE';
-      const price    = produto.precoPromocional > 0 ? produto.precoPromocional : produto.preco;
+      const title    = p.titulo || 'ZENITH ZONE';
+      const price    = p.precoPromocional > 0 ? p.precoPromocional : p.preco;
       const fmtPrc   = 'R$ ' + Number(price).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-      const imgSrc   = produto.fotos?.frente?.[0] || produto.fotos?.costas?.[0] || '';
+      const imgSrc   = p.fotos?.frente?.[0] || p.fotos?.costas?.[0] || '';
       const imgUrl   = imgSrc.startsWith('http') ? imgSrc : `https://czvitor.github.io/Zenith-Zone/src/images/${encodeURIComponent(imgSrc)}`;
       const text     = `${title} — ${fmtPrc}\n${pageUrl}`;
 
