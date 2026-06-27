@@ -4148,55 +4148,69 @@
   ══════════════════════════════════════════════════════════ -->
   <div class="view" id="view-descontos">
 
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
-      <div>
-        <p class="page-label">Promoções</p>
-        <h1 class="page-title">Descontos & <span>Cupons</span></h1>
-        <p class="page-sub">Crie cupons de desconto e ofertas progressivas "Compre X Leve Y".</p>
-      </div>
-      <div id="disc-global-alert" style="display:none"></div>
+    <div class="page-header">
+      <p class="page-label">Promoções</p>
+      <h1 class="page-title">Descontos & <span>Cupons</span></h1>
+      <p class="page-sub">Cupons de desconto, ofertas "Compre X Leve Y" e descontos em produtos.</p>
     </div>
+
+    <div id="disc-global-alert" hidden></div>
 
     <!-- Abas -->
-    <div style="display:flex;gap:0;border-bottom:1px solid rgba(245,240,230,.1);margin-bottom:1.25rem">
-      <button type="button" class="ctlg-tab active" data-disc-tab="cupoes" style="padding:.7rem 1.25rem">Cupons</button>
-      <button type="button" class="ctlg-tab" data-disc-tab="bxgy" style="padding:.7rem 1.25rem">Compre X Leve Y</button>
-      <button type="button" class="ctlg-tab" data-disc-tab="massa" style="padding:.7rem 1.25rem">Desconto em Produtos</button>
+    <div style="display:flex;border-bottom:1px solid var(--color-border-faint);margin-bottom:1.5rem">
+      <button type="button" class="ctlg-tab active" data-disc-tab="cupoes">Cupons</button>
+      <button type="button" class="ctlg-tab" data-disc-tab="bxgy">Compre X Leve Y</button>
+      <button type="button" class="ctlg-tab" data-disc-tab="massa">Desconto em Produtos</button>
     </div>
 
-    <!-- ─────── PAINEL: CUPÕES ─────── -->
+    <!-- ════════ PAINEL: CUPONS ════════ -->
     <div id="disc-pane-cupoes" class="ctlg-pane active">
-      <div class="card" style="margin-bottom:1rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <span class="card-title">Novo Cupom</span>
-          <button type="button" class="btn-ghost" id="disc-toggle-coupon-form" style="padding:.4rem .9rem;font-size:var(--text-xs)">+ Criar</button>
-        </div>
 
-        <!-- Formulário -->
-        <div id="disc-coupon-form" style="display:none;padding:1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
-            <div class="an-field">
-              <label class="an-label" for="dc-code">Código *</label>
-              <input class="an-input" id="dc-code" type="text" placeholder="VERAO2026" maxlength="32" style="text-transform:uppercase">
+      <!-- Card criação -->
+      <div class="feat-card" style="margin-bottom:1rem">
+        <div class="feat-card-head" id="disc-toggle-coupon-form" style="cursor:pointer">
+          <div style="display:flex;align-items:center;gap:.85rem">
+            <div class="feat-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
             </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-dtype">Tipo de desconto</label>
-              <select class="an-input" id="dc-dtype">
+            <div class="feat-card-info">
+              <p class="feat-card-name">Criar Novo Cupom</p>
+              <p class="feat-card-desc">Código de desconto por percentagem ou valor fixo com escopo e regras de uso</p>
+            </div>
+          </div>
+          <span id="disc-coupon-arrow" style="color:var(--color-red);font-size:1.2rem;transition:transform .2s">＋</span>
+        </div>
+        <div class="feat-card-body" id="disc-coupon-form">
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="dc-code">Código <span class="req">*</span></label>
+              <input class="field-input" id="dc-code" type="text" placeholder="VERAO2026" maxlength="32" style="text-transform:uppercase;letter-spacing:.08em">
+              <span class="form-hint">Letras, números, hífens ou underscores</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="dc-dtype">Tipo de desconto</label>
+              <select class="field-input" id="dc-dtype">
                 <option value="percentage">Percentagem (%)</option>
                 <option value="fixed">Valor fixo (R$)</option>
               </select>
             </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-dvalue">Valor *</label>
-              <input class="an-input" id="dc-dvalue" type="number" min="0" step="0.01" placeholder="15">
+          </div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="dc-dvalue">Valor do desconto <span class="req">*</span></label>
+              <input class="field-input" id="dc-dvalue" type="number" min="0" step="0.01" placeholder="15">
             </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-mincart">Carrinho mínimo (R$)</label>
-              <input class="an-input" id="dc-mincart" type="number" min="0" step="0.01" value="0">
+            <div class="field">
+              <label class="field-label" for="dc-mincart">Carrinho mínimo (R$)</label>
+              <input class="field-input" id="dc-mincart" type="number" min="0" step="0.01" value="0">
+              <span class="form-hint">0 = sem valor mínimo</span>
             </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-scope">Aplicar em</label>
-              <select class="an-input" id="dc-scope">
+          </div>
+          <div class="card-section-divider"><span>Escopo</span></div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="dc-scope">Aplicar em</label>
+              <select class="field-input" id="dc-scope">
                 <option value="global">Todo o catálogo</option>
                 <option value="colecao">Coleção específica</option>
                 <option value="categoria">Categoria</option>
@@ -4205,230 +4219,269 @@
                 <option value="produto">Produto (ID)</option>
               </select>
             </div>
-            <div class="an-field" id="dc-scope-val-wrap" style="display:none">
-              <label class="an-label" id="dc-scope-val-label" for="dc-scope-val">Valor do escopo</label>
-              <input class="an-input" id="dc-scope-val" type="text" placeholder="">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-starts">Início (opcional)</label>
-              <input class="an-input" id="dc-starts" type="datetime-local">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-expires">Expiração (opcional)</label>
-              <input class="an-input" id="dc-expires" type="datetime-local">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-maxuses">Limite total de usos</label>
-              <input class="an-input" id="dc-maxuses" type="number" min="0" step="1" value="0" placeholder="0 = ilimitado">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="dc-maxuser">Limite por utilizador</label>
-              <input class="an-input" id="dc-maxuser" type="number" min="0" step="1" value="0" placeholder="0 = ilimitado">
+            <div class="field" id="dc-scope-val-wrap" style="display:none">
+              <label class="field-label" id="dc-scope-val-label" for="dc-scope-val">Identificador</label>
+              <input class="field-input" id="dc-scope-val" type="text" placeholder="">
             </div>
           </div>
-          <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem">
-            <button type="button" class="btn-primary" id="dc-save-btn">Guardar Cupom</button>
+          <div class="card-section-divider"><span>Validade & Limites</span></div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="dc-starts">Data de início</label>
+              <input class="field-input" id="dc-starts" type="datetime-local">
+            </div>
+            <div class="field">
+              <label class="field-label" for="dc-expires">Data de expiração</label>
+              <input class="field-input" id="dc-expires" type="datetime-local">
+            </div>
+          </div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="dc-maxuses">Limite total de usos</label>
+              <input class="field-input" id="dc-maxuses" type="number" min="0" step="1" value="0">
+              <span class="form-hint">0 = ilimitado</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="dc-maxuser">Limite por utilizador</label>
+              <input class="field-input" id="dc-maxuser" type="number" min="0" step="1" value="0">
+              <span class="form-hint">0 = ilimitado</span>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" id="dc-save-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+              Guardar Cupom
+            </button>
             <button type="button" class="btn-ghost" id="dc-cancel-btn">Cancelar</button>
-            <span id="dc-form-msg" style="font-size:var(--text-xs);color:#f07080"></span>
+            <span id="dc-form-msg" class="an-alert" style="padding:.45rem .75rem;margin:0;display:none"></span>
           </div>
         </div>
+      </div>
 
-        <!-- Tabela cupons -->
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+      <!-- Tabela cupons -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--color-border-faint)">
+          <h2 class="card-title" style="margin:0">Cupons Activos</h2>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
             <thead>
               <tr>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Código</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Desconto</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Escopo</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Validade</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Usos</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Estado</th>
-                <th style="padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)"></th>
+                <th>Código</th>
+                <th>Desconto</th>
+                <th>Escopo</th>
+                <th>Validade</th>
+                <th>Usos</th>
+                <th>Estado</th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="dc-table-body">
-              <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">A carregar…</td></tr>
+              <tr class="empty"><td colspan="7">A carregar…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ─────── PAINEL: COMPRE X LEVE Y ─────── -->
+    <!-- ════════ PAINEL: COMPRE X LEVE Y ════════ -->
     <div id="disc-pane-bxgy" class="ctlg-pane">
-      <div class="card" style="margin-bottom:1rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <span class="card-title">Nova Oferta Progressiva</span>
-          <button type="button" class="btn-ghost" id="disc-toggle-bxgy-form" style="padding:.4rem .9rem;font-size:var(--text-xs)">+ Criar</button>
-        </div>
 
-        <!-- Formulário BXGY -->
-        <div id="disc-bxgy-form" style="display:none;padding:1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
-            <div class="an-field">
-              <label class="an-label" for="db-code">Código *</label>
-              <input class="an-input" id="db-code" type="text" placeholder="COMPRE3LEVE4" maxlength="32" style="text-transform:uppercase">
+      <div class="feat-card" style="margin-bottom:1rem">
+        <div class="feat-card-head" id="disc-toggle-bxgy-form" style="cursor:pointer">
+          <div style="display:flex;align-items:center;gap:.85rem">
+            <div class="feat-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             </div>
-            <div class="an-field">
-              <label class="an-label" for="db-scope">Aplicar em</label>
-              <select class="an-input" id="db-scope">
+            <div class="feat-card-info">
+              <p class="feat-card-name">Criar Oferta Progressiva</p>
+              <p class="feat-card-desc">Compre X produtos e leve Y de graça — o de menor valor ou idênticos</p>
+            </div>
+          </div>
+          <span id="disc-bxgy-arrow" style="color:var(--color-red);font-size:1.2rem;transition:transform .2s">＋</span>
+        </div>
+        <div class="feat-card-body" id="disc-bxgy-form">
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="db-code">Código <span class="req">*</span></label>
+              <input class="field-input" id="db-code" type="text" placeholder="COMPRE3LEVE4" maxlength="32" style="text-transform:uppercase;letter-spacing:.08em">
+            </div>
+            <div class="field">
+              <label class="field-label" for="db-scope">Aplicar em</label>
+              <select class="field-input" id="db-scope">
                 <option value="global">Todo o catálogo</option>
                 <option value="colecao">Coleção específica</option>
                 <option value="categoria">Categoria</option>
                 <option value="produto">Produto (ID)</option>
               </select>
             </div>
-            <div class="an-field" id="db-scope-val-wrap" style="display:none">
-              <label class="an-label" id="db-scope-val-label" for="db-scope-val">Valor do escopo</label>
-              <input class="an-input" id="db-scope-val" type="text" placeholder="">
+          </div>
+          <div class="fields-row" id="db-scope-val-wrap" style="display:none;margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" id="db-scope-val-label" for="db-scope-val">Identificador</label>
+              <input class="field-input" id="db-scope-val" type="text" placeholder="">
             </div>
-            <div class="an-field">
-              <label class="an-label" for="db-buy">Compre (quantidade) *</label>
-              <input class="an-input" id="db-buy" type="number" min="1" step="1" value="2">
+            <div></div>
+          </div>
+          <div class="card-section-divider"><span>Regra da Oferta</span></div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="db-buy">Compre (quantidade) <span class="req">*</span></label>
+              <input class="field-input" id="db-buy" type="number" min="1" step="1" value="2">
             </div>
-            <div class="an-field">
-              <label class="an-label" for="db-get">Leve de graça (quantidade) *</label>
-              <input class="an-input" id="db-get" type="number" min="1" step="1" value="1">
+            <div class="field">
+              <label class="field-label" for="db-get">Leve de graça (quantidade) <span class="req">*</span></label>
+              <input class="field-input" id="db-get" type="number" min="1" step="1" value="1">
             </div>
-            <div class="an-field">
-              <label class="an-label" for="db-freerule">Item gratuito é</label>
-              <select class="an-input" id="db-freerule">
+          </div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="db-freerule">Item gratuito</label>
+              <select class="field-input" id="db-freerule">
                 <option value="cheapest">O(s) de menor valor</option>
                 <option value="same">Itens idênticos</option>
               </select>
             </div>
-            <div class="an-field">
-              <label class="an-label" for="db-starts">Início (opcional)</label>
-              <input class="an-input" id="db-starts" type="datetime-local">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="db-expires">Expiração (opcional)</label>
-              <input class="an-input" id="db-expires" type="datetime-local">
-            </div>
-            <div class="an-field">
-              <label class="an-label" for="db-mincart">Carrinho mínimo (R$)</label>
-              <input class="an-input" id="db-mincart" type="number" min="0" step="0.01" value="0">
+            <div class="field">
+              <label class="field-label" for="db-mincart">Carrinho mínimo (R$)</label>
+              <input class="field-input" id="db-mincart" type="number" min="0" step="0.01" value="0">
             </div>
           </div>
-          <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem">
-            <button type="button" class="btn-primary" id="db-save-btn">Guardar Oferta</button>
+          <div class="card-section-divider"><span>Validade</span></div>
+          <div class="fields-row" style="margin-bottom:.75rem">
+            <div class="field">
+              <label class="field-label" for="db-starts">Data de início</label>
+              <input class="field-input" id="db-starts" type="datetime-local">
+            </div>
+            <div class="field">
+              <label class="field-label" for="db-expires">Data de expiração</label>
+              <input class="field-input" id="db-expires" type="datetime-local">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-primary" id="db-save-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+              Guardar Oferta
+            </button>
             <button type="button" class="btn-ghost" id="db-cancel-btn">Cancelar</button>
-            <span id="db-form-msg" style="font-size:var(--text-xs);color:#f07080"></span>
+            <span id="db-form-msg" class="an-alert" style="padding:.45rem .75rem;margin:0;display:none"></span>
           </div>
         </div>
+      </div>
 
-        <!-- Tabela BXGY -->
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--color-border-faint)">
+          <h2 class="card-title" style="margin:0">Ofertas Activas</h2>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
             <thead>
               <tr>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Código</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Promoção</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Escopo</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Validade</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Usos</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Estado</th>
-                <th style="padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)"></th>
+                <th>Código</th>
+                <th>Promoção</th>
+                <th>Escopo</th>
+                <th>Validade</th>
+                <th>Usos</th>
+                <th>Estado</th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="db-table-body">
-              <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">A carregar…</td></tr>
+              <tr class="empty"><td colspan="7">A carregar…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- ─────── PAINEL: DESCONTO EM PRODUTOS ─────── -->
+    <!-- ════════ PAINEL: DESCONTO EM PRODUTOS ════════ -->
     <div id="disc-pane-massa" class="ctlg-pane">
 
       <div class="card" style="margin-bottom:1rem">
-        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <span class="card-title">Aplicar Desconto em Produtos</span>
-          <p class="card-sub" style="margin-top:.3rem">Define o preço promocional de forma automática com base numa percentagem de desconto. O preço original fica riscado na loja.</p>
+        <h2 class="card-title">Aplicar Desconto em Massa</h2>
+        <p class="card-sub">Define o preço promocional automaticamente. O preço original aparece riscado na loja. Escolhe o escopo e a percentagem.</p>
+
+        <div class="fields-row" style="margin-bottom:.75rem">
+          <div class="field">
+            <label class="field-label" for="bd-scope">Aplicar em</label>
+            <select class="field-input" id="bd-scope">
+              <option value="global">Todos os produtos</option>
+              <option value="zona">Zona / Segmento</option>
+              <option value="categoria">Categoria</option>
+              <option value="subcategoria">Subcategoria</option>
+              <option value="colecao">Coleção</option>
+              <option value="produto">Produtos específicos</option>
+            </select>
+          </div>
+          <div class="field" id="bd-scope-val-wrap" style="display:none">
+            <label class="field-label" id="bd-scope-val-label" for="bd-scope-val">Identificador</label>
+            <input class="field-input" id="bd-scope-val" type="text" placeholder="">
+          </div>
         </div>
-        <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem">
 
-          <!-- Escopo -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
-            <div class="an-field">
-              <label class="an-label" for="bd-scope">Aplicar em</label>
-              <select class="an-input" id="bd-scope">
-                <option value="global">Todos os produtos</option>
-                <option value="zona">Zona / Segmento</option>
-                <option value="categoria">Categoria</option>
-                <option value="subcategoria">Subcategoria</option>
-                <option value="colecao">Coleção</option>
-                <option value="produto">Produtos específicos (IDs)</option>
-              </select>
-            </div>
-            <div class="an-field" id="bd-scope-val-wrap" style="display:none">
-              <label class="an-label" id="bd-scope-val-label" for="bd-scope-val">Valor do escopo</label>
-              <input class="an-input" id="bd-scope-val" type="text" placeholder="">
-            </div>
-          </div>
-
-          <!-- Produtos específicos -->
-          <div id="bd-products-wrap" style="display:none">
-            <div class="an-field">
-              <label class="an-label">Seleccionar produtos</label>
-              <div style="position:relative">
-                <input class="an-input" id="bd-prod-search" type="text" placeholder="Pesquisar por nome…" autocomplete="off">
-                <div id="bd-prod-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#0c0f24;border:1px solid rgba(245,240,230,.1);border-radius:0 0 var(--radius-xs) var(--radius-xs);max-height:200px;overflow-y:auto;z-index:50"></div>
-              </div>
-              <div id="bd-selected-products" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;min-height:28px"></div>
-            </div>
-          </div>
-
-          <!-- Percentagem -->
-          <div class="an-field" style="max-width:220px">
-            <label class="an-label" for="bd-pct">Desconto (%)</label>
+        <!-- Pesquisa de produtos específicos -->
+        <div id="bd-products-wrap" style="display:none;margin-bottom:.75rem">
+          <div class="field">
+            <label class="field-label">Pesquisar produtos</label>
             <div style="position:relative">
-              <input class="an-input" id="bd-pct" type="number" min="1" max="99" step="1" placeholder="Ex: 20" style="padding-right:2rem">
-              <span style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);color:var(--color-text-muted);font-size:.85rem">%</span>
+              <input class="field-input" id="bd-prod-search" type="text" placeholder="Escreve o nome do produto…" autocomplete="off">
+              <div id="bd-prod-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--color-bg-card);border:1px solid var(--color-red-border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:220px;overflow-y:auto"></div>
             </div>
-            <p class="form-hint">Preço final = Preço original × (1 - %/100)</p>
+            <div id="bd-selected-products" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem;min-height:24px"></div>
           </div>
+        </div>
 
-          <!-- Preview -->
-          <div id="bd-preview" style="display:none;background:rgba(245,240,230,.04);border:1px solid rgba(245,240,230,.08);border-radius:var(--radius-xs);padding:.75rem 1rem;font-size:var(--text-xs);color:var(--color-text-muted)">
-            Exemplo: produto de <strong id="bd-ex-orig">R$ 100,00</strong> passará a custar <strong id="bd-ex-promo" style="color:#5dc78c"></strong>
+        <div class="fields-row" style="margin-bottom:1rem">
+          <div class="field">
+            <label class="field-label" for="bd-pct">Percentagem de desconto</label>
+            <div class="field-suffix-wrap">
+              <input class="field-input" id="bd-pct" type="number" min="1" max="99" step="1" placeholder="20">
+              <span class="field-suffix">%</span>
+            </div>
+            <span class="form-hint">Preço final = preço original × (1 − %/100)</span>
           </div>
-
-          <!-- Acções -->
-          <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
-            <button type="button" class="btn-primary" id="bd-apply-btn">
-              Aplicar Desconto
-            </button>
-            <button type="button" class="btn-ghost" id="bd-remove-btn" style="color:#f07080;border-color:rgba(220,20,60,.2)">
-              Remover Desconto
-            </button>
-            <span id="bd-msg" style="font-size:var(--text-xs)"></span>
+          <div class="field" style="display:flex;align-items:flex-end">
+            <div id="bd-preview" style="display:none;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:var(--text-sm);color:var(--color-text-muted);width:100%">
+              Produto de <strong id="bd-ex-orig" style="color:var(--color-offwhite)"></strong> → <strong id="bd-ex-promo" style="color:#5dc78c"></strong>
+            </div>
           </div>
+        </div>
 
+        <div class="btn-row">
+          <button type="button" class="btn-primary" id="bd-apply-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            Aplicar Desconto
+          </button>
+          <button type="button" class="btn-ghost" id="bd-remove-btn" style="border-color:rgba(220,20,60,.3);color:#f07080">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Remover Desconto
+          </button>
+          <span id="bd-msg" class="an-alert" style="padding:.45rem .75rem;margin:0;display:none"></span>
         </div>
       </div>
 
-      <!-- Tabela de produtos com desconto activo -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <span class="card-title">Produtos em Promoção</span>
-          <button type="button" class="btn-ghost" id="bd-refresh-btn" style="padding:.35rem .75rem;font-size:var(--text-xs)">↻ Actualizar</button>
+      <!-- Tabela produtos em promoção -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--color-border-faint)">
+          <h2 class="card-title" style="margin:0">Produtos em Promoção</h2>
+          <button type="button" class="btn-ghost btn-sm" id="bd-refresh-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
         </div>
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+        <div class="tbl-wrap">
+          <table class="tbl">
             <thead>
               <tr>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Produto</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Preço Original</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Preço Promo</th>
-                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Desc.</th>
-                <th style="padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)"></th>
+                <th>Produto</th>
+                <th>Preço Original</th>
+                <th>Preço Promo</th>
+                <th>Desconto</th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="bd-table-body">
-              <tr><td colspan="5" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">A carregar…</td></tr>
+              <tr class="empty"><td colspan="5">A carregar…</td></tr>
             </tbody>
           </table>
         </div>
@@ -8802,9 +8855,9 @@
     function showDiscAlert(msg, type = 'error') {
       const el = document.getElementById('disc-global-alert');
       if (!el) return;
-      el.innerHTML = `<div class="an-alert ${type === 'success' ? 'success' : ''}" style="padding:.6rem 1rem;font-size:var(--text-xs)">${msg}</div>`;
-      el.style.display = 'block';
-      setTimeout(() => { el.style.display = 'none'; }, 4000);
+      el.innerHTML = `<div class="an-alert ${type === 'success' ? 'success' : 'error'}" style="margin-bottom:1rem">${msg}</div>`;
+      el.hidden = false;
+      setTimeout(() => { el.hidden = true; el.innerHTML = ''; }, 4000);
     }
     function scopeLabel(scope, val) {
       const m = { global:'Global', colecao:'Coleção', categoria:'Categoria', subcategoria:'Subcategoria', zona:'Zona', produto:'Produto' };
@@ -8824,13 +8877,18 @@
 
     /* ══════════ CUPÕES ══════════ */
 
-    /* Toggle form */
-    document.getElementById('disc-toggle-coupon-form')?.addEventListener('click', () => {
-      const f = document.getElementById('disc-coupon-form');
-      f.style.display = f.style.display === 'none' ? 'block' : 'none';
-    });
+    /* Toggle form — usa feat-card-body.open */
+    function toggleDiscForm(formId, arrowId) {
+      const f = document.getElementById(formId);
+      const a = document.getElementById(arrowId);
+      if (!f) return;
+      const open = f.classList.toggle('open');
+      if (a) a.textContent = open ? '−' : '＋';
+    }
+    document.getElementById('disc-toggle-coupon-form')?.addEventListener('click', () => toggleDiscForm('disc-coupon-form', 'disc-coupon-arrow'));
     document.getElementById('dc-cancel-btn')?.addEventListener('click', () => {
-      document.getElementById('disc-coupon-form').style.display = 'none';
+      document.getElementById('disc-coupon-form')?.classList.remove('open');
+      document.getElementById('disc-coupon-arrow').textContent = '＋';
       resetCouponForm();
     });
 
@@ -8876,29 +8934,35 @@
         expiresAt:      document.getElementById('dc-expires').value||null,
       };
 
-      if (!body.code)          { msg.textContent='Código obrigatório.'; btn.disabled=false; return; }
-      if (!body.discountValue) { msg.textContent='Valor obrigatório.'; btn.disabled=false; return; }
+      function showMsg(el, text, ok) {
+        el.textContent = text;
+        el.className = ok ? 'an-alert success' : 'an-alert error';
+        el.style.display = 'inline-flex';
+        if (ok) setTimeout(() => { el.style.display='none'; el.textContent=''; }, 3000);
+      }
+
+      if (!body.code)          { showMsg(msg,'Código obrigatório.',false); btn.disabled=false; return; }
+      if (!body.discountValue) { showMsg(msg,'Valor obrigatório.',false); btn.disabled=false; return; }
 
       try {
         const res  = await fetch(`${API}/coupons`, { method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}`}, body:JSON.stringify(body) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error||`Erro ${res.status}`);
         resetCouponForm();
-        document.getElementById('disc-coupon-form').style.display = 'none';
+        document.getElementById('disc-coupon-form')?.classList.remove('open');
+        document.getElementById('disc-coupon-arrow').textContent = '＋';
         showDiscAlert(`Cupom "${data.coupon.code}" criado.`, 'success');
         loadTable('coupon');
-      } catch(e) { msg.textContent = e.message; }
+      } catch(e) { showMsg(msg, e.message, false); }
       finally { btn.disabled = false; }
     });
 
     /* ══════════ BXGY ══════════ */
 
-    document.getElementById('disc-toggle-bxgy-form')?.addEventListener('click', () => {
-      const f = document.getElementById('disc-bxgy-form');
-      f.style.display = f.style.display === 'none' ? 'block' : 'none';
-    });
+    document.getElementById('disc-toggle-bxgy-form')?.addEventListener('click', () => toggleDiscForm('disc-bxgy-form', 'disc-bxgy-arrow'));
     document.getElementById('db-cancel-btn')?.addEventListener('click', () => {
-      document.getElementById('disc-bxgy-form').style.display = 'none';
+      document.getElementById('disc-bxgy-form')?.classList.remove('open');
+      document.getElementById('disc-bxgy-arrow').textContent = '＋';
     });
 
     const dbScope = document.getElementById('db-scope');
@@ -8930,16 +8994,24 @@
         expiresAt:     document.getElementById('db-expires').value||null,
       };
 
-      if (!body.code) { msg.textContent='Código obrigatório.'; btn.disabled=false; return; }
+      function showMsgB(text, ok) {
+        msg.textContent = text;
+        msg.className = ok ? 'an-alert success' : 'an-alert error';
+        msg.style.display = 'inline-flex';
+        if (ok) setTimeout(() => { msg.style.display='none'; }, 3000);
+      }
+
+      if (!body.code) { showMsgB('Código obrigatório.', false); btn.disabled=false; return; }
 
       try {
         const res  = await fetch(`${API}/coupons`, { method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}`}, body:JSON.stringify(body) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error||`Erro ${res.status}`);
-        document.getElementById('disc-bxgy-form').style.display = 'none';
+        document.getElementById('disc-bxgy-form')?.classList.remove('open');
+        document.getElementById('disc-bxgy-arrow').textContent = '＋';
         showDiscAlert(`Oferta "${data.coupon.code}" criada.`, 'success');
         loadTable('bxgy');
-      } catch(e) { msg.textContent = e.message; }
+      } catch(e) { showMsgB(e.message, false); }
       finally { btn.disabled = false; }
     });
 
@@ -8955,31 +9027,30 @@
         const data   = await res.json();
         if (!res.ok) throw new Error(data.error);
         const list   = data.coupons;
-        if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">Nenhum registo ainda.</td></tr>'; return; }
+        if (!list.length) { tbody.innerHTML = '<tr class="empty"><td colspan="7">Nenhum registo criado ainda.</td></tr>'; return; }
 
         tbody.innerHTML = list.map(c => {
           const disc = promoType === 'coupon'
-            ? (c.discountType==='percentage' ? `${c.discountValue}%` : `R$ ${c.discountValue.toFixed(2)}`)
-            : `Compre ${c.buyQty} Leve ${c.buyQty+c.getQty}`;
+            ? (c.discountType==='percentage' ? `<strong>${c.discountValue}%</strong>` : `<strong>R$ ${c.discountValue.toFixed(2)}</strong>`)
+            : `<strong>Compre ${c.buyQty}</strong> Leve ${c.buyQty+c.getQty}`;
           const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
-          const stateBadge = c.active
-            ? '<span class="mod-badge publicado" style="font-size:.65rem">Activo</span>'
-            : '<span class="mod-badge inativo" style="font-size:.65rem">Inactivo</span>';
-          const expBadge = expired ? ' <span class="mod-badge cancelado" style="font-size:.65rem">Expirado</span>' : '';
+          const stateBadge = c.active && !expired
+            ? '<span class="mod-badge publicado">Activo</span>'
+            : expired
+              ? '<span class="mod-badge cancelado">Expirado</span>'
+              : '<span class="mod-badge inactive">Inactivo</span>';
           return `<tr>
-            <td style="font-family:var(--font-head);font-weight:700;letter-spacing:.06em;padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${c.code}</td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${disc}</td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);font-size:var(--text-xs);color:var(--color-text-muted)">${scopeLabel(c.scope,c.scopeValue)}</td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);font-size:var(--text-xs)">
-              ${c.expiresAt ? `Até ${fmtDate(c.expiresAt)}${expBadge}` : '—'}
-            </td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${c.maxUses>0?`${c.usedCount}/${c.maxUses}`:c.usedCount||0}</td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${stateBadge}</td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);white-space:nowrap;text-align:right">
-              <button class="btn-ghost disc-toggle-btn" style="padding:.3rem .65rem;font-size:var(--text-xs)" data-id="${c._id}" data-active="${c.active}" data-type="${promoType}">
+            <td style="font-family:var(--font-head);font-weight:700;letter-spacing:.06em;color:var(--color-white)">${c.code}</td>
+            <td>${disc}</td>
+            <td style="font-size:var(--text-xs)">${scopeLabel(c.scope,c.scopeValue)}</td>
+            <td style="font-size:var(--text-xs)">${c.expiresAt ? `Até ${fmtDate(c.expiresAt)}` : '—'}</td>
+            <td>${c.maxUses>0?`${c.usedCount}/${c.maxUses}`:c.usedCount||0}</td>
+            <td>${stateBadge}</td>
+            <td style="text-align:right;white-space:nowrap">
+              <button class="btn-sm disc-toggle-btn" data-id="${c._id}" data-active="${c.active}" data-type="${promoType}">
                 ${c.active ? 'Pausar' : 'Activar'}
               </button>
-              <button class="btn-ghost disc-del-btn" style="padding:.3rem .65rem;font-size:var(--text-xs);color:#f07080;border-color:rgba(220,20,60,.2);margin-left:.3rem" data-id="${c._id}" data-code="${c.code}" data-type="${promoType}">
+              <button class="btn-sm disc-del-btn" style="color:#f07080;border-color:rgba(220,20,60,.2);margin-left:.3rem" data-id="${c._id}" data-code="${c.code}" data-type="${promoType}">
                 Apagar
               </button>
             </td>
@@ -9007,7 +9078,7 @@
           });
         });
       } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#f07080;font-size:var(--text-sm)">${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr class="empty"><td colspan="7" style="color:#f07080">${e.message}</td></tr>`;
       }
     }
 
@@ -9149,11 +9220,14 @@
         msg.textContent = remove
           ? `Desconto removido de ${data.updated} produto(s).`
           : `Desconto de ${pct}% aplicado a ${data.updated} produto(s).`;
-        msg.style.color = '#5dc78c';
+        msg.className = 'an-alert success';
+        msg.style.display = 'inline-flex';
         loadPromoProducts();
+        setTimeout(() => { msg.style.display='none'; }, 4000);
       } catch (e) {
         msg.textContent = e.message;
-        msg.style.color = '#f07080';
+        msg.className = 'an-alert error';
+        msg.style.display = 'inline-flex';
       } finally {
         applyBtn.disabled = false; removeBtn.disabled = false;
       }
@@ -9167,32 +9241,24 @@
     async function loadPromoProducts() {
       const tbody = document.getElementById('bd-table-body');
       if (!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--color-text-muted)">A carregar…</td></tr>';
+      tbody.innerHTML = '<tr class="empty"><td colspan="5">A carregar…</td></tr>';
       try {
         const res  = await fetch(`${API}/products?limit=200`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
         const data = await res.json();
         const list = (data.products || []).filter(p => p.precoPromocional > 0);
         if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">Nenhum produto em promoção.</td></tr>';
+          tbody.innerHTML = '<tr class="empty"><td colspan="5">Nenhum produto em promoção.</td></tr>';
           return;
         }
         tbody.innerHTML = list.map(p => {
           const pct = Math.round((1 - p.precoPromocional / p.preco) * 100);
           return `<tr>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">
-              <span style="font-weight:600">${p.titulo}</span>
-            </td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);color:var(--color-text-muted)">
-              <del>${fmtR(p.preco)}</del>
-            </td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);color:#5dc78c;font-weight:700">
-              ${fmtR(p.precoPromocional)}
-            </td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">
-              <span style="background:rgba(220,20,60,.12);color:var(--color-red);border:1px solid rgba(220,20,60,.2);border-radius:4px;font-size:.65rem;font-weight:700;padding:.15rem .4rem">-${pct}%</span>
-            </td>
-            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);text-align:right">
-              <button class="btn-ghost bd-remove-one" style="padding:.3rem .65rem;font-size:var(--text-xs);color:#f07080;border-color:rgba(220,20,60,.2)" data-id="${p._id}" data-titulo="${p.titulo}">
+            <td style="color:var(--color-white);font-weight:600">${p.titulo}</td>
+            <td><del style="color:var(--color-text-muted)">${fmtR(p.preco)}</del></td>
+            <td style="color:#5dc78c;font-weight:700">${fmtR(p.precoPromocional)}</td>
+            <td><span class="mod-badge" style="background:rgba(220,20,60,.12);color:var(--color-red);border:1px solid rgba(220,20,60,.22)">-${pct}%</span></td>
+            <td style="text-align:right">
+              <button class="btn-sm bd-remove-one" style="color:#f07080;border-color:rgba(220,20,60,.2)" data-id="${p._id}" data-titulo="${p.titulo}">
                 Remover
               </button>
             </td>
