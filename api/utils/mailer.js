@@ -1,16 +1,49 @@
-const { Resend } = require('resend');
-
-const configured  = !!process.env.RESEND_API_KEY;
-const resend      = configured ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM_ADDR   = process.env.SMTP_FROM || 'Zenith Zone <onboarding@resend.dev>';
-const IMG_BASE    = process.env.EMAIL_IMG_BASE || 'https://czvitor.github.io/Zenith-Zone/src/images';
+/* ── Suporte a Resend E Brevo — usa o que estiver configurado ──
+   Prioridade: RESEND_API_KEY → BREVO_API_KEY → sem envio       */
+const FROM_ADDR = process.env.SMTP_FROM || 'Zenith Zone <wear.zenith.z@gmail.com>';
+const IMG_BASE  = process.env.EMAIL_IMG_BASE || 'https://czvitor.github.io/Zenith-Zone/src/images';
 
 function img(file) { return `${IMG_BASE}/${encodeURIComponent(file)}`; }
 
+let _transport = 'none';
+let _resend    = null;
+let _brevoApi  = null;
+
+if (process.env.RESEND_API_KEY) {
+  const { Resend } = require('resend');
+  _resend    = new Resend(process.env.RESEND_API_KEY);
+  _transport = 'resend';
+} else if (process.env.BREVO_API_KEY) {
+  const SibApiV3Sdk = require('@getbrevo/brevo');
+  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+  apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+  _brevoApi  = apiInstance;
+  _transport = 'brevo';
+} else {
+  console.warn('[Mailer] Nenhuma chave de API configurada (RESEND_API_KEY ou BREVO_API_KEY).');
+}
+
 async function _send({ to, subject, html }) {
-  if (!resend) { console.warn('[Mailer] RESEND_API_KEY não configurado. Destinatário:', to); return; }
-  const { error } = await resend.emails.send({ from: FROM_ADDR, to, subject, html });
-  if (error) throw new Error(error.message || JSON.stringify(error));
+  if (_transport === 'resend') {
+    const { error } = await _resend.emails.send({ from: FROM_ADDR, to, subject, html });
+    if (error) throw new Error(error.message || JSON.stringify(error));
+
+  } else if (_transport === 'brevo') {
+    const SibApiV3Sdk = require('@getbrevo/brevo');
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    /* Extrai "Nome <email>" ou usa directamente */
+    const fromMatch = FROM_ADDR.match(/^(.+?)\s*<(.+?)>$/);
+    sendSmtpEmail.sender  = fromMatch
+      ? { name: fromMatch[1].trim(), email: fromMatch[2].trim() }
+      : { email: FROM_ADDR };
+    sendSmtpEmail.to      = [{ email: to }];
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+    await _brevoApi.sendTransacEmail(sendSmtpEmail);
+
+  } else {
+    console.warn('[Mailer] Sem transporte configurado. Email não enviado para:', to);
+  }
 }
 
 /* ── Base visual de todos os e-mails ─────────────────────── */
