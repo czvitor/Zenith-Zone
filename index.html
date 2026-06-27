@@ -1709,71 +1709,66 @@
       })
       .catch(() => {});
 
-    /* ── Função de submissão compartilhada ── */
-    async function subscribe(email) {
-      const res  = await fetch(`${API}/newsletter`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, source: 'home' }),
-      });
-      return res;
-    }
+    /* ── Handler único — verifica o estado de auth no momento do submit ── */
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    /* ── Usuário LOGADO: clique no botão = submit direto + modal ── */
-    if (loggedIn) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        btn.disabled = true;
+      /* Reavalia auth no momento do clique (cobre login via modal sem reload) */
+      const isNowLoggedIn = (typeof ZZAuth !== 'undefined') && ZZAuth.isLoggedIn();
+      const nowUser       = isNowLoggedIn ? ZZAuth.getUser() : null;
+
+      if (isNowLoggedIn && nowUser?.email) {
+        /* ── LOGADO: envia com o email do perfil, abre modal ── */
+        btn.disabled    = true;
         btn.textContent = 'Entrando…';
         try {
-          const res = await subscribe(user.email);
-          const d   = await res.json();
+          const res = await fetch(`${API}/newsletter`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email: nowUser.email, source: 'home' }),
+          });
+          const d = await res.json();
           if (res.ok) {
-            if (d.alreadySubscribed) {
-              openModal(
-                'Você Já Está<br>na Lista',
-                'Você já está inscrito neste drop! Fique de olho na caixa de entrada para os alertas.'
-              );
-            } else {
-              openModal(
-                'Você Está<br>na Lista',
-                dropActive
-                  ? 'Você receberá alertas de 1 semana, 1 dia e 1 hora antes do drop. Fique de olho na caixa de entrada.'
+            openModal(
+              d.alreadySubscribed ? 'Você Já Está<br>na Lista' : 'Você Está<br>na Lista',
+              d.alreadySubscribed
+                ? 'Você já está inscrito! Fique de olho na caixa de entrada para os alertas.'
+                : dropActive
+                  ? 'Você receberá alertas de 1 semana, 1 dia e 1 hora antes do drop.'
                   : 'Assim que o próximo drop for anunciado, você será o primeiro a saber.'
-              );
-            }
+            );
           } else {
             openModal('Erro', d.message || 'Não foi possível processar a inscrição.');
           }
         } catch {
           openModal('Erro', 'Não foi possível conectar ao servidor. Tente novamente.');
         } finally {
-          btn.disabled = false;
+          btn.disabled    = false;
           btn.textContent = dropActive ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
         }
-      });
-      return;
-    }
 
-    /* ── Usuário NÃO logado: comportamento original com input de e-mail ── */
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = input.value.trim();
-      if (!email) return;
+      } else {
+        /* ── NÃO LOGADO: usa o input de email ── */
+        const email = input?.value.trim();
+        if (!email) return;
 
-      const origText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Enviando…';
-
-      try {
-        const res  = await subscribe(email);
-        const data = await res.json();
-        btn.textContent = data.message || (res.ok ? 'Inscrito!' : 'Erro. Tente novamente.');
-        if (res.ok) input.value = '';
-        setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 4000);
-      } catch {
-        btn.textContent = 'Erro de conexão.';
-        setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 3000);
+        const origText   = btn.textContent;
+        btn.disabled     = true;
+        btn.textContent  = 'Enviando…';
+        try {
+          const res  = await fetch(`${API}/newsletter`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email, source: 'home' }),
+          });
+          const data = await res.json();
+          btn.textContent = data.message || (res.ok ? 'Inscrito!' : 'Erro. Tente novamente.');
+          if (res.ok && input) input.value = '';
+          setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 4000);
+        } catch {
+          btn.textContent = 'Erro de conexão.';
+          setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 3000);
+        }
       }
     });
   })();
