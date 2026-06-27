@@ -716,11 +716,25 @@ body.auth-modal-open .zz-nav-actions { pointer-events: none; }
   .zz-nav-bar { padding: 0 4%; }
 }
 @media (max-width: 640px) {
+  /* Remove backdrop-filter: previne que #zz-header crie um containing-block
+     para os filhos position:fixed (nav-mobile), o que os fazia crescer dentro do header */
+  #zz-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(4, 6, 22, 0.99) !important; /* mais sólido sem backdrop-filter */
+    overflow: hidden !important;                  /* clippa qualquer overflow visual */
+    height: 56px !important;                      /* altura fixa — nunca muda */
+  }
+
   .zz-nav-bar { padding: 0 3%; height: 56px; }
   .zz-nav-bar .nav-logo-img { height: 28px; }
+
+  /* nav-mobile: position:fixed agora funciona correctamente (relativo à viewport) */
   .nav-mobile { top: 56px; }
+
   /* Esconde favoritos na barra — acessível via menu mobile */
   .zz-fav-btn { display: none !important; }
+
   /* Ícones mais compactos */
   .zz-nav-actions { gap: 0; }
   .zz-cart-btn { width: 40px; height: 56px; border-radius: 0; }
@@ -729,7 +743,9 @@ body.auth-modal-open .zz-nav-actions { pointer-events: none; }
   .zz-srch-trigger svg { width: 18px; height: 18px; }
   .nav-menu-btn { width: 44px; height: 56px; padding: 0; }
 }
+
 @media (max-width: 375px) {
+  #zz-header { height: 52px !important; }
   .zz-nav-bar { padding: 0 2%; height: 52px; }
   .nav-mobile { top: 52px; }
   .zz-nav-bar .nav-logo-img { height: 24px; }
