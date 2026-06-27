@@ -779,10 +779,11 @@
 
 })();
 
-/* ── Drop Mega Menu — carrega drop activo e drops anteriores ── */
+/* ── Drop Nav Button + Mega Menu — carrega drop activo ── */
 (async function () {
-  const colAtual = document.getElementById('mega-drop-atual');
-  const colPrev  = document.getElementById('mega-prev-drops');
+  const colAtual  = document.getElementById('mega-drop-atual');
+  const colPrev   = document.getElementById('mega-prev-drops');
+  const dropBtns  = document.querySelectorAll('#nav-drop-btn'); // mostra só se drop activo
   if (!colAtual && !colPrev) return;
 
   const API = window.ZZ_API_BASE || 'https://zenith-zone-api.onrender.com/api';
@@ -797,6 +798,11 @@
       fetch(`${API}/site-settings`).then(r => r.json()),
       fetch(`${API}/products?dropExclusivo=true&limit=100`).then(r => r.json()).catch(() => ({ products: [] })),
     ]);
+
+    /* ── Botão Drop na navbar — só visível quando drop activo ── */
+    if (settings.dropActive && settings.dropTitle) {
+      dropBtns.forEach(btn => { btn.style.display = ''; });
+    }
 
     /* ── Col 1: Drop Atual ── */
     if (colAtual) {
