@@ -1659,11 +1659,21 @@
     overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-    /* ── Verifica login e status do drop ── */
-    const user  = JSON.parse(localStorage.getItem('zz_user') || 'null');
-    const token = localStorage.getItem('zz_token');
+    /* ── Verifica login — SÍNCRONO, antes de qualquer fetch ── */
+    const user     = JSON.parse(localStorage.getItem('zz_user') || 'null');
+    const token    = localStorage.getItem('zz_token');
     const loggedIn = !!(user && token);
 
+    /* Aplica estado de login IMEDIATAMENTE (sem esperar fetch)
+       para evitar flash de input visível quando o utilizador está logado */
+    if (loggedIn && input) {
+      input.style.display   = 'none';
+      input.required        = false;
+      btn.style.borderRadius = '4px';
+      form.style.justifyContent = 'center';
+    }
+
+    /* Fetch às settings apenas para o texto do botão (drop activo ou não) */
     let dropActive = false;
 
     fetch(`${API}/settings`)
@@ -1671,19 +1681,10 @@
       .then(data => {
         dropActive = !!data?.dropActive;
         const defaultText = dropActive ? 'Entrar na Lista' : 'Entrar na Lista do Próximo Drop';
-
         btn.textContent = defaultText;
         document.querySelectorAll('.zz-nav-cta, .zz-col-cta').forEach(el => {
           if (el.textContent.trim() === 'Entrar na Lista') el.textContent = defaultText;
         });
-
-        /* Se logado: esconde input, remove validação e centraliza botão */
-        if (loggedIn && input) {
-          input.style.display = 'none';
-          input.required = false;
-          btn.style.borderRadius = '4px';
-          form.style.justifyContent = 'center';
-        }
       })
       .catch(() => {});
 
