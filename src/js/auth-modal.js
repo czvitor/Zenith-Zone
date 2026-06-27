@@ -282,6 +282,7 @@
       await ZZAuth.login(emailVal, passVal);
       closeAuthModal();
       ZZAuth.updateNavUI();
+      window.dispatchEvent(new Event('zz:auth:login'));
     } catch (err) {
       loginAlert.textContent = err.error || 'Usuário ou senha incorretos.';
       loginAlert.hidden = false;
@@ -330,7 +331,7 @@
       signupAlert.textContent = 'Conta criada! Bem-vindo(a) à Zenith Zone.';
       signupAlert.className   = 'auth-alert success';
       signupAlert.hidden = false;
-      setTimeout(() => { closeAuthModal(); ZZAuth.updateNavUI(); }, 1400);
+      setTimeout(() => { closeAuthModal(); ZZAuth.updateNavUI(); window.dispatchEvent(new Event('zz:auth:register')); }, 1400);
     } catch (err) {
       if (err.errors) { err.errors.forEach(e => { const f = e.path||e.param; if(f) sErr(f,e.msg); }); }
       else { signupAlert.textContent = err.error||'Erro ao criar conta.'; signupAlert.className='auth-alert error'; signupAlert.hidden=false; }

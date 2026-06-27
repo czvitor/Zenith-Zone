@@ -1663,13 +1663,21 @@
     const loggedIn = (typeof ZZAuth !== 'undefined') && ZZAuth.isLoggedIn();
     const user     = loggedIn ? ZZAuth.getUser() : null;
 
-    /* 1. Input: esconde síncronamente se logado */
-    if (loggedIn && input) {
+    /* 1. Função reutilizável para aplicar estado logado ao form */
+    function applyLoggedInState() {
+      if (!input) return;
       input.style.setProperty('display', 'none', 'important');
-      input.required         = false;
-      btn.style.borderRadius = '4px';
+      input.required            = false;
+      btn.style.borderRadius    = '4px';
       form.style.justifyContent = 'center';
     }
+
+    /* Aplica agora se já logado */
+    if (loggedIn) applyLoggedInState();
+
+    /* Também aplica quando o login/registo ocorre via modal (sem reload) */
+    window.addEventListener('zz:auth:login', applyLoggedInState);
+    window.addEventListener('zz:auth:register', applyLoggedInState);
 
     /* 2. Texto do botão: usa o cache do localStorage (escrito pelo admin panel)
           para evitar flash enquanto o Render acorda do cold-start */
