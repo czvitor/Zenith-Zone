@@ -708,6 +708,110 @@
     .btn-wish svg { width: 15px; height: 15px; flex-shrink: 0; transition: fill 0.22s ease, stroke 0.22s ease; }
     .btn-wish.active svg { fill: var(--color-red); stroke: var(--color-red); }
 
+    /* ── Botão Partilhar ── */
+    .btn-share {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.82rem 1.2rem; margin-top: .5rem;
+      background: none; border: 1px solid rgba(245,240,230,0.1);
+      border-radius: var(--radius-xs); color: rgba(245,240,230,0.5);
+      font-family: var(--font-head); font-weight: var(--fw-black);
+      font-size: var(--text-sm); letter-spacing: var(--tracking-wide);
+      text-transform: uppercase; cursor: pointer;
+      transition: color .22s, border-color .22s, background .22s;
+    }
+    .btn-share:hover { color:var(--color-offwhite); border-color:rgba(245,240,230,.22); background:rgba(245,240,230,.04); }
+    .btn-share svg { width:15px; height:15px; flex-shrink:0; }
+
+    /* ── Share Modal ── */
+    .share-backdrop {
+      display:none; position:fixed; inset:0; z-index:9200;
+      background:rgba(4,6,15,.7); backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+    }
+    .share-backdrop.open { display:flex; align-items:center; justify-content:center; }
+
+    @keyframes share-in {
+      from { opacity:0; transform:translateY(20px) scale(.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .share-modal {
+      background: var(--color-bg-card,#07091a);
+      border: 1px solid rgba(220,20,60,.2);
+      border-radius: 16px;
+      width: min(420px, 94vw);
+      overflow: hidden;
+      animation: share-in .22s ease both;
+      box-shadow: 0 24px 64px rgba(0,0,0,.7);
+    }
+    .share-modal-head {
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(245,240,230,.07);
+    }
+    .share-modal-title {
+      font-family:var(--font-head); font-weight:900; font-size:var(--text-base);
+      text-transform:uppercase; letter-spacing:.08em; color:#fff;
+    }
+    .share-modal-close {
+      background:none; border:none; cursor:pointer; color:rgba(245,240,230,.4);
+      padding:.2rem; line-height:0; transition:color .15s;
+    }
+    .share-modal-close:hover { color:#fff; }
+
+    /* Preview do produto no modal */
+    .share-preview {
+      display:flex; align-items:center; gap:.9rem;
+      padding: .9rem 1.25rem;
+      border-bottom: 1px solid rgba(245,240,230,.07);
+      background: rgba(245,240,230,.03);
+    }
+    .share-preview-img {
+      width:60px; height:60px; object-fit:cover;
+      border-radius:6px; flex-shrink:0;
+      background:rgba(245,240,230,.06);
+    }
+    .share-preview-name { font-size:var(--text-sm); font-weight:700; color:#fff; margin-bottom:.2rem; }
+    .share-preview-price { font-size:var(--text-xs); color:rgba(245,240,230,.5); }
+
+    /* Grid de opções */
+    .share-options {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem;
+      padding:1.1rem 1.25rem;
+    }
+    .share-opt {
+      display:flex; flex-direction:column; align-items:center; gap:.4rem;
+      padding:.7rem .4rem; border-radius:10px; cursor:pointer; border:none;
+      background:rgba(245,240,230,.04);
+      font-size:var(--text-2xs); font-weight:700; letter-spacing:.04em;
+      color:rgba(245,240,230,.6); text-decoration:none;
+      transition:background .15s, color .15s; text-align:center;
+    }
+    .share-opt:hover { background:rgba(245,240,230,.09); color:#fff; }
+    .share-opt svg { width:28px; height:28px; }
+    .share-opt.copied { color:#5dc78c; background:rgba(34,197,94,.08); }
+
+    /* Copy link bar */
+    .share-copy-bar {
+      display:flex; align-items:center; gap:.5rem;
+      padding:.75rem 1.25rem 1rem;
+      border-top:1px solid rgba(245,240,230,.07);
+    }
+    .share-copy-input {
+      flex:1; background:rgba(7,9,26,.7);
+      border:1px solid rgba(245,240,230,.09); border-radius:6px;
+      padding:.5rem .75rem; color:rgba(245,240,230,.6);
+      font-size:var(--text-xs); outline:none; overflow:hidden;
+      white-space:nowrap; text-overflow:ellipsis;
+    }
+    .share-copy-btn {
+      padding:.5rem .9rem; background:var(--color-red,#DC143C); color:#fff;
+      border:none; border-radius:6px; cursor:pointer;
+      font-family:var(--font-head); font-weight:900; font-size:var(--text-xs);
+      letter-spacing:.06em; text-transform:uppercase;
+      transition:background .15s; white-space:nowrap;
+    }
+    .share-copy-btn:hover { background:#b5102f; }
+
     /* Animação de pulso no coração */
     @keyframes zzHeartPop {
       0%   { transform: scale(1); }
@@ -1043,6 +1147,16 @@
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           Adicionar aos Favoritos
+        </button>
+
+        <!-- Partilhar -->
+        <button class="btn-share" id="btn-share" type="button" aria-label="Partilhar produto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Partilhar
         </button>
 
         <!-- Trust -->
@@ -2166,6 +2280,92 @@
 
   /* ── Inicializa ────────────────────────────────────── */
   loadProduct().then(() => window.ZZWishlist?.initPage());
+
+  /* ══════════════════════════════════════════════════════
+     SHARE MODAL
+  ══════════════════════════════════════════════════════ */
+  (() => {
+    const backdrop  = document.getElementById('share-backdrop');
+    const closeBtn  = document.getElementById('share-modal-close');
+    const urlInput  = document.getElementById('share-url-input');
+    const copyBtn   = document.getElementById('share-copy-btn');
+    const copyOpt   = document.getElementById('share-copy-opt');
+    const nativeBtn = document.getElementById('share-native');
+
+    function openShare() {
+      if (!produto) return;
+
+      const pageUrl  = window.location.href;
+      const title    = produto.titulo || 'ZENITH ZONE';
+      const price    = produto.precoPromocional > 0 ? produto.precoPromocional : produto.preco;
+      const fmtPrc   = 'R$ ' + Number(price).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      const imgSrc   = produto.fotos?.frente?.[0] || produto.fotos?.costas?.[0] || '';
+      const imgUrl   = imgSrc.startsWith('http') ? imgSrc : `https://czvitor.github.io/Zenith-Zone/src/images/${encodeURIComponent(imgSrc)}`;
+      const text     = `${title} — ${fmtPrc}\n${pageUrl}`;
+
+      /* Actualiza og:image dinamicamente (para clipboard/etc) */
+      if (imgSrc) {
+        let ogImg = document.querySelector('meta[property="og:image"]');
+        if (ogImg) ogImg.setAttribute('content', imgUrl);
+      }
+
+      /* Preview */
+      const previewImg  = document.getElementById('share-preview-img');
+      const previewName = document.getElementById('share-preview-name');
+      const previewPrc  = document.getElementById('share-preview-price');
+      if (previewImg) { previewImg.src = imgSrc || ''; previewImg.style.display = imgSrc ? '' : 'none'; }
+      if (previewName) previewName.textContent = title;
+      if (previewPrc)  previewPrc.textContent  = fmtPrc;
+
+      /* URLs das redes */
+      const enc  = encodeURIComponent;
+      document.getElementById('share-whatsapp').href  = `https://api.whatsapp.com/send?text=${enc(text)}`;
+      document.getElementById('share-facebook').href  = `https://www.facebook.com/sharer/sharer.php?u=${enc(pageUrl)}&quote=${enc(title)}`;
+      document.getElementById('share-twitter').href   = `https://twitter.com/intent/tweet?url=${enc(pageUrl)}&text=${enc(title)}&via=zenithzone`;
+      document.getElementById('share-telegram').href  = `https://t.me/share/url?url=${enc(pageUrl)}&text=${enc(title)}`;
+      document.getElementById('share-pinterest').href = `https://pinterest.com/pin/create/button/?url=${enc(pageUrl)}&media=${enc(imgUrl)}&description=${enc(title)}`;
+      document.getElementById('share-email').href     = `mailto:?subject=${enc(title)}&body=${enc(text)}`;
+
+      /* URL input */
+      if (urlInput) urlInput.value = pageUrl;
+
+      /* Web Share API (mobile) */
+      if (navigator.share && nativeBtn) {
+        nativeBtn.style.display = 'flex';
+        nativeBtn.onclick = () => navigator.share({ title, text: title, url: pageUrl }).catch(() => {});
+      }
+
+      backdrop.classList.add('open');
+    }
+
+    function closeShare() { backdrop.classList.remove('open'); }
+
+    document.getElementById('btn-share')?.addEventListener('click', openShare);
+    closeBtn?.addEventListener('click', closeShare);
+    backdrop?.addEventListener('click', e => { if (e.target === backdrop) closeShare(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShare(); });
+
+    /* Copiar link */
+    function doCopy() {
+      const url = urlInput?.value || window.location.href;
+      navigator.clipboard?.writeText(url).then(() => {
+        [copyBtn, copyOpt].forEach(b => {
+          if (!b) return;
+          const orig = b.textContent;
+          if (b === copyBtn) { b.textContent = '✔ Copiado!'; b.style.background = '#16a34a'; }
+          else { b.style.color = '#5dc78c'; }
+          setTimeout(() => {
+            if (b === copyBtn) { b.textContent = orig; b.style.background = ''; }
+            else { b.style.color = ''; }
+          }, 2000);
+        });
+      }).catch(() => {
+        if (urlInput) { urlInput.select(); document.execCommand('copy'); }
+      });
+    }
+    copyBtn?.addEventListener('click', doCopy);
+    copyOpt?.addEventListener('click', doCopy);
+  })();
   </script>
 
   <!-- Cart drawer -->
@@ -2204,6 +2404,76 @@
     </div>
   </aside>
   <div id="zz-cart-overlay" class="zz-cart-overlay" aria-hidden="true"></div>
+
+  <!-- Share Modal -->
+  <div class="share-backdrop" id="share-backdrop" role="dialog" aria-modal="true" aria-label="Partilhar produto">
+    <div class="share-modal" id="share-modal">
+      <div class="share-modal-head">
+        <span class="share-modal-title">Partilhar</span>
+        <button type="button" class="share-modal-close" id="share-modal-close" aria-label="Fechar">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Preview do produto -->
+      <div class="share-preview" id="share-preview">
+        <img class="share-preview-img" id="share-preview-img" src="" alt="">
+        <div>
+          <div class="share-preview-name" id="share-preview-name">—</div>
+          <div class="share-preview-price" id="share-preview-price">—</div>
+        </div>
+      </div>
+      <!-- Opções de partilha -->
+      <div class="share-options">
+        <!-- WhatsApp -->
+        <a class="share-opt" id="share-whatsapp" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+        <!-- Facebook -->
+        <a class="share-opt" id="share-facebook" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </a>
+        <!-- Twitter / X -->
+        <a class="share-opt" id="share-twitter" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="color:#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          X / Twitter
+        </a>
+        <!-- Telegram -->
+        <a class="share-opt" id="share-telegram" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="#26A5E4"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          Telegram
+        </a>
+        <!-- Pinterest -->
+        <a class="share-opt" id="share-pinterest" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="#E60023"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          Pinterest
+        </a>
+        <!-- Email -->
+        <a class="share-opt" id="share-email" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:rgba(245,240,230,.7)"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          E-mail
+        </a>
+        <!-- Mais (Web Share API) -->
+        <button class="share-opt" id="share-native" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:rgba(245,240,230,.7)"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Mais
+        </button>
+        <!-- Copiar link -->
+        <button class="share-opt" id="share-copy-opt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:rgba(245,240,230,.7)"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar Link
+        </button>
+      </div>
+      <!-- Link bar -->
+      <div class="share-copy-bar">
+        <input class="share-copy-input" id="share-url-input" type="text" readonly>
+        <button class="share-copy-btn" id="share-copy-btn">Copiar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- navbar.js gerencia mega menu, mobile nav, pesquisa e carrinho -->
   <script src="../js/auth.js"></script>
