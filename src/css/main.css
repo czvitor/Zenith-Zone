@@ -15,6 +15,13 @@ html { scroll-behavior: smooth; }
 
 section[id] { scroll-margin-top: 64px; }
 
+@media (max-width: 560px) {
+  section[id] { scroll-margin-top: 56px; }
+}
+@media (max-width: 375px) {
+  section[id] { scroll-margin-top: 52px; }
+}
+
 body {
   background: var(--color-bg-base);
   color: var(--color-offwhite);
