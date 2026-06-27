@@ -2519,6 +2519,14 @@
       Categorias
     </button>
 
+    <button class="nav-item" data-view="descontos" data-perm-show="canEditProducts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+      Descontos & Cupões
+    </button>
+
     <p class="sidebar-section-label">Acesso</p>
 
     <a href="../../index.html" class="nav-item">
@@ -4118,6 +4126,204 @@
     </div>
   </div><!-- /view-catalogo -->
 
+  <!-- ══════════════════════════════════════════════════════════
+       VIEW — DESCONTOS & CUPÕES
+  ══════════════════════════════════════════════════════════ -->
+  <div class="view" id="view-descontos">
+
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+      <div>
+        <p class="page-label">Promoções</p>
+        <h1 class="page-title">Descontos & <span>Cupões</span></h1>
+        <p class="page-sub">Crie cupões de desconto e ofertas progressivas "Compre X Leve Y".</p>
+      </div>
+      <div id="disc-global-alert" style="display:none"></div>
+    </div>
+
+    <!-- Abas -->
+    <div style="display:flex;gap:0;border-bottom:1px solid rgba(245,240,230,.1);margin-bottom:1.25rem">
+      <button type="button" class="ctlg-tab active" data-disc-tab="cupoes" style="padding:.7rem 1.25rem">Cupões</button>
+      <button type="button" class="ctlg-tab" data-disc-tab="bxgy" style="padding:.7rem 1.25rem">Compre X Leve Y</button>
+    </div>
+
+    <!-- ─────── PAINEL: CUPÕES ─────── -->
+    <div id="disc-pane-cupoes" class="ctlg-pane active">
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
+          <span class="card-title">Novo Cupão</span>
+          <button type="button" class="btn-ghost" id="disc-toggle-coupon-form" style="padding:.4rem .9rem;font-size:var(--text-xs)">+ Criar</button>
+        </div>
+
+        <!-- Formulário -->
+        <div id="disc-coupon-form" style="display:none;padding:1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+            <div class="an-field">
+              <label class="an-label" for="dc-code">Código *</label>
+              <input class="an-input" id="dc-code" type="text" placeholder="VERAO2026" maxlength="32" style="text-transform:uppercase">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-dtype">Tipo de desconto</label>
+              <select class="an-input" id="dc-dtype">
+                <option value="percentage">Percentagem (%)</option>
+                <option value="fixed">Valor fixo (R$)</option>
+              </select>
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-dvalue">Valor *</label>
+              <input class="an-input" id="dc-dvalue" type="number" min="0" step="0.01" placeholder="15">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-mincart">Carrinho mínimo (R$)</label>
+              <input class="an-input" id="dc-mincart" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-scope">Aplicar em</label>
+              <select class="an-input" id="dc-scope">
+                <option value="global">Todo o catálogo</option>
+                <option value="colecao">Coleção específica</option>
+                <option value="categoria">Categoria</option>
+                <option value="subcategoria">Subcategoria</option>
+                <option value="zona">Zona / Segmento</option>
+                <option value="produto">Produto (ID)</option>
+              </select>
+            </div>
+            <div class="an-field" id="dc-scope-val-wrap" style="display:none">
+              <label class="an-label" id="dc-scope-val-label" for="dc-scope-val">Valor do escopo</label>
+              <input class="an-input" id="dc-scope-val" type="text" placeholder="">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-starts">Início (opcional)</label>
+              <input class="an-input" id="dc-starts" type="datetime-local">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-expires">Expiração (opcional)</label>
+              <input class="an-input" id="dc-expires" type="datetime-local">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-maxuses">Limite total de usos</label>
+              <input class="an-input" id="dc-maxuses" type="number" min="0" step="1" value="0" placeholder="0 = ilimitado">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="dc-maxuser">Limite por utilizador</label>
+              <input class="an-input" id="dc-maxuser" type="number" min="0" step="1" value="0" placeholder="0 = ilimitado">
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem">
+            <button type="button" class="btn-primary" id="dc-save-btn">Guardar Cupão</button>
+            <button type="button" class="btn-ghost" id="dc-cancel-btn">Cancelar</button>
+            <span id="dc-form-msg" style="font-size:var(--text-xs);color:#f07080"></span>
+          </div>
+        </div>
+
+        <!-- Tabela cupões -->
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Código</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Desconto</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Escopo</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Validade</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Usos</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Estado</th>
+                <th style="padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)"></th>
+              </tr>
+            </thead>
+            <tbody id="dc-table-body">
+              <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">A carregar…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────── PAINEL: COMPRE X LEVE Y ─────── -->
+    <div id="disc-pane-bxgy" class="ctlg-pane">
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
+          <span class="card-title">Nova Oferta Progressiva</span>
+          <button type="button" class="btn-ghost" id="disc-toggle-bxgy-form" style="padding:.4rem .9rem;font-size:var(--text-xs)">+ Criar</button>
+        </div>
+
+        <!-- Formulário BXGY -->
+        <div id="disc-bxgy-form" style="display:none;padding:1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+            <div class="an-field">
+              <label class="an-label" for="db-code">Código *</label>
+              <input class="an-input" id="db-code" type="text" placeholder="COMPRE3LEVE4" maxlength="32" style="text-transform:uppercase">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-scope">Aplicar em</label>
+              <select class="an-input" id="db-scope">
+                <option value="global">Todo o catálogo</option>
+                <option value="colecao">Coleção específica</option>
+                <option value="categoria">Categoria</option>
+                <option value="produto">Produto (ID)</option>
+              </select>
+            </div>
+            <div class="an-field" id="db-scope-val-wrap" style="display:none">
+              <label class="an-label" id="db-scope-val-label" for="db-scope-val">Valor do escopo</label>
+              <input class="an-input" id="db-scope-val" type="text" placeholder="">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-buy">Compre (quantidade) *</label>
+              <input class="an-input" id="db-buy" type="number" min="1" step="1" value="2">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-get">Leve de graça (quantidade) *</label>
+              <input class="an-input" id="db-get" type="number" min="1" step="1" value="1">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-freerule">Item gratuito é</label>
+              <select class="an-input" id="db-freerule">
+                <option value="cheapest">O(s) de menor valor</option>
+                <option value="same">Itens idênticos</option>
+              </select>
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-starts">Início (opcional)</label>
+              <input class="an-input" id="db-starts" type="datetime-local">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-expires">Expiração (opcional)</label>
+              <input class="an-input" id="db-expires" type="datetime-local">
+            </div>
+            <div class="an-field">
+              <label class="an-label" for="db-mincart">Carrinho mínimo (R$)</label>
+              <input class="an-input" id="db-mincart" type="number" min="0" step="0.01" value="0">
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem">
+            <button type="button" class="btn-primary" id="db-save-btn">Guardar Oferta</button>
+            <button type="button" class="btn-ghost" id="db-cancel-btn">Cancelar</button>
+            <span id="db-form-msg" style="font-size:var(--text-xs);color:#f07080"></span>
+          </div>
+        </div>
+
+        <!-- Tabela BXGY -->
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Código</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Promoção</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Escopo</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Validade</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Usos</th>
+                <th style="text-align:left;font-size:var(--text-2xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-muted);padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)">Estado</th>
+                <th style="padding:.6rem .9rem;border-bottom:1px solid rgba(245,240,230,.06)"></th>
+              </tr>
+            </thead>
+            <tbody id="db-table-body">
+              <tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">A carregar…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /view-descontos -->
+
   <!-- ══════════════ ORDER DETAIL MODAL ══════════════════════ -->
   <div class="od-modal-overlay" id="od-modal-overlay" aria-hidden="true"></div>
   <div class="od-modal" id="od-modal" role="dialog" aria-modal="true" aria-labelledby="od-modal-title" hidden>
@@ -4323,7 +4529,7 @@
   }
 
   /* ── NAVEGAÇÃO ENTRE VIEWS ──────────────────────────────── */
-  const titles = { inicio: 'Início', moderadores: 'Moderadores', site: 'Configurações do Site', anuncio: 'Criar Anúncio', produtos: 'Gerenciar Produtos', 'editar-anuncio': 'Editar Anúncio', pedidos: 'Pedidos', catalogo: 'Organizar Categorias' };
+  const titles = { inicio: 'Início', moderadores: 'Moderadores', site: 'Configurações do Site', anuncio: 'Criar Anúncio', produtos: 'Gerenciar Produtos', 'editar-anuncio': 'Editar Anúncio', pedidos: 'Pedidos', catalogo: 'Organizar Categorias', descontos: 'Descontos & Cupões' };
 
   function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -8462,6 +8668,235 @@
 
     /* Inicializa selects dos anúncios assim que possível */
     refreshChainSelects();
+
+  })();
+
+  /* ════════════════════════════════════════════════════════════
+     VIEW — DESCONTOS & CUPÕES
+  ════════════════════════════════════════════════════════════ */
+  (() => {
+    const API = window.ZZ_API_BASE || 'http://localhost:3001/api';
+
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    }
+    function showDiscAlert(msg, type = 'error') {
+      const el = document.getElementById('disc-global-alert');
+      if (!el) return;
+      el.innerHTML = `<div class="an-alert ${type === 'success' ? 'success' : ''}" style="padding:.6rem 1rem;font-size:var(--text-xs)">${msg}</div>`;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+    function scopeLabel(scope, val) {
+      const m = { global:'Global', colecao:'Coleção', categoria:'Categoria', subcategoria:'Subcategoria', zona:'Zona', produto:'Produto' };
+      return scope === 'global' ? 'Global' : `${m[scope]||scope}: ${val||'—'}`;
+    }
+    const scopeValueLabels = { colecao:'Nome da coleção', categoria:'ID da categoria', subcategoria:'ID da subcategoria', zona:'ID da zona', produto:'ID do produto' };
+
+    /* ── Abas ── */
+    document.querySelectorAll('[data-disc-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-disc-tab]').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#view-descontos .ctlg-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`disc-pane-${btn.dataset.discTab}`)?.classList.add('active');
+      });
+    });
+
+    /* ══════════ CUPÕES ══════════ */
+
+    /* Toggle form */
+    document.getElementById('disc-toggle-coupon-form')?.addEventListener('click', () => {
+      const f = document.getElementById('disc-coupon-form');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('dc-cancel-btn')?.addEventListener('click', () => {
+      document.getElementById('disc-coupon-form').style.display = 'none';
+      resetCouponForm();
+    });
+
+    /* Scope change */
+    const dcScope = document.getElementById('dc-scope');
+    const dcScopeWrap = document.getElementById('dc-scope-val-wrap');
+    const dcScopeLabel = document.getElementById('dc-scope-val-label');
+    dcScope?.addEventListener('change', () => {
+      const v = dcScope.value;
+      dcScopeWrap.style.display = v === 'global' ? 'none' : 'block';
+      if (dcScopeLabel) dcScopeLabel.textContent = scopeValueLabels[v] || 'Valor';
+    });
+
+    function resetCouponForm() {
+      ['dc-code','dc-dvalue','dc-mincart','dc-scope-val','dc-starts','dc-expires'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = id === 'dc-mincart' ? '0' : '';
+      });
+      document.getElementById('dc-dtype').value = 'percentage';
+      document.getElementById('dc-scope').value = 'global';
+      document.getElementById('dc-maxuses').value = '0';
+      document.getElementById('dc-maxuser').value = '0';
+      if (dcScopeWrap) dcScopeWrap.style.display = 'none';
+      document.getElementById('dc-form-msg').textContent = '';
+    }
+
+    document.getElementById('dc-save-btn')?.addEventListener('click', async () => {
+      const msg = document.getElementById('dc-form-msg');
+      const btn = document.getElementById('dc-save-btn');
+      msg.textContent = ''; btn.disabled = true;
+
+      const body = {
+        code:           (document.getElementById('dc-code').value||'').toUpperCase().trim(),
+        promoType:      'coupon',
+        discountType:   document.getElementById('dc-dtype').value,
+        discountValue:  parseFloat(document.getElementById('dc-dvalue').value)||0,
+        scope:          document.getElementById('dc-scope').value,
+        scopeValue:     document.getElementById('dc-scope-val')?.value?.trim()||'',
+        minCartValue:   parseFloat(document.getElementById('dc-mincart').value)||0,
+        maxUses:        parseInt(document.getElementById('dc-maxuses').value)||0,
+        maxUsesPerUser: parseInt(document.getElementById('dc-maxuser').value)||0,
+        startsAt:       document.getElementById('dc-starts').value||null,
+        expiresAt:      document.getElementById('dc-expires').value||null,
+      };
+
+      if (!body.code)          { msg.textContent='Código obrigatório.'; btn.disabled=false; return; }
+      if (!body.discountValue) { msg.textContent='Valor obrigatório.'; btn.disabled=false; return; }
+
+      try {
+        const res  = await fetch(`${API}/coupons`, { method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}`}, body:JSON.stringify(body) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error||`Erro ${res.status}`);
+        resetCouponForm();
+        document.getElementById('disc-coupon-form').style.display = 'none';
+        showDiscAlert(`Cupão "${data.coupon.code}" criado.`, 'success');
+        loadTable('coupon');
+      } catch(e) { msg.textContent = e.message; }
+      finally { btn.disabled = false; }
+    });
+
+    /* ══════════ BXGY ══════════ */
+
+    document.getElementById('disc-toggle-bxgy-form')?.addEventListener('click', () => {
+      const f = document.getElementById('disc-bxgy-form');
+      f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('db-cancel-btn')?.addEventListener('click', () => {
+      document.getElementById('disc-bxgy-form').style.display = 'none';
+    });
+
+    const dbScope = document.getElementById('db-scope');
+    const dbScopeWrap = document.getElementById('db-scope-val-wrap');
+    const dbScopeLabel = document.getElementById('db-scope-val-label');
+    dbScope?.addEventListener('change', () => {
+      const v = dbScope.value;
+      dbScopeWrap.style.display = v === 'global' ? 'none' : 'block';
+      if (dbScopeLabel) dbScopeLabel.textContent = scopeValueLabels[v] || 'Valor';
+    });
+
+    document.getElementById('db-save-btn')?.addEventListener('click', async () => {
+      const msg = document.getElementById('db-form-msg');
+      const btn = document.getElementById('db-save-btn');
+      msg.textContent = ''; btn.disabled = true;
+
+      const body = {
+        code:          (document.getElementById('db-code').value||'').toUpperCase().trim(),
+        promoType:     'bxgy',
+        discountType:  'percentage',
+        discountValue: 100,
+        buyQty:        parseInt(document.getElementById('db-buy').value)||2,
+        getQty:        parseInt(document.getElementById('db-get').value)||1,
+        freeRule:      document.getElementById('db-freerule').value,
+        scope:         document.getElementById('db-scope').value,
+        scopeValue:    (document.getElementById('db-scope-val')?.value||'').trim(),
+        minCartValue:  parseFloat(document.getElementById('db-mincart').value)||0,
+        startsAt:      document.getElementById('db-starts').value||null,
+        expiresAt:     document.getElementById('db-expires').value||null,
+      };
+
+      if (!body.code) { msg.textContent='Código obrigatório.'; btn.disabled=false; return; }
+
+      try {
+        const res  = await fetch(`${API}/coupons`, { method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}`}, body:JSON.stringify(body) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error||`Erro ${res.status}`);
+        document.getElementById('disc-bxgy-form').style.display = 'none';
+        showDiscAlert(`Oferta "${data.coupon.code}" criada.`, 'success');
+        loadTable('bxgy');
+      } catch(e) { msg.textContent = e.message; }
+      finally { btn.disabled = false; }
+    });
+
+    /* ══════════ TABELA PARTILHADA ══════════ */
+
+    async function loadTable(promoType) {
+      const tbodyId = promoType === 'coupon' ? 'dc-table-body' : 'db-table-body';
+      const tbody   = document.getElementById(tbodyId);
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted)">A carregar…</td></tr>';
+      try {
+        const res    = await fetch(`${API}/coupons?promoType=${promoType}&limit=200`, { headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
+        const data   = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        const list   = data.coupons;
+        if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--color-text-muted);font-size:var(--text-sm)">Nenhum registo ainda.</td></tr>'; return; }
+
+        tbody.innerHTML = list.map(c => {
+          const disc = promoType === 'coupon'
+            ? (c.discountType==='percentage' ? `${c.discountValue}%` : `R$ ${c.discountValue.toFixed(2)}`)
+            : `Compre ${c.buyQty} Leve ${c.buyQty+c.getQty}`;
+          const expired = c.expiresAt && new Date(c.expiresAt) < new Date();
+          const stateBadge = c.active
+            ? '<span class="mod-badge publicado" style="font-size:.65rem">Activo</span>'
+            : '<span class="mod-badge inativo" style="font-size:.65rem">Inactivo</span>';
+          const expBadge = expired ? ' <span class="mod-badge cancelado" style="font-size:.65rem">Expirado</span>' : '';
+          return `<tr>
+            <td style="font-family:var(--font-head);font-weight:700;letter-spacing:.06em;padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${c.code}</td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${disc}</td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);font-size:var(--text-xs);color:var(--color-text-muted)">${scopeLabel(c.scope,c.scopeValue)}</td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);font-size:var(--text-xs)">
+              ${c.expiresAt ? `Até ${fmtDate(c.expiresAt)}${expBadge}` : '—'}
+            </td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${c.maxUses>0?`${c.usedCount}/${c.maxUses}`:c.usedCount||0}</td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04)">${stateBadge}</td>
+            <td style="padding:.65rem .9rem;border-bottom:1px solid rgba(245,240,230,.04);white-space:nowrap;text-align:right">
+              <button class="btn-ghost disc-toggle-btn" style="padding:.3rem .65rem;font-size:var(--text-xs)" data-id="${c._id}" data-active="${c.active}" data-type="${promoType}">
+                ${c.active ? 'Pausar' : 'Activar'}
+              </button>
+              <button class="btn-ghost disc-del-btn" style="padding:.3rem .65rem;font-size:var(--text-xs);color:#f07080;border-color:rgba(220,20,60,.2);margin-left:.3rem" data-id="${c._id}" data-code="${c.code}" data-type="${promoType}">
+                Apagar
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+
+        tbody.querySelectorAll('.disc-toggle-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              const res = await fetch(`${API}/coupons/${btn.dataset.id}`, { method:'PUT', headers:{'Content-Type':'application/json', Authorization:`Bearer ${ZZAuth.getToken()}`}, body:JSON.stringify({active: btn.dataset.active!=='true'}) });
+              if (!res.ok) { const d=await res.json(); throw new Error(d.error); }
+              loadTable(btn.dataset.type);
+            } catch(e) { showDiscAlert(e.message); }
+          });
+        });
+        tbody.querySelectorAll('.disc-del-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm(`Apagar o cupão "${btn.dataset.code}"?`)) return;
+            try {
+              const res = await fetch(`${API}/coupons/${btn.dataset.id}`, { method:'DELETE', headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
+              if (!res.ok) { const d=await res.json(); throw new Error(d.error); }
+              showDiscAlert('Cupão apagado.', 'success');
+              loadTable(btn.dataset.type);
+            } catch(e) { showDiscAlert(e.message); }
+          });
+        });
+      } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#f07080;font-size:var(--text-sm)">${e.message}</td></tr>`;
+      }
+    }
+
+    /* Carrega ao entrar na view */
+    document.querySelectorAll('[data-view="descontos"]').forEach(el => {
+      el.addEventListener('click', () => { loadTable('coupon'); loadTable('bxgy'); });
+    });
 
   })();
 
