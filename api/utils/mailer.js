@@ -59,7 +59,9 @@ function base(content, preheader) {
   /* Técnica multi-camada para máxima compatibilidade:
      - span visível 1px (Outlook desktop lê para preview)
      - div display:none (Gmail/Apple Mail) */
-  const preheaderHtml = '';
+  const preheaderHtml = preheader ? `
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<span style="font-size:1px;color:#04060f;display:block;line-height:1px">${preheader}</span>` : '';
   const cleanContent = content;
   return `<!DOCTYPE html>
 <html lang="pt-BR">
