@@ -29,9 +29,9 @@
   <link rel="stylesheet" href="../css/auth-v2.css">
 
   <style>
-    body { padding-top: 64px; }
+    body { padding-top: 64px; overflow-x: hidden; }
     @media (max-width: 640px) { body { padding-top: 56px; } }
-    @media (max-width: 480px) { body { padding-top: 52px; } }
+    @media (max-width: 375px) { body { padding-top: 52px; } }
 
     /* ── LOADING / ERROR ──────────────────────────────────── */
     #state-loading {
@@ -49,7 +49,8 @@
     #state-error a  { color: var(--color-red); }
 
     /* ── BREADCRUMB ─────────────────────────────────────── */
-    .breadcrumb { padding: 1.2rem 5%; display: flex; align-items: center; gap: .5rem; font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); border-bottom: 1px solid var(--color-border-faint); }
+    .breadcrumb { padding: 1.2rem 5%; display: flex; align-items: center; gap: .5rem; font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: var(--tracking-wider); text-transform: uppercase; color: var(--color-text-faint); border-bottom: 1px solid var(--color-border-faint); overflow-x: auto; white-space: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; max-width: 100%; }
+    .breadcrumb::-webkit-scrollbar { display: none; }
     .breadcrumb a { color: var(--color-text-faint); text-decoration: none; transition: color var(--ease-fast); }
     .breadcrumb a:hover { color: var(--color-red); }
     .breadcrumb .sep { color: var(--color-red); }

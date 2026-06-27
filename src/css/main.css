@@ -23,6 +23,7 @@ section[id] { scroll-margin-top: 64px; }
 }
 
 body {
+  overflow-x: hidden; /* previne scroll horizontal em qualquer página */
   background: var(--color-bg-base);
   color: var(--color-offwhite);
   font-family: var(--font-body);

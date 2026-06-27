@@ -11,17 +11,19 @@
   align-items: unset !important;
   justify-content: unset !important;
   overflow: visible !important;
-  /* Garante sempre fixo no topo — sobrepõe qualquer regra de main.css */
+  /* Sempre fixo no topo */
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   width: 100% !important;
-  z-index: 100 !important;
-  background: var(--color-navy-nav);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-red-border);
+  z-index: 9000 !important;
+  /* Fundo sólido com sombra para ser visível em qualquer background */
+  background: rgba(4, 6, 22, 0.98) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(220, 20, 60, 0.35) !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* ── Barra principal (64px, layout flex original) ──────── */
@@ -713,37 +715,28 @@ body.auth-modal-open .zz-nav-actions { pointer-events: none; }
   /* Padding reduzido em tablet */
   .zz-nav-bar { padding: 0 4%; }
 }
-@media (max-width: 900px) {
-  /* Garante que a navbar nunca muda de altura — sem conteúdo que aumente */
-  #zz-header { max-height: 64px; }
-}
 @media (max-width: 640px) {
-  /* No breakpoint do hamburguer: estabiliza a altura */
-  #zz-header { max-height: 56px; }
-  .zz-nav-bar { padding: 0 3.5%; height: 56px; }
-  .zz-nav-bar .nav-logo-img { height: 30px; }
+  .zz-nav-bar { padding: 0 3%; height: 56px; }
+  .zz-nav-bar .nav-logo-img { height: 28px; }
   .nav-mobile { top: 56px; }
-  .zz-srch-panel { top: 56px !important; }
   /* Esconde favoritos na barra — acessível via menu mobile */
-  .zz-fav-btn { display: none; }
+  .zz-fav-btn { display: none !important; }
   /* Ícones mais compactos */
-  .zz-cart-btn { width: 32px; height: 32px; }
-  .zz-cart-btn svg { width: 18px; height: 18px; }
-  .zz-srch-trigger svg { width: 18px; height: 18px; }
-}
-@media (max-width: 480px) {
-  #zz-header { max-height: 52px; }
-  .zz-nav-bar { padding: 0 3%; height: 52px; }
-  .nav-mobile { top: 52px; }
-  .zz-nav-bar .nav-logo-img { height: 26px; }
-  .nav-menu-btn { width: 36px; height: 36px; }
-  .nav-menu-btn svg { width: 20px; height: 20px; }
-  /* Gap mínimo entre ícones */
   .zz-nav-actions { gap: 0; }
+  .zz-cart-btn { width: 40px; height: 56px; border-radius: 0; }
+  .zz-cart-btn svg { width: 20px; height: 20px; }
+  .zz-srch-trigger { width: 40px; height: 56px; }
+  .zz-srch-trigger svg { width: 18px; height: 18px; }
+  .nav-menu-btn { width: 44px; height: 56px; padding: 0; }
 }
 @media (max-width: 375px) {
-  .zz-nav-bar { padding: 0 2.5%; }
-  .zz-cart-btn svg { width: 16px; height: 16px; }
+  .zz-nav-bar { padding: 0 2%; height: 52px; }
+  .nav-mobile { top: 52px; }
+  .zz-nav-bar .nav-logo-img { height: 24px; }
+  .zz-cart-btn { width: 36px; height: 52px; }
+  .zz-cart-btn svg { width: 18px; height: 18px; }
+  .zz-srch-trigger { width: 36px; height: 52px; }
+  .nav-menu-btn { width: 40px; height: 52px; }
 }
 
 /* ══════════════════════════════════════════════════════════
