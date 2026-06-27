@@ -1078,16 +1078,17 @@
         <div class="zz-mega-col">
           <p class="zz-mega-col-title">Promoções</p>
           <ul>
-            <li><a href="catalogo.html?zona=ofertas" class="zz-mega-highlight">Ver Todas as Ofertas <em class="zz-hl-arrow">→</em></a></li>
-            <li><a href="catalogo.html?zona=ofertas&discount_min=30" class="zz-mega-link">Até 30% Off</a></li>
-            <li><a href="catalogo.html?zona=ofertas&discount_min=50" class="zz-mega-link">Até 50% Off</a></li>
+            <li><a href="catalogo.html?onSale=1" class="zz-mega-highlight">Ver Todas as Ofertas <em class="zz-hl-arrow">→</em></a></li>
+            <li><a href="catalogo.html?onSale=1&discountMin=10" class="zz-mega-link">10% Off ou mais</a></li>
+            <li><a href="catalogo.html?onSale=1&discountMin=30" class="zz-mega-link">30% Off ou mais</a></li>
+            <li><a href="catalogo.html?onSale=1&discountMin=50" class="zz-mega-link">50% Off ou mais</a></li>
           </ul>
         </div>
         <div class="zz-mega-col">
           <p class="zz-mega-col-title">Por Segmento</p>
           <ul>
-            <li><a href="catalogo.html?zona=ofertas&zona_filtro=masculino" class="zz-mega-link">Masculino em Desconto</a></li>
-            <li><a href="catalogo.html?zona=ofertas&zona_filtro=feminino" class="zz-mega-link">Feminino em Desconto</a></li>
+            <li><a href="catalogo.html?zona=masculino&onSale=1" class="zz-mega-link">Masculino em Desconto</a></li>
+            <li><a href="catalogo.html?zona=feminino&onSale=1" class="zz-mega-link">Feminino em Desconto</a></li>
           </ul>
         </div>
         <div class="zz-mega-col zz-col-collections">
@@ -1556,9 +1557,12 @@
       if (p.get('modelo'))       state.modelos.add(p.get('modelo'));
       if (p.get('colecao'))      state.colecoes.add(p.get('colecao'));
       if (p.get('q'))            state.q              = p.get('q');
+      if (p.get('onSale') === '1' || p.get('onSale') === 'true') state.onSale = true;
+      if (p.get('discountMin'))  state.discountMin    = p.get('discountMin');
+      if (p.get('discountMax'))  state.discountMax    = p.get('discountMax');
       /* Ordenação padrão por zona especial */
-      if (state.zonaId === 'ofertas')      state.ordenacao = 'preco-asc';   // menor preço primeiro
-      if (state.zonaId === 'lancamentos')  state.ordenacao = 'newest';       // mais recente primeiro
+      if (state.zonaId === 'ofertas' || state.onSale) state.ordenacao = 'preco-asc';
+      if (state.zonaId === 'lancamentos') state.ordenacao = 'newest';
     }
 
     /* ── Fetch ───────────────────────────────────────────────── */
@@ -2261,6 +2265,13 @@
       readUrl();
       const si = document.getElementById('search-input');
       if (si && state.q) si.value = state.q;
+      /* Sync checkbox/inputs from URL state */
+      const fosCb = document.getElementById('filter-on-sale');
+      const dMin  = document.getElementById('discount-min');
+      const dMax  = document.getElementById('discount-max');
+      if (fosCb && state.onSale)         fosCb.checked = true;
+      if (dMin  && state.discountMin)    dMin.value    = state.discountMin;
+      if (dMax  && state.discountMax)    dMax.value    = state.discountMax;
       await fetchAll();
       buildFilters();
       renderSpecialZoneBanner();

@@ -828,22 +828,25 @@
     /* ── Col 2: Drops Anteriores (agrupados por coleção) ── */
     if (colPrev) {
       const prods   = prodData.products || [];
-      /* Agrupa por coleção → extrai drops distintos */
-      const cols    = [...new Set(prods.map(p => p.colecao).filter(Boolean))];
-      /* Exclui a coleção do drop activo actual */
-      const current = settings.dropActive ? settings.dropTitle : null;
-
-      /* Tenta também identificar pelo título do drop nas coleções */
-      const previous = cols.filter(c => !current || c.toLowerCase() !== current.toLowerCase());
+      /* Extrai drops distintos pelo campo "colecao" dos produtos dropExclusivo */
+      const dropCols = [...new Set(prods.map(p => p.colecao).filter(Boolean))];
+      /* Exclui o drop activo actual para mostrar só os anteriores */
+      const currentTitle = settings.dropActive ? settings.dropTitle : null;
+      const previous = dropCols.filter(c =>
+        !currentTitle || c.toLowerCase() !== currentTitle.toLowerCase()
+      );
 
       if (previous.length) {
         colPrev.innerHTML = `
           <p class="zz-mega-col-title">Drops Anteriores</p>
           <ul>
             ${previous.slice(0, 5).map(c =>
-              `<li><a href="${catBase}?colecao=${encodeURIComponent(c)}" class="zz-mega-link">${c}</a></li>`
+              `<li><a href="${catBase}?zona=lancamentos&colecao=${encodeURIComponent(c)}" class="zz-mega-link">
+                <span style="font-size:var(--text-2xs);color:rgba(245,240,230,.4);display:block;letter-spacing:.06em;text-transform:uppercase">Drop</span>
+                ${c}
+              </a></li>`
             ).join('')}
-            <li style="margin-top:.5rem"><a href="${catBase}?zona=lancamentos" class="zz-mega-link" style="color:var(--color-red)">Ver todos →</a></li>
+            <li style="margin-top:.4rem"><a href="${catBase}?zona=lancamentos" class="zz-mega-link" style="color:var(--color-red)">Ver todos →</a></li>
           </ul>`;
       } else {
         colPrev.innerHTML = `
