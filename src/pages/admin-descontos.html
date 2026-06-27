@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="../images/favico.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Descontos e Cupões — ZENITH ZONE Admin</title>
+  <title>Descontos e Cupons — ZENITH ZONE Admin</title>
   <link rel="stylesheet" href="../css/tokens.css">
   <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,7 +99,7 @@
 
   <!-- Cabeçalho -->
   <div class="page-head">
-    <h1>Descontos & Cupões</h1>
+    <h1>Descontos & Cupons</h1>
     <a href="admin-panel.html">← Painel Admin</a>
   </div>
 
@@ -108,7 +108,7 @@
 
   <!-- Abas -->
   <div class="tabs">
-    <button type="button" class="tab-btn active" data-tab="cupoes">Cupões</button>
+    <button type="button" class="tab-btn active" data-tab="cupoes">Cupons</button>
     <button type="button" class="tab-btn" data-tab="bxgy">Compre X Leve Y</button>
   </div>
 
@@ -116,9 +116,9 @@
   <div id="tab-cupoes" class="tab-panel active">
     <div class="card">
       <div class="card-head">
-        <span class="card-title">Novo Cupão</span>
+        <span class="card-title">Novo Cupom</span>
         <button type="button" class="btn btn-ghost btn-sm" id="toggle-coupon-form">
-          + Criar cupão
+          + Criar cupom
         </button>
       </div>
 
@@ -189,7 +189,7 @@
 
           <div style="display:flex;gap:.75rem;margin-top:1.1rem;align-items:center">
             <button type="button" class="btn btn-primary" id="coupon-save-btn">
-              Guardar Cupão
+              Guardar Cupom
             </button>
             <button type="button" class="btn btn-ghost" id="coupon-cancel-btn">Cancelar</button>
             <div id="coupon-form-alert" style="flex:1"></div>
@@ -197,7 +197,7 @@
         </div>
       </div>
 
-      <!-- Tabela de cupões -->
+      <!-- Tabela de cupons -->
       <div class="table-wrap">
         <table>
           <thead>
@@ -393,7 +393,7 @@
     document.getElementById('coupon-form-alert').innerHTML = '';
   }
 
-  /* Guardar cupão */
+  /* Guardar cupom */
   document.getElementById('coupon-save-btn')?.addEventListener('click', async () => {
     const alertEl = document.getElementById('coupon-form-alert');
     const btn     = document.getElementById('coupon-save-btn');
@@ -428,7 +428,7 @@
       if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
       resetCouponForm();
       document.getElementById('coupon-form-wrap').style.display = 'none';
-      showGlobal(`Cupão "${data.coupon.code}" criado com sucesso.`, 'success');
+      showGlobal(`Cupom "${data.coupon.code}" criado com sucesso.`, 'success');
       loadCoupons();
     } catch (err) {
       alertEl.innerHTML = `<p class="coupon-msg error">${err.message}</p>`;
@@ -437,7 +437,7 @@
     }
   });
 
-  /* Carregar e renderizar tabela de cupões */
+  /* Carregar e renderizar tabela de cupons */
   async function loadCoupons(promoType = 'coupon') {
     const tbody = document.getElementById(promoType === 'coupon' ? 'coupon-table-body' : 'bxgy-table-body');
     tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="spin"></div></td></tr>';
@@ -511,7 +511,7 @@
   }
 
   async function deleteCoupon(id, promoType) {
-    if (!confirm('Apagar este cupão definitivamente?')) return;
+    if (!confirm('Apagar este cupom definitivamente?')) return;
     try {
       const token = ZZAuth.getToken();
       const res   = await fetch(`${API}/coupons/${id}`, {
@@ -519,7 +519,7 @@
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-      showGlobal('Cupão apagado.', 'success');
+      showGlobal('Cupom apagado.', 'success');
       loadCoupons(promoType);
     } catch (err) { showGlobal(err.message); }
   }

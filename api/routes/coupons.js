@@ -10,7 +10,7 @@ const Product      = require('../models/Product');
 ═══════════════════════════════════════════════════════ */
 
 /**
- * Verifica se os itens do carrinho estão dentro do escopo do cupão.
+ * Verifica se os itens do carrinho estão dentro do escopo do cupom.
  * Para scope='global' sempre retorna true.
  * Para outros scopes, pelo menos 1 item deve corresponder.
  */
@@ -115,7 +115,7 @@ router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
       return res.status(422).json({ error: 'ID inválido.' });
 
     const coupon = await Coupon.findById(req.params.id).select('-usedBy');
-    if (!coupon) return res.status(404).json({ error: 'Cupão não encontrado.' });
+    if (!coupon) return res.status(404).json({ error: 'Cupom não encontrado.' });
     res.json({ coupon: coupon.toPublic() });
   } catch (err) {
     console.error('coupons/get:', err);
@@ -123,14 +123,14 @@ router.get('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-/* POST /api/coupons — cria cupão (admin) */
+/* POST /api/coupons — cria cupom (admin) */
 router.post('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const coupon = await Coupon.create(req.body);
     res.status(201).json({ coupon: coupon.toPublic() });
   } catch (err) {
     if (err.code === 11000)
-      return res.status(409).json({ error: 'Código de cupão já existe.' });
+      return res.status(409).json({ error: 'Código de cupom já existe.' });
     if (err.name === 'ValidationError')
       return res.status(422).json({ error: err.message });
     console.error('coupons/create:', err);
@@ -138,7 +138,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-/* PUT /api/coupons/:id — actualiza cupão (admin) */
+/* PUT /api/coupons/:id — actualiza cupom (admin) */
 router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id))
@@ -150,11 +150,11 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
       { new: true, runValidators: true },
     ).select('-usedBy');
 
-    if (!coupon) return res.status(404).json({ error: 'Cupão não encontrado.' });
+    if (!coupon) return res.status(404).json({ error: 'Cupom não encontrado.' });
     res.json({ coupon: coupon.toPublic() });
   } catch (err) {
     if (err.code === 11000)
-      return res.status(409).json({ error: 'Código de cupão já existe.' });
+      return res.status(409).json({ error: 'Código de cupom já existe.' });
     if (err.name === 'ValidationError')
       return res.status(422).json({ error: err.message });
     console.error('coupons/update:', err);
@@ -162,14 +162,14 @@ router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-/* DELETE /api/coupons/:id — remove cupão (admin) */
+/* DELETE /api/coupons/:id — remove cupom (admin) */
 router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id))
       return res.status(422).json({ error: 'ID inválido.' });
 
     const coupon = await Coupon.findByIdAndDelete(req.params.id);
-    if (!coupon) return res.status(404).json({ error: 'Cupão não encontrado.' });
+    if (!coupon) return res.status(404).json({ error: 'Cupom não encontrado.' });
     res.json({ ok: true });
   } catch (err) {
     console.error('coupons/delete:', err);
@@ -191,23 +191,23 @@ router.post('/validate', async (req, res) => {
 
     const coupon = await Coupon.findOne({ code: code.trim().toUpperCase() });
     if (!coupon || !coupon.active)
-      return res.status(404).json({ error: 'Cupão inválido ou inactivo.' });
+      return res.status(404).json({ error: 'Cupom inválido ou inactivo.' });
 
     const now = new Date();
     if (coupon.startsAt && coupon.startsAt > now)
-      return res.status(400).json({ error: 'Este cupão ainda não está activo.' });
+      return res.status(400).json({ error: 'Este cupom ainda não está activo.' });
     if (coupon.expiresAt && coupon.expiresAt < now)
-      return res.status(400).json({ error: 'Este cupão expirou.' });
+      return res.status(400).json({ error: 'Este cupom expirou.' });
     if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses)
-      return res.status(400).json({ error: 'Este cupão atingiu o limite de utilizações.' });
+      return res.status(400).json({ error: 'Este cupom atingiu o limite de utilizações.' });
     if (coupon.minCartValue > 0 && cartTotal < coupon.minCartValue)
       return res.status(400).json({
-        error: `Carrinho mínimo de R$ ${coupon.minCartValue.toFixed(2)} para este cupão.`,
+        error: `Carrinho mínimo de R$ ${coupon.minCartValue.toFixed(2)} para este cupom.`,
       });
 
     const scopeOk = await itemsMatchScope(coupon, cartItems);
     if (!scopeOk)
-      return res.status(400).json({ error: 'Nenhum produto no carrinho é elegível para este cupão.' });
+      return res.status(400).json({ error: 'Nenhum produto no carrinho é elegível para este cupom.' });
 
     /* Verifica limite por utilizador (se autenticado) */
     const authHeader = req.headers.authorization;
@@ -217,7 +217,7 @@ router.post('/validate', async (req, res) => {
         const payload = jwt.verify(authHeader.replace('Bearer ', ''), process.env.JWT_SECRET);
         const userUsage = coupon.usedBy.filter(u => String(u.userId) === String(payload._id)).length;
         if (userUsage >= coupon.maxUsesPerUser)
-          return res.status(400).json({ error: 'Já utilizou este cupão o número máximo de vezes.' });
+          return res.status(400).json({ error: 'Já utilizou este cupom o número máximo de vezes.' });
       } catch { /* token inválido — ignora verificação por utilizador */ }
     }
 
@@ -240,7 +240,7 @@ router.post('/validate', async (req, res) => {
     });
   } catch (err) {
     console.error('coupons/validate:', err);
-    res.status(500).json({ error: 'Erro interno ao validar cupão.' });
+    res.status(500).json({ error: 'Erro interno ao validar cupom.' });
   }
 });
 

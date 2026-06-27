@@ -2524,7 +2524,7 @@
         <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
         <line x1="7" y1="7" x2="7.01" y2="7"/>
       </svg>
-      Descontos & Cupões
+      Descontos & Cupons
     </button>
 
     <p class="sidebar-section-label">Acesso</p>
@@ -4134,15 +4134,15 @@
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
       <div>
         <p class="page-label">Promoções</p>
-        <h1 class="page-title">Descontos & <span>Cupões</span></h1>
-        <p class="page-sub">Crie cupões de desconto e ofertas progressivas "Compre X Leve Y".</p>
+        <h1 class="page-title">Descontos & <span>Cupons</span></h1>
+        <p class="page-sub">Crie cupons de desconto e ofertas progressivas "Compre X Leve Y".</p>
       </div>
       <div id="disc-global-alert" style="display:none"></div>
     </div>
 
     <!-- Abas -->
     <div style="display:flex;gap:0;border-bottom:1px solid rgba(245,240,230,.1);margin-bottom:1.25rem">
-      <button type="button" class="ctlg-tab active" data-disc-tab="cupoes" style="padding:.7rem 1.25rem">Cupões</button>
+      <button type="button" class="ctlg-tab active" data-disc-tab="cupoes" style="padding:.7rem 1.25rem">Cupons</button>
       <button type="button" class="ctlg-tab" data-disc-tab="bxgy" style="padding:.7rem 1.25rem">Compre X Leve Y</button>
     </div>
 
@@ -4150,7 +4150,7 @@
     <div id="disc-pane-cupoes" class="ctlg-pane active">
       <div class="card" style="margin-bottom:1rem">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(245,240,230,.06)">
-          <span class="card-title">Novo Cupão</span>
+          <span class="card-title">Novo Cupom</span>
           <button type="button" class="btn-ghost" id="disc-toggle-coupon-form" style="padding:.4rem .9rem;font-size:var(--text-xs)">+ Criar</button>
         </div>
 
@@ -4209,13 +4209,13 @@
             </div>
           </div>
           <div style="display:flex;gap:.75rem;align-items:center;margin-top:1rem">
-            <button type="button" class="btn-primary" id="dc-save-btn">Guardar Cupão</button>
+            <button type="button" class="btn-primary" id="dc-save-btn">Guardar Cupom</button>
             <button type="button" class="btn-ghost" id="dc-cancel-btn">Cancelar</button>
             <span id="dc-form-msg" style="font-size:var(--text-xs);color:#f07080"></span>
           </div>
         </div>
 
-        <!-- Tabela cupões -->
+        <!-- Tabela cupons -->
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
             <thead>
@@ -4529,7 +4529,7 @@
   }
 
   /* ── NAVEGAÇÃO ENTRE VIEWS ──────────────────────────────── */
-  const titles = { inicio: 'Início', moderadores: 'Moderadores', site: 'Configurações do Site', anuncio: 'Criar Anúncio', produtos: 'Gerenciar Produtos', 'editar-anuncio': 'Editar Anúncio', pedidos: 'Pedidos', catalogo: 'Organizar Categorias', descontos: 'Descontos & Cupões' };
+  const titles = { inicio: 'Início', moderadores: 'Moderadores', site: 'Configurações do Site', anuncio: 'Criar Anúncio', produtos: 'Gerenciar Produtos', 'editar-anuncio': 'Editar Anúncio', pedidos: 'Pedidos', catalogo: 'Organizar Categorias', descontos: 'Descontos & Cupons' };
 
   function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -8767,7 +8767,7 @@
         if (!res.ok) throw new Error(data.error||`Erro ${res.status}`);
         resetCouponForm();
         document.getElementById('disc-coupon-form').style.display = 'none';
-        showDiscAlert(`Cupão "${data.coupon.code}" criado.`, 'success');
+        showDiscAlert(`Cupom "${data.coupon.code}" criado.`, 'success');
         loadTable('coupon');
       } catch(e) { msg.textContent = e.message; }
       finally { btn.disabled = false; }
@@ -8879,11 +8879,11 @@
         });
         tbody.querySelectorAll('.disc-del-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
-            if (!confirm(`Apagar o cupão "${btn.dataset.code}"?`)) return;
+            if (!confirm(`Apagar o cupom "${btn.dataset.code}"?`)) return;
             try {
               const res = await fetch(`${API}/coupons/${btn.dataset.id}`, { method:'DELETE', headers:{Authorization:`Bearer ${ZZAuth.getToken()}`} });
               if (!res.ok) { const d=await res.json(); throw new Error(d.error); }
-              showDiscAlert('Cupão apagado.', 'success');
+              showDiscAlert('Cupom apagado.', 'success');
               loadTable(btn.dataset.type);
             } catch(e) { showDiscAlert(e.message); }
           });

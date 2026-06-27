@@ -15,7 +15,7 @@ const couponSchema = new mongoose.Schema({
   /* ── Tipo de promoção ───────────────────────────────── */
   promoType: {
     type: String,
-    enum: ['coupon', 'bxgy'], // cupão ou "compre X leve Y"
+    enum: ['coupon', 'bxgy'], // cupom ou "compre X leve Y"
     default: 'coupon',
   },
 

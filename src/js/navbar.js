@@ -484,7 +484,7 @@
     else sessionStorage.removeItem(COUPON_KEY);
   }
 
-  /* Injeta o HTML do cupão no footer do drawer (uma vez) */
+  /* Injeta o HTML do cupom no footer do drawer (uma vez) */
   function _couponInject() {
     if (!cartDrawer || cartDrawer.querySelector('#zz-coupon-wrap')) return;
     const footer = cartDrawer.querySelector('.zz-cart-drawer-footer');
@@ -492,7 +492,7 @@
     footer.insertAdjacentHTML('afterbegin', `
 <div id="zz-coupon-wrap" style="padding:.75rem 1rem .5rem;border-bottom:1px solid rgba(245,240,230,.06)">
   <div id="zz-coupon-input-row" style="display:flex;gap:.5rem">
-    <input id="zz-coupon-input" type="text" placeholder="Código do cupão"
+    <input id="zz-coupon-input" type="text" placeholder="Código do cupom"
       style="flex:1;background:rgba(245,240,230,.06);border:1px solid rgba(245,240,230,.12);border-radius:4px;padding:.5rem .75rem;color:#f5f0e6;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;outline:none"
       autocomplete="off" spellcheck="false">
     <button id="zz-coupon-apply-btn" type="button"
@@ -508,7 +508,7 @@
     <span id="zz-coupon-discount-label" style="flex:1;font-size:.72rem;color:#5dc78c"></span>
     <button id="zz-coupon-remove-btn" type="button"
       style="background:none;border:none;color:#4a4a5a;cursor:pointer;font-size:1rem;line-height:1;padding:0 .2rem"
-      title="Remover cupão">×</button>
+      title="Remover cupom">×</button>
   </div>
 </div>`);
   }
@@ -574,7 +574,7 @@
 
       if (!res.ok) {
         if (msg) {
-          msg.textContent  = data.error || 'Cupão inválido.';
+          msg.textContent  = data.error || 'Cupom inválido.';
           msg.style.cssText = 'margin:.35rem 0 0;font-size:.72rem;color:#f07080;display:block';
         }
       } else {
@@ -592,7 +592,7 @@
       }
     } catch {
       if (msg) {
-        msg.textContent  = 'Erro ao validar cupão.';
+        msg.textContent  = 'Erro ao validar cupom.';
         msg.style.cssText = 'margin:.35rem 0 0;font-size:.72rem;color:#f07080;display:block';
       }
     } finally {
@@ -609,7 +609,7 @@
     _couponUpdateUI();
   });
 
-  /* API pública do cupão */
+  /* API pública do cupom */
   window.ZZCoupon = {
     get state()    { return _coupon; },
     get discount() { return _coupon?.discount || 0; },

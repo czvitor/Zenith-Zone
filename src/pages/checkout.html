@@ -90,7 +90,7 @@
     .secure-note { text-align: center; font-size: var(--text-2xs); color: var(--color-text-ghost); letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
     .secure-note svg { width: 12px; height: 12px; color: var(--color-text-faint); }
 
-    /* Cupão */
+    /* Cupom */
     .coupon-wrap { border: 1px solid rgba(245,240,230,.08); border-radius: var(--radius-xs); padding: 0.9rem 1rem; }
     .coupon-label { font-size: var(--text-2xs); font-weight: var(--fw-bold); letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 0.5rem; }
     .coupon-input-row { display: flex; gap: 0.5rem; }
@@ -201,7 +201,7 @@
     const subtotal = items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
     const title    = isCart ? 'Finalizar Compra' : 'Comprar Agora';
 
-    /* Lê cupão aplicado no carrinho (via sessionStorage) */
+    /* Lê cupom aplicado no carrinho (via sessionStorage) */
     let coupon = null;
     try { coupon = JSON.parse(sessionStorage.getItem('zz_coupon')); } catch { coupon = null; }
 
@@ -239,7 +239,7 @@
       if (coupon) {
         w.innerHTML = `
           <div class="coupon-wrap">
-            <p class="coupon-label">Cupão aplicado</p>
+            <p class="coupon-label">Cupom aplicado</p>
             <div class="coupon-applied-row" style="display:flex">
               <span class="coupon-applied-badge">✔ ${coupon.code}
                 — ${coupon.discountType === 'percentage' ? `-${coupon.discountValue}%` : `-${fmtPrice(coupon.discountValue)}`}
@@ -256,7 +256,7 @@
       } else {
         w.innerHTML = `
           <div class="coupon-wrap">
-            <p class="coupon-label">Código de cupão</p>
+            <p class="coupon-label">Código de cupom</p>
             <div class="coupon-input-row">
               <input id="co-coupon-input" type="text" placeholder="VERAO2026" autocomplete="off" spellcheck="false">
               <button id="co-coupon-apply" type="button" class="coupon-apply-btn">Aplicar</button>
@@ -283,7 +283,7 @@
             });
             const data = await res.json();
             if (!res.ok) {
-              msg.textContent = data.error || 'Cupão inválido.';
+              msg.textContent = data.error || 'Cupom inválido.';
               msg.className   = 'coupon-msg error';
               msg.style.display = 'block';
             } else {
@@ -293,7 +293,7 @@
               renderSummary();
             }
           } catch {
-            msg.textContent = 'Erro ao validar cupão.';
+            msg.textContent = 'Erro ao validar cupom.';
             msg.className   = 'coupon-msg error';
             msg.style.display = 'block';
           } finally {
