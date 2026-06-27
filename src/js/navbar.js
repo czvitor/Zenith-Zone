@@ -779,6 +779,32 @@
 
 })();
 
+/* ── Mobile Nav Toggle — garante que funciona em todas as páginas ──
+   (main.js tem o mesmo handler mas não é carregado em produto.html e outros) */
+;(function () {
+  const menuBtn   = document.getElementById('nav-menu-btn');
+  const mobileNav = document.getElementById('nav-mobile');
+  if (!menuBtn || !mobileNav) return;
+  /* Evita duplicar o listener se main.js também correu */
+  if (menuBtn.dataset.navBound) return;
+  menuBtn.dataset.navBound = '1';
+
+  menuBtn.addEventListener('click', () => {
+    menuBtn.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+    menuBtn.setAttribute('aria-label',
+      mobileNav.classList.contains('open') ? 'Fechar menu' : 'Abrir menu');
+  });
+
+  mobileNav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      menuBtn.classList.remove('open');
+      mobileNav.classList.remove('open');
+      menuBtn.setAttribute('aria-label', 'Abrir menu');
+    });
+  });
+})();
+
 /* ── Drop Nav Button + Mega Menu — carrega drop activo ── */
 (async function () {
   const colAtual  = document.getElementById('mega-drop-atual');
